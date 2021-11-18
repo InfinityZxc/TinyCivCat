@@ -5,8 +5,8 @@ main_collection = /main/main.collectionc
 shared_state = 1
 
 [display]
-width = 4096
-height = 2048
+width = 1152
+height = 1024
 
 [android]
 input_method = HiddenInputField

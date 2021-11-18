@@ -1,28 +1,33 @@
 local hex_size = 128
-local boardwidth = 10
-local boardheight = 10
+local boardwidth = 8
+local boardheight = 8
+
+local tile_types = { hash("green"), hash("blue") }
 
 function init(self)
-	-- Add initialization code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
 	new_board()
 end
 
 function new_board()
-	math.randomseed(os.time())
-
+	--math.randomseed(os.time())
 	local board = {}
 	local pos = vmath.vector3()
 	local x = 0
 	local y = 0
 	for x = 0,boardwidth-1 do
-		pos.x = 128*x;
+		pos.x = 64+hex_size*x;
 		board[x] = {}
 		for y = 0,boardheight-1 do
-			pos.y = 128*y;
-			local id = factory.create("#hex_factory", pos, null)
-			board[x][y] = { id = id, x = x, y = y}
+			pos.y = 64+3*hex_size*y/4
+			if y%2==0 then
+				pos.x = pos.x + hex_size/2
+			end
+			local tile_type = tile_types[math.random(#tile_types)]
+			local id = factory.create("#hex_factory", pos, null, {tile_type = tile_type})
+			if y%2==0 then
+				pos.x = pos.x - hex_size/2
+			end
+			board[x][y] = {id = id, x = x, y = y}
 		end
 	end	
 	return board

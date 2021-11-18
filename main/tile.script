@@ -1,7 +1,13 @@
+go.property("tile_type", hash("none"))
+
+local tile_types = {
+	[hash("green")] = "green",
+	[hash("blue")] = "blue"
+}
+
 function init(self)
-	-- Add initialization code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
+	local type = tile_types[self.tile_type]
+	msg.post("#sprite", "play_animation", { id = hash("test_hex_" .. type) })
 end
 
 function final(self)
