@@ -3,10 +3,6 @@ images {
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
-  image: "/assets/white_background.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
   image: "/assets/point_test.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }

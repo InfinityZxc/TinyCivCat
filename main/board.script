@@ -2,35 +2,88 @@ local hex_size = 128
 local boardwidth = 8
 local boardheight = 8
 
-local tile_types = { hash("green"), hash("blue") }
+local tile_types = { hash("green"),hash("green"),hash("green"),hash("green"),hash("green"), 
+					hash("blue"),hash("blue"),hash("blue") }
 
 function init(self)
-	new_board()
+	self.board = new_board()
 end
 
 function new_board()
 	--math.randomseed(os.time())
-	local board = {}
+	local new_board = {}
+	local tmp_board = {}
 	local pos = vmath.vector3()
 	local x = 0
 	local y = 0
+	tmp_board[0] = {}
+	tmp_board[1] = {}
+	
+	for x = 0,boardwidth-1 do
+		tmp_board[0][x] = {}
+		tmp_board[1][x] = {}
+		for y = 0,boardheight-1 do
+			local tile_type = tile_types[math.random(#tile_types)]
+			tmp_board[0][x][y] = {tile_type = tile_type}
+			tmp_board[1][x][y] = {tile_type = tile_type}
+		end
+	end
+
+	local iterations = 4
+	
+	for i = 0, iterations do
+		for x = 1,boardwidth-2 do
+			for y = 1,boardheight-2 do
+				local close_green = 0
+				if tmp_board[(i+1)%2][x+1][y].tile_type == hash("green") then
+					close_green = close_green + 1
+				end
+				if tmp_board[(i+1)%2][x-1][y].tile_type == hash("green") then
+					close_green = close_green + 1
+				end
+				if tmp_board[(i+1)%2][x][y+1].tile_type == hash("green") then
+					close_green = close_green + 1
+				end
+				if tmp_board[(i+1)%2][x][y-1].tile_type == hash("green") then
+					close_green = close_green + 1
+				end
+				local sdvig = -1 + (y%2)*2
+				if tmp_board[(i+1)%2][x+sdvig][y+1].tile_type == hash("green") then
+					close_green = close_green + 1
+				end
+				if tmp_board[(i+1)%2][x+sdvig][y-1].tile_type == hash("green") then
+					close_green = close_green + 1
+				end
+				
+				if close_green > 3 then
+					tmp_board[i%2][x][y] = {tile_type = hash("green")}
+				elseif close_green < 3 then
+					tmp_board[i%2][x][y] = {tile_type = hash("blue")}
+				else 
+					tmp_board[i%2][x][y] = tmp_board[(i+1)%2][x][y]
+				end
+			end
+		end
+	end
+	
 	for x = 0,boardwidth-1 do
 		pos.x = 64+hex_size*x;
-		board[x] = {}
+		new_board[x] = {}
 		for y = 0,boardheight-1 do
 			pos.y = 64+3*hex_size*y/4
-			if y%2==0 then
+			if y%2==1 then
 				pos.x = pos.x + hex_size/2
 			end
-			local tile_type = tile_types[math.random(#tile_types)]
+			local tile_type = tmp_board[iterations%2][x][y].tile_type
 			local id = factory.create("#hex_factory", pos, null, {tile_type = tile_type})
-			if y%2==0 then
+			if y%2==1 then
 				pos.x = pos.x - hex_size/2
 			end
-			board[x][y] = {id = id, x = x, y = y}
+			new_board[x][y] = {id = id, x = x, y = y}
 		end
-	end	
-	return board
+	end
+	
+	return new_board
 end
 
 function final(self)
