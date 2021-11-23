@@ -5,7 +5,7 @@ main_collection = /main/main.collectionc
 shared_state = 1
 
 [display]
-width = 1152
+width = 2048
 height = 1024
 
 [android]
@@ -13,4 +13,7 @@ input_method = HiddenInputField
 
 [project]
 title = TinyCivCat
+
+[sprite]
+max_count = 512
 

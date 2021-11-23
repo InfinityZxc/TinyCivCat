@@ -23,9 +23,23 @@ function update(self, dt)
 end
 
 function on_message(self, message_id, message, sender)
-	-- Add message-handling code here
-	-- Learn more: https://defold.com/manuals/message-passing/
-	-- Remove this function if not needed
+	if message_id == hash("change_type") then
+		if self.tile_type == hash("green") then
+			msg.post("#sprite", "play_animation", { id = hash("test_hex_blue") })
+			self.tile_type = hash("blue")
+		else
+			msg.post("#sprite", "play_animation", { id = hash("test_hex_green") })
+			self.tile_type = hash("green")
+		end
+	elseif message_id == hash("go_dark") then
+		msg.post("#sprite", "play_animation", { id = hash("hex_test") })
+	elseif message_id == hash("go_light") then
+		if self.tile_type == hash("green") then
+			msg.post("#sprite", "play_animation", { id = hash("test_hex_green") })
+		else
+			msg.post("#sprite", "play_animation", { id = hash("test_hex_blue") })
+		end
+	end
 end
 
 function on_input(self, action_id, action)
