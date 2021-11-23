@@ -1,16 +1,22 @@
 local hex_size = 128
-local boardwidth = 8
+local boardwidth = 15
 local boardheight = 8
+local extrawidth = 10
+local extraheight = 10
 
 local tile_types = { hash("green"),hash("green"),hash("green"),hash("green"),hash("green"), 
 					hash("blue"),hash("blue"),hash("blue") }
-
+local darkness_size = 2
+local darkness_begin = 0
+					
 function init(self)
+	msg.post(".", "acquire_input_focus")
 	self.board = new_board()
+	
 end
 
 function new_board()
-	--math.randomseed(os.time())
+	math.randomseed(os.time())
 	local new_board = {}
 	local tmp_board = {}
 	local pos = vmath.vector3()
@@ -29,7 +35,7 @@ function new_board()
 		end
 	end
 
-	local iterations = 4
+	local iterations = 0
 	
 	for i = 0, iterations do
 		for x = 1,boardwidth-2 do
@@ -67,19 +73,42 @@ function new_board()
 	end
 	
 	for x = 0,boardwidth-1 do
-		pos.x = 64+hex_size*x;
+		pos.x = 64+hex_size*x +extrawidth
 		new_board[x] = {}
 		for y = 0,boardheight-1 do
-			pos.y = 64+3*hex_size*y/4
+			pos.y = 64+3*hex_size*y/4 +extraheight
 			if y%2==1 then
 				pos.x = pos.x + hex_size/2
 			end
 			local tile_type = tmp_board[iterations%2][x][y].tile_type
-			local id = factory.create("#hex_factory", pos, null, {tile_type = tile_type})
+			local id_tile = factory.create("#hex_factory", pos, null, {tile_type = tile_type})
+			new_board[x][y] = {id = id_tile, x = x, y = y, tile_pos_x = pos.x, tile_pos_y = pos.y}
 			if y%2==1 then
 				pos.x = pos.x - hex_size/2
 			end
-			new_board[x][y] = {id = id, x = x, y = y}
+
+
+			
+			pos.y = 64+3*hex_size*y/4+extraheight
+			if y%2==1 then
+				pos.x = pos.x + hex_size/2
+			end
+
+			pos.x = pos.x + hex_size/2
+			pos.y = pos.y + hex_size/4
+			--factory.create("#corner_point_factory", pos, null)
+			pos.y = pos.y - hex_size/2
+			factory.create("#corner_point_factory", pos, null)
+			pos.x = pos.x - hex_size/2
+			pos.y = pos.y - hex_size/4
+			factory.create("#corner_point_factory", pos, null)
+			pos.y = pos.y + hex_size/2
+			if y%2==1 then
+				pos.x = pos.x - hex_size/2
+			end
+
+
+			
 		end
 	end
 	
@@ -99,21 +128,57 @@ function update(self, dt)
 end
 
 function on_message(self, message_id, message, sender)
-	-- Add message-handling code here
-	-- Learn more: https://defold.com/manuals/message-passing/
-	-- Remove this function if not needed
+	if message_id == hash("move_darkness") then
+		
+		for y = 0, boardheight-1 do
+			msg.post(self.board[darkness_begin][y].id, "go_light")
+		end
+		
+		darkness_begin = (darkness_begin+1)%boardwidth
+		for i = darkness_begin, darkness_begin+darkness_size-1 do
+			for y = 0, boardheight-1 do
+				msg.post(self.board[i][y].id, "go_dark")
+			end
+		end
+	end
 end
 
+function return_hex_index_from_coords(self, x, y)
+	local tmp_y = y - extraheight
+	local tmp_x = x - extrawidth
+	tmp_y = math.floor(tmp_y/(hex_size*3/4))
+	tmp_x = math.floor(tmp_x/(hex_size))
+
+	
+	for i = (tmp_x - 1), tmp_x do
+		for j = (tmp_y - 1), tmp_y do
+			if i >= 0 and j >= 0 and i <= boardwidth-1 and j <= boardheight-1 then
+				local pos_x = self.board[i][j].tile_pos_x
+				local pos_y = self.board[i][j].tile_pos_y
+				if ((pos_x-x)^2 + (pos_y-y)^2) <= (hex_size/2)^2 then
+					return i, j
+				end
+			end
+		end
+	end
+	
+	return -1, -1
+end
+
+local score = 0
+
 function on_input(self, action_id, action)
-	-- Add input-handling code here. The game object this script is attached to
-	-- must have acquired input focus:
-	--
-	--    msg.post(".", "acquire_input_focus")
-	--
-	-- All mapped input bindings will be received. Mouse and touch input will
-	-- be received regardless of where on the screen it happened.
-	-- Learn more: https://defold.com/manuals/input/
-	-- Remove this function if not needed
+	if action_id == hash("touch_left") and action.pressed then
+		local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)
+		
+		label.set_text("#score_x", tile_x)
+		label.set_text("#score_y", tile_y)
+		if tile_x >= 0 and tile_y >=0 then
+			msg.post(self.board[tile_x][tile_y].id, "change_type")
+		else
+			msg.post("#", "move_darkness")
+		end
+	end
 end
 
 function on_reload(self)
