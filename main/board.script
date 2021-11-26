@@ -11,7 +11,6 @@ local darkness_size = 2
 local darkness_begin = 0
 
 local moving_tile_id = nil
-local moving_type = nil
 					
 function init(self)
 	msg.post(".", "acquire_input_focus")
@@ -156,7 +155,6 @@ function on_message(self, message_id, message, sender)
 		]]
 	elseif message_id == hash("new_tile") then
 		moving_tile_id = factory.create("#hex_factory", message["position"], null, {tile_type = message["type"]})
-		moving_type = message["type"]
 	end
 end
 
@@ -201,11 +199,11 @@ function on_input(self, action_id, action)
 			local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)
 			if tile_x ~= -1 then
 				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
-				id_tile = factory.create("#hex_factory", pos, null, {tile_type = moving_type})
-				self.board[tile_x][tile_y] = {id = id_tile, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = moving_type}
-				go.delete(moving_tile_id)
+				go.set_position(pos, moving_tile_id)
+				local moving_tile_url = msg.url(moving_tile_id)
+				moving_tile_url.fragment = "tile"
+				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = go.get(moving_tile_url, "tile_type")}
 				moving_tile_id = nil
-				moving_type = nil
 			end
 		else
 			local pos = vmath.vector3()
