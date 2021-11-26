@@ -10,6 +10,7 @@ local water_income = 0
 local bonus_limit = 6
 local income = 0
 local bonus = 0
+local brick_income = 0
 
 local tile_types = { hash("green"),hash("green"),hash("green"),hash("green"),hash("green"), 
 	hash("blue"),hash("blue"),hash("blue"), hash("wood"), hash("wood"), hash("wood") }
