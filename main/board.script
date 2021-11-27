@@ -197,14 +197,18 @@ function on_input(self, action_id, action)
 	if action_id == hash("touch_left") and moving_tile_id then
 		if action.released then
 			local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)
+			local moving_tile_url = msg.url(moving_tile_id)
+			moving_tile_url.fragment = "tile"
+			local tile_type = go.get(moving_tile_url, "tile_type")
 			if tile_x ~= -1 then
 				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
 				go.set_position(pos, moving_tile_id)
-				local moving_tile_url = msg.url(moving_tile_id)
-				moving_tile_url.fragment = "tile"
-				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = go.get(moving_tile_url, "tile_type")}
-				moving_tile_id = nil
+				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type}
+			else
+				go.delete(moving_tile_id)
+				msg.post("/gui#tile_stack", "gui_revert_tile", {tile_type=tile_type})
 			end
+			moving_tile_id = nil
 		else
 			local pos = vmath.vector3()
 			pos.x = action.x
