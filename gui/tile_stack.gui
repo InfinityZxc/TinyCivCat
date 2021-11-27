@@ -13,7 +13,7 @@ nodes {
   position {
     x: 1900.0
     y: 100.0
-    z: 0.0
+    z: -1.0
     w: 1.0
   }
   rotation {
@@ -66,8 +66,8 @@ nodes {
 nodes {
   position {
     x: 1900.0
-    y: 200.0
-    z: 0.0
+    y: 228.0
+    z: -1.0
     w: 1.0
   }
   rotation {
@@ -120,8 +120,8 @@ nodes {
 nodes {
   position {
     x: 1900.0
-    y: 300.0
-    z: 0.0
+    y: 356.0
+    z: -1.0
     w: 1.0
   }
   rotation {
