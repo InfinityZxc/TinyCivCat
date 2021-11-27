@@ -14,6 +14,10 @@ images {
   image: "/assets/test_hex_green.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
+images {
+  image: "/assets/test_hex_wood.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
 animations {
   id: "test_anim_hex_green"
   images {
