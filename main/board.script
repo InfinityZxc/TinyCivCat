@@ -3,6 +3,7 @@ local boardwidth = 10
 local boardheight = 6
 local extrawidth = 10
 local extraheight = 10
+local start_hex_pos =  vmath.vector3(4,2,0)
 
 local tile_types = { hash("green"),hash("green"),hash("green"),hash("green"),hash("green"), 
 					hash("blue"),hash("blue"),hash("blue") }
@@ -22,10 +23,11 @@ end
 function new_board()
 	math.randomseed(os.time())
 	local new_board = {}
-	local tmp_board = {}
 	local pos = vmath.vector3()
 	local x = 0
 	local y = 0
+	--[[
+	local tmp_board = {}
 	tmp_board[0] = {}
 	tmp_board[1] = {}
 	
@@ -75,7 +77,7 @@ function new_board()
 			end
 		end
 	end
-	
+	]]
 	for x = 0,boardwidth-1 do
 		pos.x = 64+hex_size*x +extrawidth
 		new_board[x] = {}
@@ -84,9 +86,15 @@ function new_board()
 			if y%2==1 then
 				pos.x = pos.x + hex_size/2
 			end
-			local tile_type = tmp_board[iterations%2][x][y].tile_type
-			local id_tile = factory.create("#hex_factory", pos, null, {tile_type = tile_type})
-			new_board[x][y] = {id = id_tile, x = x, y = y, tile_pos_x = pos.x, tile_pos_y = pos.y}
+			--local tile_type = tmp_board[iterations%2][x][y].tile_type
+			local tile_type = tile_types[math.random(#tile_types)]
+			local id_tile
+			if x ==  start_hex_pos.x and y ==  start_hex_pos.y then
+				id_tile = factory.create("#hex_factory", pos, null, {tile_type = tile_type})
+			else
+				id_tile = nil
+			end
+			new_board[x][y] = {id = id_tile, x = x, y = y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type}
 			if y%2==1 then
 				pos.x = pos.x - hex_size/2
 			end
@@ -133,7 +141,7 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("move_darkness") then
-		
+		--[[
 		for y = 0, boardheight-1 do
 			msg.post(self.board[darkness_begin][y].id, "go_light")
 		end
@@ -144,6 +152,7 @@ function on_message(self, message_id, message, sender)
 				msg.post(self.board[i][y].id, "go_dark")
 			end
 		end
+		]]
 	elseif message_id == hash("new_tile") then
 		moving_tile_id = factory.create("#hex_factory", message["position"], null, {tile_type = message["type"]})
 	end
@@ -173,10 +182,32 @@ end
 
 local score = 0
 
+function return_coords_from_hex_index(self, x, y)
+	local pos = vmath.vector3()
+	pos.x = 64+hex_size*x +extrawidth
+	pos.y = 64+3*hex_size*y/4 +extraheight
+	if y%2==1 then
+		pos.x = pos.x + hex_size/2
+	end
+	return pos
+end
+
 function on_input(self, action_id, action)
 	-- print("board input")
 	if action_id == hash("touch_left") and moving_tile_id then
 		if action.released then
+			local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)
+			local moving_tile_url = msg.url(moving_tile_id)
+			moving_tile_url.fragment = "tile"
+			local tile_type = go.get(moving_tile_url, "tile_type")
+			if tile_x ~= -1 then
+				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
+				go.set_position(pos, moving_tile_id)
+				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type}
+			else
+				go.delete(moving_tile_id)
+				msg.post("/gui#tile_stack", "gui_revert_tile", {tile_type=tile_type})
+			end
 			moving_tile_id = nil
 		else
 			local pos = vmath.vector3()
@@ -185,7 +216,7 @@ function on_input(self, action_id, action)
 			pos.z = 0
 			go.set_position(pos, moving_tile_id)
 		end
-		return
+		return true
 	end
 		
 	if action_id == hash("touch_left") and action.pressed then
@@ -193,7 +224,7 @@ function on_input(self, action_id, action)
 		
 		label.set_text("#score_x", tile_x)
 		label.set_text("#score_y", tile_y)
-		if tile_x >= 0 and tile_y >=0 then
+		if tile_x >= 0 and tile_y >=0 and self.board[tile_x][tile_y].id then
 			msg.post(self.board[tile_x][tile_y].id, "change_type")
 		else
 			msg.post("#", "move_darkness")
