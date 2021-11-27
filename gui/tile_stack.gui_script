@@ -77,11 +77,9 @@ function on_input(self, action_id, action)
 			else
 				type = hash("blue")
 			end
-			local pos = vmath.vector3()
-			pos.x = action.x
-			pos.y = action.y
-			pos.z = 0
-			msg.post("/game#board", "new_tile", { position = pos, type = type })
+			local pos = vmath.vector3(action.x, action.y, 0)
+			local offset = pos - gui.get_position(node)
+			msg.post("/game#board", "new_tile", { position = pos, type = type, offset = offset })
 			gui.play_flipbook(node, hash("hex_test"))
 			active_node = node
 			return true

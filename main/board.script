@@ -19,7 +19,8 @@ local darkness_size = 2
 local darkness_begin = 0
 
 local moving_tile_id = nil
-					
+local moving_tile_offset = nil
+
 function init(self)
 	msg.post(".", "acquire_input_focus")
 	self.board = new_board()
@@ -184,6 +185,7 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("move_darkness") then
 	elseif message_id == hash("new_tile") then
 		moving_tile_id = factory.create("#hex_factory", message["position"], null, {tile_type = message["type"]})
+		moving_tile_offset = message["offset"]
 	elseif message_id == hash("update_tile") then
 		self.board[message.x][message.y].tile_type = message.new_type
 		score_calculation(self, message.new_type, message.old_type, message.x, message.y)
@@ -258,7 +260,7 @@ function on_input(self, action_id, action)
 			local tile_type = go.get(moving_tile_url, "tile_type")
 			if tile_x ~= -1 and not self.board[tile_x][tile_y].id and close_hex_number(self, tile_x, tile_y)>0 then
 				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
-				go.set_position(pos, moving_tile_id)
+				go.animate(moving_tile_id, "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.4)
 				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type}
 				msg.post("/gui#tile_stack", "gui_new_tile")
 			else
@@ -267,11 +269,8 @@ function on_input(self, action_id, action)
 			end
 			moving_tile_id = nil
 		else
-			local pos = vmath.vector3()
-			pos.x = action.x
-			pos.y = action.y
-			pos.z = 0
-			go.set_position(pos, moving_tile_id)
+			local pos = vmath.vector3(action.x, action.y, 0)
+			go.set_position(pos - moving_tile_offset, moving_tile_id)
 		end
 		return true
 	end
