@@ -2,8 +2,14 @@ go.property("tile_type", hash("none"))
 
 local tile_types = {
 	[hash("green")] = "green",
-	[hash("blue")] = "blue"
+	[hash("blue")] = "blue",
+	[hash("wood")] = "wood"
 }
+
+function change_tile(self, type, x, y)
+	msg.post("/game#board", "update_tile", {new_type = type, old_type = self.tile_type, x = x, y = y})
+	self.tile_type = type
+end
 
 function init(self)
 	local type = tile_types[self.tile_type]
@@ -25,21 +31,26 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("change_type") then
 		if self.tile_type == hash("green") then
+			msg.post("#sprite", "play_animation", { id = hash("test_hex_wood") })
+			change_tile(self, hash("wood"), message.x, message.y)
+		elseif self.tile_type == hash("wood") then
 			msg.post("#sprite", "play_animation", { id = hash("test_hex_blue") })
-			self.tile_type = hash("blue")
-		else
+			change_tile(self, hash("blue"), message.x, message.y)
+		else 
 			msg.post("#sprite", "play_animation", { id = hash("test_hex_green") })
-			self.tile_type = hash("green")
+			change_tile(self, hash("green"), message.x, message.y)
 		end
 	elseif message_id == hash("go_dark") then
 		msg.post("#sprite", "play_animation", { id = hash("hex_test") })
 	elseif message_id == hash("go_light") then
 		if self.tile_type == hash("green") then
 			msg.post("#sprite", "play_animation", { id = hash("test_hex_green") })
-		else
+		elseif self.tile_type == hash("wood") then
+			msg.post("#sprite", "play_animation", { id = hash("test_hex_wood") })
+		else 
 			msg.post("#sprite", "play_animation", { id = hash("test_hex_blue") })
 		end
-	end
+	end	
 end
 
 function on_input(self, action_id, action)
