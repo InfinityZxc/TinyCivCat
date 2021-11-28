@@ -6,8 +6,10 @@ local extraheight = 10
 local start_hex_pos =  vmath.vector3(4,2,0)
 local wood_score = 0
 local water_score = 0
+local rock_score = 0
 local wood_income = 0
 local water_income = 0
+local rock_income = 0
 local bonus_limit = 6
 local income = 0
 local bonus = 0
@@ -83,7 +85,7 @@ function dfs(self, used, x, y, type)
 	end
 end
 
-function tile_group(self, x, y, type)
+function tile_group(self, type)
 	local used = {}
 	for i = 0,boardwidth-1 do
 		used[i] = {}
@@ -93,22 +95,46 @@ function tile_group(self, x, y, type)
 	end
 	bonus = 0
 	income = 0
-	dfs(self, used, x, y, type)
-	if type == hash("wood") then
-		wood_income = bonus + income
+	reset_income(type)
+	for i = 0, boardwidth - 1 do 
+		for j = 0, boardheight - 1 do
+			if (self.board[i][j].tile_type == type and used[i][j] == 0) then
+				dfs(self, used, i, j, type)
+				update_income(type)
+				bonus = 0
+				income = 0
+			end
+		end
 	end
 end
 
-function score_calculation(self, new_type, old_type, x, y)
-	tile_group(self, x, y, new_type)
-	if new_type == hash("wood") then
-		wood_score = wood_score + wood_income
-		label.set_text("#score_wood", wood_score)
+function score_calculation(self, new_type, old_type)
+	tile_group(self, new_type)
+	wood_score = wood_score + wood_income
+	water_score = water_score + water_income
+	rock_score = rock_score + rock_income
+	label.set_text("#score_wood", water_score)
+end
+
+function reset_income (type)
+	if type == hash("wood") then
+		wood_income = 0
+	elseif type == hash("blue") then
+		water_income = 0
+	elseif type == hash("rock") then
+		rock_income = 0
 	end
-	if old_type == hash("wood") then
-		wood_score = wood_score - 1
-		label.set_text("#score_wood", wood_score)
+end
+
+function update_income (type)
+	if type == hash("wood") then
+		wood_income = wood_income + income + bonus
+	elseif type == hash("blue") then
+		water_income = water_income + income + bonus
+	elseif type == hash("rock") then
+		rock_income = rock_income + income + bonus
 	end
+	
 end
 
 function new_board()
@@ -188,7 +214,7 @@ function on_message(self, message_id, message, sender)
 		moving_tile_offset = message["offset"]
 	elseif message_id == hash("update_tile") then
 		self.board[message.x][message.y].tile_type = message.new_type
-		score_calculation(self, message.new_type, message.old_type, message.x, message.y)
+		score_calculation(self, message.new_type, message.old_type)
 	end
 end
 
@@ -262,6 +288,7 @@ function on_input(self, action_id, action)
 				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
 				go.animate(moving_tile_id, "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.4)
 				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type}
+				score_calculation(self, tile_type, hash("none"))
 				msg.post("/gui#tile_stack", "gui_new_tile")
 			else
 				go.delete(moving_tile_id)
