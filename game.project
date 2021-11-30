@@ -5,14 +5,17 @@ main_collection = /main/main.collectionc
 shared_state = 1
 
 [display]
-width = 2048
-height = 1024
+width = 1920
+height = 1080
+fullscreen = 0
+display_device_info = 0
 
 [android]
 input_method = HiddenInputField
 
 [project]
 title = TinyCivCat
+dependencies#0 = https://github.com/subsoap/defos/archive/v2.6.0.zip
 
 [sprite]
 max_count = 512
