@@ -322,7 +322,11 @@ function corruption_iteration(self)
 	elseif turn_counter == corruption_beginning then
 		self.board[start_hex_pos.x][start_hex_pos.y].corrupted = true;
 		score_calculation(self, self.board[start_hex_pos.x][start_hex_pos.y].tile_type, hash("none"))
-		msg.post("/corruption", "corrupt", {tile_x = start_hex_pos.x, tile_y = start_hex_pos.y})
+		local type = "broken_rock"
+		if self.board[start_hex_pos.x][start_hex_pos.y].tile_type == hash("wood") then
+			type = "wood"
+		end
+		msg.post(msg.url(nil, self.board[start_hex_pos.x][start_hex_pos.y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type)})
 	end
 end
 
