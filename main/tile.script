@@ -38,7 +38,7 @@ function on_message(self, message_id, message, sender)
 			change_tile(self, hash("rock"))
 		end
 	elseif message_id == hash("go_dark") then
-		msg.post("#sprite", "play_animation", { id = hash("hex_test") })
+		msg.post("#sprite", "play_animation", { id = hash("empty_hex") })
 	elseif message_id == hash("go_light") then
 		if self.tile_type == hash("rock") then
 			msg.post("#sprite", "play_animation", { id = hash("rock") })

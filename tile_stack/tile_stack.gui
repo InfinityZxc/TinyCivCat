@@ -12,7 +12,7 @@ background_color {
 nodes {
   position {
     x: 1800.0
-    y: 100.0
+    y: 128.0
     z: 0.0
     w: 1.0
   }
@@ -42,7 +42,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "sprites/hex_test"
+  texture: "sprites/empty_hex"
   id: "gui_tile1"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -66,7 +66,7 @@ nodes {
 nodes {
   position {
     x: 1800.0
-    y: 228.0
+    y: 288.0
     z: 0.0
     w: 1.0
   }
@@ -96,7 +96,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "sprites/hex_test"
+  texture: "sprites/empty_hex"
   id: "gui_tile2"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE

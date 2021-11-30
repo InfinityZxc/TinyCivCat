@@ -17,7 +17,7 @@ embedded_components {
   id: "sprite"
   type: "sprite"
   data: "tile_set: \"/assets/sprites.atlas\"\n"
-  "default_animation: \"test_hex_bug_anim\"\n"
+  "default_animation: \"empty_hex\"\n"
   "material: \"/builtins/materials/sprite.material\"\n"
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""

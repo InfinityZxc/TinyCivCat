@@ -5,9 +5,9 @@ go.property("boardwidth", 10)
 local boardheight
 go.property("boardheight", 9)
 local extrawidth
-go.property("extrawidth", 10)
+go.property("extrawidth", 200)
 local extraheight
-go.property("extraheight", 10)
+go.property("extraheight", 100)
 local coins = 0
 local coin_income = 0
 local corruption_delay = 0
@@ -194,8 +194,7 @@ function heal_cell(self, x, y)
 		score_calculation(self, hash("none"), hash("none"))
 		coins = coins - coin_income
 		coins = coins - 100
-		label.set_text("#score_x", coins)
-		--msg.post("/gui#main", "gui_set_coins", {god_coins = coins})
+		msg.post("/gui#main", "gui_set_coins", {god_coins = coins})
 	end
 end
 
@@ -203,8 +202,7 @@ function delay_corrupt()
 	if coins >= 50 then
 		corruption_delay = 1
 		coins = coins - 50
-		label.set_text("#score_x", coins)
-		--msg.post("/gui#main", "gui_set_coins", {god_coins = coins})
+		msg.post("/gui#main", "gui_set_coins", {god_coins = coins})
 	end
 end
 
@@ -231,7 +229,7 @@ function new_board()
 			end 
 			]]
 			if x == start_hex_pos.x and y ==  start_hex_pos.y then
-				pos.z = 1 / y
+				pos.z = 1 / (y + 2)
 				id_tile = factory.create("#hex_factory", pos, null, {tile_type = tile_type})
 			else
 				id_tile = nil
@@ -376,7 +374,7 @@ function return_coords_from_hex_index(self, x, y)
 	if y%2==1 then
 		pos.x = pos.x + hex_size/2
 	end
-	pos.z = 1 / y
+	pos.z = 1 / (y + 2)
 	return pos
 end
 
