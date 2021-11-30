@@ -3,7 +3,8 @@ go.property("tile_type", hash("none"))
 local tile_types = {
 	[hash("green")] = "green",
 	[hash("blue")] = "blue",
-	[hash("wood")] = "wood"
+	[hash("wood")] = "wood",
+	[hash("rock")] = "rock"
 }
 
 function change_tile(self, type)
