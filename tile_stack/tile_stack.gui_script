@@ -1,4 +1,4 @@
-local tile_types = {hash("test_hex_blue"), hash("test_hex_green")}
+local tile_types = {hash("wood"), hash("rock"), hash("water"), hash("broken_rock")}
 local active_node = nil
 
 function init(self)
@@ -7,10 +7,8 @@ function init(self)
 	-- Remove this function if not needed
 	local node1 = gui.get_node("gui_tile1")
 	local node2 = gui.get_node("gui_tile2")
-	local node3 = gui.get_node("gui_tile3")
 	gui.play_flipbook(node1, tile_types[math.random(#tile_types)])
 	gui.play_flipbook(node2, tile_types[math.random(#tile_types)])
-	gui.play_flipbook(node3, tile_types[math.random(#tile_types)])
 end
 
 function final(self)
@@ -35,16 +33,24 @@ function on_message(self, message_id, message, sender)
 			active_node = nil;
 		elseif message_id == hash("gui_revert_tile") then
 			local tile_type
-			if message["tile_type"] == hash("green") then
-				tile_type = hash("test_hex_green")
+			if message["tile_type"] == hash("rock") then
+				tile_type = hash("rock")
 			else
-				tile_type = hash("test_hex_blue")
+				tile_type = hash("wood")
 			end
 			gui.play_flipbook(active_node, tile_type)
 			active_node = nil;
 		end
 	end
 end
+
+function pick_hex(hex_x, hex_y, x, y)
+	local a = 64
+	local b = 70
+	local t = a * b / (2 * a - b)
+	return math.abs(hex_x - x) < a and math.abs(hex_y - y) < a and math.abs(hex_x - x) * a + math.abs(hex_y - y) * (t + a) < a * (t + a)
+end
+	
 
 function on_input(self, action_id, action)
 	-- Add input-handling code here. The game object this script is attached to
@@ -58,24 +64,24 @@ function on_input(self, action_id, action)
 	-- Remove this function if not needed
 	-- msg.post(".", "acquire_input_focus")
 	-- print("gui input")
+
 	local node1 = gui.get_node("gui_tile1")
+	local node1_pos = gui.get_position(node1)
 	local node2 = gui.get_node("gui_tile2")
-	local node3 = gui.get_node("gui_tile3")
+	local node2_pos = gui.get_position(node2)
 	local node
 	if action_id == hash("touch_left") and action.pressed then
-		if gui.pick_node(node1, action.x, action.y) then
+		if pick_hex(node1_pos.x, node1_pos.y, action.x, action.y) then
 			node = node1
-		elseif gui.pick_node(node2, action.x, action.y) then
+		elseif pick_hex(node2_pos.x, node2_pos.y, action.x, action.y) then
 			node = node2
-		elseif gui.pick_node(node3, action.x, action.y) then
-			node = node3
 		end
 		if node then
 			local type = gui.get_flipbook(node)
-			if type == hash("test_hex_green") then
-				type = hash("green")
+			if type == hash("rock") then
+				type = hash("rock")
 			else
-				type = hash("blue")
+				type = hash("wood")
 			end
 			local pos = vmath.vector3(action.x, action.y, 0)
 			local offset = pos - gui.get_position(node)
