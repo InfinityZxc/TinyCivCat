@@ -1,20 +1,16 @@
 go.property("tile_type", hash("none"))
 
-local tile_types = {
-	[hash("green")] = "green",
-	[hash("blue")] = "blue",
-	[hash("wood")] = "wood",
-	[hash("rock")] = "rock"
-}
-
 function change_tile(self, type)
 	msg.post("/game#board", "update_tile", {new_type = type, old_type = self.tile_type})
 	self.tile_type = type
 end
 
 function init(self)
-	local type = tile_types[self.tile_type]
-	msg.post("#sprite", "play_animation", { id = hash("test_hex_" .. type) })
+	msg.post("#sprite", "play_animation", { id = hash(self.tile_type) })
+	local xscale = go.get("#sprite", "scale.x")
+	local yscale = go.get("#sprite", "scale.y")
+	go.set("#sprite", "scale.x", xscale / 2)
+	go.set("#sprite", "scale.y", yscale / 2)
 end
 
 function final(self)
@@ -31,25 +27,25 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("change_type") then
-		if self.tile_type == hash("green") then
+		if self.tile_type == hash("rock") then
 			msg.post("#sprite", "play_animation", { id = hash("test_hex_wood") })
 			change_tile(self, hash("wood"))
 		elseif self.tile_type == hash("wood") then
-			msg.post("#sprite", "play_animation", { id = hash("test_hex_blue") })
-			change_tile(self, hash("blue"))
+			msg.post("#sprite", "play_animation", { id = hash("wood") })
+			change_tile(self, hash("wood"))
 		else 
-			msg.post("#sprite", "play_animation", { id = hash("test_hex_green") })
-			change_tile(self, hash("green"))
+			msg.post("#sprite", "play_animation", { id = hash("rock") })
+			change_tile(self, hash("rock"))
 		end
 	elseif message_id == hash("go_dark") then
 		msg.post("#sprite", "play_animation", { id = hash("hex_test") })
 	elseif message_id == hash("go_light") then
-		if self.tile_type == hash("green") then
-			msg.post("#sprite", "play_animation", { id = hash("test_hex_green") })
+		if self.tile_type == hash("rock") then
+			msg.post("#sprite", "play_animation", { id = hash("rock") })
 		elseif self.tile_type == hash("wood") then
 			msg.post("#sprite", "play_animation", { id = hash("test_hex_wood") })
 		else 
-			msg.post("#sprite", "play_animation", { id = hash("test_hex_blue") })
+			msg.post("#sprite", "play_animation", { id = hash("wood") })
 		end
 	end	
 end
