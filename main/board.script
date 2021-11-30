@@ -8,20 +8,19 @@ local extrawidth
 go.property("extrawidth", 10)
 local extraheight
 go.property("extraheight", 10)
+local coins = 0
+local coin_income = 0
+local corruption_delay = 0
 local start_hex_pos =  vmath.vector3(4,4,0)
 local wood_score = 0
 local water_score = 0
 local rock_score = 0
-local coins = 0
 local wood_income = 0
 local water_income = 0
 local rock_income = 0
 local bonus_limit = 6
 local income = 0
 local bonus = 0
-local brick_income = 0
-local tile_types = { hash("rock"),hash("rock"),hash("rock"),hash("rock"),hash("rock"), 
-hash("wood"),hash("wood"),hash("wood"), hash("wood"), hash("wood"), hash("wood") }
 local darkness_size = 2
 local darkness_begin = 0
 local turn_counter = 0
@@ -80,48 +79,52 @@ function check_coord(x, y)
 	end
 end
 
+function is_hex_valid_dfs(self, used, x, y, type)
+	return check_coord(x, y) and self.board[x][y].id and used[x][y] == 0 and self.board[x][y].tile_type == type and not self.board[x][y].corrupted
+end
+
 function dfs(self, used, x, y, type) 
 	used[x][y] = 1
 	if income > 0 and bonus < bonus_limit then 
 		bonus = bonus + 1
 	end
 	income = income + 1
-	if check_coord(x, y) and y % 2 == 0 then
-		if check_coord(x - 1, y) and used[x-1][y] == 0 and self.board[x-1][y].tile_type == type then
+	if check_coord(x, y) and y % 2 == 0 and not self.board[x][y].corrupted then
+		if is_hex_valid_dfs(self, used, x-1, y, type) then
 			dfs(self, used, x - 1, y, type)
 		end
-		if check_coord(x + 1, y) and used[x+1][y] == 0 and self.board[x+1][y].tile_type == type then
+		if is_hex_valid_dfs(self, used, x+1, y, type) then
 			dfs(self, used, x + 1, y, type)
 		end
-		if check_coord(x - 1, y + 1) and used[x-1][y+1] == 0 and self.board[x-1][y+1].tile_type == type then
+		if is_hex_valid_dfs(self, used, x-1, y + 1, type) then
 			dfs(self, used, x - 1, y + 1, type)
 		end
-		if check_coord(x, y + 1) and used[x][y+1] == 0 and self.board[x][y+1].tile_type == type then
+		if is_hex_valid_dfs(self, used, x, y + 1, type) then
 			dfs(self, used, x, y + 1, type)
 		end
-		if check_coord(x - 1, y - 1) and used[x-1][y-1] == 0 and self.board[x-1][y-1].tile_type == type then
+		if is_hex_valid_dfs(self, used, x-1, y - 1, type) then
 			dfs(self, used, x - 1, y - 1, type)
 		end
-		if check_coord(x, y - 1) and used[x][y-1] == 0 and self.board[x][y-1].tile_type == type then
+		if is_hex_valid_dfs(self, used, x, y - 1, type) then
 			dfs(self, used, x, y - 1, type)
 		end
-	elseif check_coord(x, y)  and y % 2 == 1 then 
-		if check_coord(x - 1, y) and used[x-1][y] == 0 and self.board[x-1][y].tile_type == type then
+	elseif check_coord(x, y)  and y % 2 == 1 and not self.board[x][y].corrupted then 
+		if is_hex_valid_dfs(self, used, x-1, y, type) then
 			dfs(self, used, x - 1, y, type)
 		end
-		if check_coord(x + 1, y) and used[x+1][y] == 0 and self.board[x+1][y].tile_type == type then
+		if is_hex_valid_dfs(self, used, x+1, y, type) then
 			dfs(self, used, x + 1, y, type)
 		end
-		if check_coord(x + 1, y + 1) and used[x+1][y+1] == 0 and self.board[x+1][y+1].tile_type == type then
+		if is_hex_valid_dfs(self, used, x+1, y+1, type) then
 			dfs(self, used, x + 1, y + 1, type)
 		end
-		if check_coord(x, y + 1) and used[x][y+1] == 0 and self.board[x][y+1].tile_type == type then
+		if is_hex_valid_dfs(self, used, x, y+1, type) then
 			dfs(self, used, x, y + 1, type)
 		end
-		if check_coord(x, y - 1) and used[x][y-1] == 0 and self.board[x][y-1].tile_type == type then
+		if is_hex_valid_dfs(self, used, x, y-1, type) then
 			dfs(self, used, x, y - 1, type)
 		end
-		if check_coord(x + 1, y - 1) and used[x + 1][y-1] == 0 and self.board[x + 1][y-1].tile_type == type then
+		if is_hex_valid_dfs(self, used, x+1, y-1, type) then
 			dfs(self, used, x + 1, y - 1, type)
 		end
 	end
@@ -140,7 +143,7 @@ function tile_group(self, type)
 	reset_income(type)
 	for i = 0, boardwidth - 1 do 
 		for j = 0, boardheight - 1 do
-			if (self.board[i][j].tile_type == type and used[i][j] == 0) then
+			if is_hex_valid_dfs(self, used, i, j, type)then
 				dfs(self, used, i, j, type)
 				update_income(type)
 				bonus = 0
@@ -151,15 +154,23 @@ function tile_group(self, type)
 end
 
 function score_calculation(self, new_type, old_type)
-	tile_group(self, new_type)
-	coins = coins + wood_income * 3 + rock_income * 2 + water_income
+	tile_group(self, hash("wood"))
+	wood_score = wood_score + wood_income
+	coin_income = wood_income
+	tile_group(self, hash("water"))
+	water_score = water_score + water_income
+	coin_income = coin_income + water_income
+	tile_group(self, hash("rock"))
+	rock_score = rock_score + rock_income
+	coin_income = coin_income + rock_income
+	coins = coins + coin_income
 	msg.post("/gui#main", "gui_set_coins", {god_coins = coins})
 end
 
 function reset_income (type)
 	if type == hash("wood") then
 		wood_income = 0
-	elseif type == hash("wood") then
+	elseif type == hash("water") then
 		water_income = 0
 	elseif type == hash("rock") then
 		rock_income = 0
@@ -168,13 +179,33 @@ end
 
 function update_income (type)
 	if type == hash("wood") then
-		wood_income = wood_income + income + bonus
-	elseif type == hash("wood") then
+		wood_income = wood_income + 3 * income + 2 * bonus
+	elseif type == hash("water") then
 		water_income = water_income + income + bonus
 	elseif type == hash("rock") then
-		rock_income = rock_income + income + bonus
+		rock_income = rock_income + 2 * income + bonus
 	end
-	
+end
+
+function heal_cell(self, x, y)
+	if (coins >= 100) then
+		self.board[x][y].corrupted = false;
+		msg.post("/corruption", "uncorrupt", {tile_x = x, tile_y = y})
+		score_calculation(self, hash("none"), hash("none"))
+		coins = coins - coin_income
+		coins = coins - 100
+		label.set_text("#score_x", coins)
+		--msg.post("/gui#main", "gui_set_coins", {god_coins = coins})
+	end
+end
+
+function delay_corrupt()
+	if coins >= 50 then
+		corruption_delay = 1
+		coins = coins - 50
+		label.set_text("#score_x", coins)
+		--msg.post("/gui#main", "gui_set_coins", {god_coins = coins})
+	end
 end
 
 function new_board()
@@ -287,10 +318,12 @@ function corruption_iteration(self)
 		end
 		local coords_to_corrupt = candidates[math.random(#candidates)]
 		self.board[coords_to_corrupt.x][coords_to_corrupt.y].corrupted = true;
+		score_calculation(self, self.board[coords_to_corrupt.x][coords_to_corrupt.y].tile_type, hash("none"))
 		msg.post("/corruption", "corrupt", {tile_x = coords_to_corrupt.x, tile_y = coords_to_corrupt.y})
 	end
 	elseif turn_counter == corruption_beginning then
 		self.board[start_hex_pos.x][start_hex_pos.y].corrupted = true;
+		score_calculation(self, self.board[start_hex_pos.x][start_hex_pos.y].tile_type, hash("none"))
 		msg.post("/corruption", "corrupt", {tile_x = start_hex_pos.x, tile_y = start_hex_pos.y})
 	end
 end
@@ -383,7 +416,9 @@ function on_input(self, action_id, action)
 				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
 				go.animate(moving_tile_id, "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.4)
 				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false}
-				score_calculation(self, tile_type, hash("none"))
+				if turn_counter < corruption_beginning then
+					score_calculation(self, tile_type, hash("none"))
+				end
 				msg.post("#", "next_turn")
 				msg.post("/tile_stack#tile_stack", "gui_new_tile")
 			else
@@ -400,10 +435,8 @@ function on_input(self, action_id, action)
 		
 	if action_id == hash("touch_left") and action.pressed then
 		local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)
-		if tile_x >= 0 and tile_y >=0 and self.board[tile_x][tile_y].id then
-			--msg.post(self.board[tile_x][tile_y].id, "change_type", {x = tile_x, y = tile_y})
-		else
-			msg.post("#", "move_darkness")
+		if tile_x >= 0 and tile_y >=0 and self.board[tile_x][tile_y].id and self.board[tile_x][tile_y].corrupted then
+			heal_cell(self, tile_x, tile_y)
 		end
 	end
 end
