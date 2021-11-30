@@ -1,19 +1,12 @@
 go.property("tile_type", hash("none"))
 
-local tile_types = {
-	[hash("rock")] = "rock",
-	[hash("wood")] = "wood",
-	[hash("wood")] = "wood"
-}
-
 function change_tile(self, type)
 	msg.post("/game#board", "update_tile", {new_type = type, old_type = self.tile_type})
 	self.tile_type = type
 end
 
 function init(self)
-	local type = tile_types[self.tile_type]
-	msg.post("#sprite", "play_animation", { id = hash(type) })
+	msg.post("#sprite", "play_animation", { id = hash(self.tile_type) })
 	local xscale = go.get("#sprite", "scale.x")
 	local yscale = go.get("#sprite", "scale.y")
 	go.set("#sprite", "scale.x", xscale / 2)
