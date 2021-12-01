@@ -54,6 +54,8 @@ function init(self)
 	timer.delay(0.8, false, function ()
 		msg.post("/gui#main", "acquire_input_focus")
 	end)
+	msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
+	msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
 end
 
 function init_locals_from_properties(from_where)
