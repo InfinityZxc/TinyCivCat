@@ -1,13 +1,16 @@
 local tile_types = {hash("wood"), hash("rock"), hash("water")}
 local active_node = nil
+local node1, node2, node1_pos, node2_pos
+
 
 function init(self)
 	-- Add initialization code here
 	-- Learn more: https://defold.com/manuals/script/
 	-- Remove this function if not needed
-	defos.disable_window_resize()
-	local node1 = gui.get_node("gui_tile1")
-	local node2 = gui.get_node("gui_tile2")
+	node1 = gui.get_node("gui_tile1")
+	node1_pos = gui.get_position(node1)
+	node2 = gui.get_node("gui_tile2")
+	node2_pos = gui.get_position(node2)
 	gui.play_flipbook(node1, tile_types[math.random(#tile_types)])
 	gui.play_flipbook(node2, tile_types[math.random(#tile_types)])
 end
@@ -36,6 +39,8 @@ function on_message(self, message_id, message, sender)
 			gui.play_flipbook(active_node, message['tile_type'])
 			active_node = nil;
 		end
+	elseif message_id == hash("set_asset") then
+		gui.play_flipbook(gui.get_node(message.node_id), message.anim_id)
 	elseif message_id == hash("gui_set_coins") then
 		gui.set_text(gui.get_node("coins"), string.format("COINS: %d", message.coins))
 	elseif message_id == hash("gui_set_income") then
@@ -63,17 +68,16 @@ function on_input(self, action_id, action)
 	-- Remove this function if not needed
 	-- msg.post(".", "acquire_input_focus")
 	-- print("gui input")
-
-	local node1 = gui.get_node("gui_tile1")
-	local node1_pos = gui.get_position(node1)
-	local node2 = gui.get_node("gui_tile2")
-	local node2_pos = gui.get_position(node2)
-	local node
+	local node, ability
 	if action_id == hash("touch_left") and action.pressed then
 		if pick_hex(node1_pos.x, node1_pos.y, action.x, action.y) then
 			node = node1
 		elseif pick_hex(node2_pos.x, node2_pos.y, action.x, action.y) then
 			node = node2
+		elseif gui.pick_node(gui.get_node("thunder"), action.x, action.y) then
+			ability = hash("thunder")
+		elseif gui.pick_node(gui.get_node("snow"), action.x, action.y) then
+			ability = hash("snow")
 		end
 		if node then
 			local type = gui.get_flipbook(node)
@@ -82,6 +86,9 @@ function on_input(self, action_id, action)
 			msg.post("/game#board", "new_tile", { position = pos, type = type, offset = offset })
 			gui.play_flipbook(node, hash("empty_hex"))
 			active_node = node
+			return true
+		elseif ability then
+			msg.post("/game#board", "ability", { ability = ability })
 			return true
 		end
 	end
