@@ -164,7 +164,8 @@ function score_calculation(self, new_type, old_type)
 	rock_score = rock_score + rock_income
 	coin_income = coin_income + rock_income
 	coins = coins + coin_income
-	msg.post("/gui#main", "gui_set_coins", {god_coins = coins})
+	msg.post("/gui#main", "gui_set_coins", {coins = coins})
+	msg.post("/gui#main", "gui_set_income", {income = coin_income})
 end
 
 function reset_income (type)
@@ -194,7 +195,7 @@ function heal_cell(self, x, y)
 		score_calculation(self, hash("none"), hash("none"))
 		coins = coins - coin_income
 		coins = coins - 100
-		msg.post("/gui#main", "gui_set_coins", {god_coins = coins})
+		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 	end
 end
 
@@ -202,7 +203,7 @@ function delay_corrupt()
 	if coins >= 50 then
 		corruption_delay = 1
 		coins = coins - 50
-		msg.post("/gui#main", "gui_set_coins", {god_coins = coins})
+		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 	end
 end
 

@@ -23,7 +23,11 @@ function on_message(self, message_id, message, sender)
 	-- Remove this function if not needed
 
 	if message_id == hash("gui_set_coins") then
-		gui.set_text(gui.get_node("god_coins"), string.format("COINS: %d", message.god_coins))
+		gui.set_text(gui.get_node("coins"), string.format("COINS: %d", message.coins))
+	end
+
+		if message_id == hash("gui_set_income") then
+		gui.set_text(gui.get_node("income"), string.format("INCOME PER TURN: %d", message.income))
 	end
 end
 
