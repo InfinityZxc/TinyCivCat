@@ -30,6 +30,12 @@ local map_type = hash("hex")
 go.property("map_type", hash("hex"))
 local corruption_beginning = 10
 local corruption_acceleration = 5
+local unhash = {
+	[hash("wood")] = "wood",
+	[hash("rock")] = "rock",
+	[hash("broken_rock")] = "broken_rock"
+}
+
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
@@ -284,7 +290,8 @@ function corruption_iteration(self)
 		local candidates = {}
 		for x = 0, boardwidth-1 do
 			for y = 0, boardheight-1 do
-				if check_coord(x, y) and self.board[x][y].id and not self.board[x][y].corrupted then
+				if check_coord(x, y) and self.board[x][y].id and not self.board[x][y].corrupted and 
+				self.board[x][y].tile_type ~= hash("water") then
 					local around_corrupted_count = 0
 					if check_coord(x+1, y) and self.board[x+1][y].corrupted then
 						around_corrupted_count = around_corrupted_count+1
@@ -315,10 +322,34 @@ function corruption_iteration(self)
 				end
 			end
 		end
-		local coords_to_corrupt = candidates[math.random(#candidates)]
-		self.board[coords_to_corrupt.x][coords_to_corrupt.y].corrupted = true;
-		score_calculation(self, self.board[coords_to_corrupt.x][coords_to_corrupt.y].tile_type, hash("none"))
-		msg.post("/corruption", "corrupt", {tile_x = coords_to_corrupt.x, tile_y = coords_to_corrupt.y})
+		if (#candidates ~= 0) then
+			local coords_to_corrupt = candidates[math.random(#candidates)]
+			local type
+			--[[  # replaced with use of unhash
+			if self.board[coords_to_corrupt.x][coords_to_corrupt.y].tile_type == hash("wood") then
+				type = "wood"
+				self.board[coords_to_corrupt.x][coords_to_corrupt.y].corrupted = true;
+			elseif self.board[coords_to_corrupt.x][coords_to_corrupt.y].tile_type == hash("rock") then
+				type = "broken_rock"
+				self.board[coords_to_corrupt.x][coords_to_corrupt.y].corrupted = true;
+			end
+			]] 
+			type = unhash[self.board[coords_to_corrupt.x][coords_to_corrupt.y].tile_type]
+			if type == "rock" then
+				if self.board[coords_to_corrupt.x][coords_to_corrupt.y].corrupted == false then
+					msg.post(msg.url(nil, self.board[coords_to_corrupt.x][coords_to_corrupt.y].id, "sprite"), "play_animation", {id = hash("broken_rock")})
+					self.board[coords_to_corrupt.x][coords_to_corrupt.y].corrupted = nil
+					return
+				else
+					type = "broken_rock"
+				end
+			end
+			self.board[coords_to_corrupt.x][coords_to_corrupt.y].corrupted = true;
+			score_calculation(self, self.board[coords_to_corrupt.x][coords_to_corrupt.y].tile_type, hash("none"))
+			msg.post(msg.url(nil, self.board[coords_to_corrupt.x][coords_to_corrupt.y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type)})
+		else
+			-- end game?
+		end
 	end
 	elseif turn_counter == corruption_beginning then
 		self.board[start_hex_pos.x][start_hex_pos.y].corrupted = true;
