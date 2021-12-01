@@ -210,6 +210,13 @@ function heal_cell(self, x, y)
 		coins = coins - coin_income
 		coins = coins - uncorrupt_cost
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
+		if not snow then
+			if coins >= delay_cost then
+				msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
+			else
+				msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_used")})
+			end
+		end
 	end
 end
 
@@ -220,6 +227,13 @@ function delay_corrupt()
 		coins = coins - delay_cost
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_active")})
+		if not thunder then
+			if coins >= uncorrupt_cost then
+				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
+			else
+				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
+			end
+		end
 	end
 end
 
@@ -401,7 +415,7 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("ability") then
 		if not snow and message["ability"] == hash("snow") then
 			delay_corrupt()
-		elseif not thunder and message["ability"] == hash("thunder") then
+		elseif not thunder and message["ability"] == hash("thunder") and coins >= uncorrupt_cost then
 			thunder_active = true
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
 		end
@@ -412,8 +426,16 @@ function on_message(self, message_id, message, sender)
 		snow = false
 		thunder = false
 		thunder_active = false
-		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
-		msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
+		if coins >= delay_cost then
+			msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
+		else
+			msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_used")})
+		end
+		if coins >= uncorrupt_cost then
+			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
+		else
+			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
+		end
 		if turn_counter == 68 then
 			msg.post("/end_screen#game_end", "game_won")
 		end

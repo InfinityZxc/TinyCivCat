@@ -259,14 +259,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 2.0
-    y: 2.0
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
   size {
-    x: 48.0
-    y: 48.0
+    x: 96.0
+    y: 96.0
     z: 0.0
     w: 1.0
   }
@@ -278,7 +278,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "sprites/snowflake"
+  texture: "sprites/snowflake_used"
   id: "snow"
   xanchor: XANCHOR_RIGHT
   yanchor: YANCHOR_BOTTOM
@@ -313,14 +313,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 2.0
-    y: 2.0
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
   size {
-    x: 48.0
-    y: 48.0
+    x: 96.0
+    y: 96.0
     z: 0.0
     w: 1.0
   }
@@ -332,7 +332,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "sprites/thunder"
+  texture: "sprites/thunder_used"
   id: "thunder"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
