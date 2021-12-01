@@ -8,10 +8,10 @@ local extrawidth
 go.property("extrawidth", 200)
 local extraheight
 go.property("extraheight", 100)
-local initial_delay_cost = 100
-local initial_uncorrupt_cost = 100
-local delay_cost = 100
-local uncorrupt_cost = 100
+local initial_delay_cost = 50
+local initial_uncorrupt_cost = 50
+local delay_cost = 50
+local uncorrupt_cost = 50
 local ability_cost_increase = 20
 local coins = 0
 local coin_income = 0
