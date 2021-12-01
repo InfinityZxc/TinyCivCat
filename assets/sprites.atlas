@@ -66,6 +66,10 @@ images {
   image: "/assets/restart.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
+images {
+  image: "/assets/border.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
 animations {
   id: "bugged_wood"
   images {

@@ -8,11 +8,11 @@ local extrawidth
 go.property("extrawidth", 200)
 local extraheight
 go.property("extraheight", 100)
-local initial_delay_cost = 100
-local initial_uncorrupt_cost = 100
-local delay_cost = 100
-local uncorrupt_cost = 100
-local ability_cost_increase = 20
+local initial_delay_cost = 70
+local initial_uncorrupt_cost = 70
+local delay_cost = 70
+local uncorrupt_cost = 70
+local ability_cost_increase = 10
 local coins = 0
 local coin_income = 0
 local corruption_delay = 0
@@ -32,8 +32,8 @@ local moving_tile_id = nil
 local moving_tile_offset = nil
 local map_type = hash("hex")
 go.property("map_type", hash("hex"))
-local corruption_beginning = 10
-local corruption_acceleration = 5
+local corruption_beginning = 15
+local corruption_acceleration = 10
 local unhash = {
 	[hash("wood")] = "wood",
 	[hash("rock")] = "rock",
@@ -197,11 +197,11 @@ end
 
 function update_income (type)
 	if type == hash("wood") then
-		wood_income = wood_income + 3 * income + 2 * bonus
+		wood_income = wood_income + 3 * income + bonus
 	elseif type == hash("water") then
-		water_income = water_income + income + bonus
+		water_income = water_income + income + 3 * bonus
 	elseif type == hash("rock") then
-		rock_income = rock_income + 2 * income + bonus
+		rock_income = rock_income + 2 * income + 2 * bonus
 	end
 end
 
@@ -285,27 +285,18 @@ function new_board()
 			if y%2==1 then
 				pos.x = pos.x - hex_size/2
 			end
-			--[[
 			if check_coord(x, y) then
 				pos.y = 64+3*hex_size*y/4+extraheight
 				if y%2==1 then
 					pos.x = pos.x + hex_size/2
 				end
-
-				pos.x = pos.x + hex_size/2
-				pos.y = pos.y + hex_size/4
-				--factory.create("#corner_point_factory", pos, null)
-				pos.y = pos.y - hex_size/2
-				factory.create("#corner_point_factory", pos, null)
-				pos.x = pos.x - hex_size/2
-				pos.y = pos.y - hex_size/4
-				factory.create("#corner_point_factory", pos, null)
-				pos.y = pos.y + hex_size/2
+				local pos_bondaries = pos
+				pos_bondaries.z = pos.z / 2
+				factory.create("/game#boundaries_factory", pos_bondaries, null)
 				if y%2==1 then
 					pos.x = pos.x - hex_size/2
 				end
 			end
-			--]]
 		end
 	end
 	return new_board
@@ -368,7 +359,7 @@ end
 
 function corruption_iteration(self)
 	if turn_counter > corruption_beginning and corruption_delay == 0 then
-		for i = 0, math.max(0, math.floor((turn_counter-corruption_beginning)/corruption_acceleration)) do
+		for i = 0, math.max(0, math.floor((turn_counter+(delay_cost-initial_delay_cost)/ability_cost_increase-corruption_beginning)/corruption_acceleration)) do
 			local max_corrupted_around = 0
 			local max_cor_ar_pos = first_corruption_hex_pos
 			local candidates = {}
