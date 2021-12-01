@@ -8,6 +8,8 @@ local extrawidth
 go.property("extrawidth", 200)
 local extraheight
 go.property("extraheight", 100)
+local delay_cost = 50
+local uncorrupt_cost = 100
 local coins = 0
 local coin_income = 0
 local corruption_delay = 0
@@ -44,6 +46,7 @@ function init(self)
 	init_locals_from_properties("#")
 	
 	self.board = new_board()
+	score_calculation(self, hash("none"), hash("none"))
 	timer.delay(0.8, false, function ()
 		msg.post("/gui#main", "acquire_input_focus")
 	end)
@@ -195,20 +198,20 @@ function update_income (type)
 end
 
 function heal_cell(self, x, y)
-	if (coins >= 100) then
+	if (coins >= uncorrupt_cost) then
 		self.board[x][y].corrupted = false;
 		msg.post("/corruption", "uncorrupt", {tile_x = x, tile_y = y})
 		score_calculation(self, hash("none"), hash("none"))
 		coins = coins - coin_income
-		coins = coins - 100
+		coins = coins - uncorrupt_cost
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 	end
 end
 
 function delay_corrupt()
-	if coins >= 50 then
+	if coins >= delay_cost then
 		corruption_delay = 1
-		coins = coins - 50
+		coins = coins - delay_cost
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 	end
 end
@@ -353,7 +356,6 @@ function corruption_iteration(self)
 	end
 	elseif turn_counter == corruption_beginning then
 		self.board[start_hex_pos.x][start_hex_pos.y].corrupted = true;
-		score_calculation(self, self.board[start_hex_pos.x][start_hex_pos.y].tile_type, hash("none"))
 		local type = "broken_rock"
 		if self.board[start_hex_pos.x][start_hex_pos.y].tile_type == hash("wood") then
 			type = "wood"
@@ -366,14 +368,13 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("next_turn") then
 		turn_counter = turn_counter + 1
 		corruption_iteration(self)
-		
+		score_calculation(self, hash("none"), hash("none"))
 	elseif message_id == hash("new_tile") then
 		message.position.z = 1
 		moving_tile_id = factory.create("#hex_factory", message["position"], null, {tile_type = message["type"]})
 		moving_tile_offset = message["offset"]
 	elseif message_id == hash("update_tile") then
 		self.board[message.x][message.y].tile_type = message.new_type
-		score_calculation(self, message.new_type, message.old_type)
 	end
 end
 
@@ -450,9 +451,6 @@ function on_input(self, action_id, action)
 				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
 				go.animate(moving_tile_id, "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.4)
 				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false}
-				if turn_counter < corruption_beginning then
-					score_calculation(self, tile_type, hash("none"))
-				end
 				msg.post("#", "next_turn")
 				msg.post("/gui#main", "gui_new_tile")
 			else
@@ -469,7 +467,7 @@ function on_input(self, action_id, action)
 		
 	if action_id == hash("touch_left") and action.pressed then
 		local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)
-		if tile_x >= 0 and tile_y >=0 and self.board[tile_x][tile_y].id and self.board[tile_x][tile_y].corrupted then
+		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].id and self.board[tile_x][tile_y].corrupted then
 			heal_cell(self, tile_x, tile_y)
 		end
 	end
