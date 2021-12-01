@@ -28,7 +28,7 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("change_type") then
 		if self.tile_type == hash("rock") then
-			msg.post("#sprite", "play_animation", { id = hash("test_hex_wood") })
+			msg.post("#sprite", "play_animation", { id = hash("wood") })
 			change_tile(self, hash("wood"))
 		elseif self.tile_type == hash("wood") then
 			msg.post("#sprite", "play_animation", { id = hash("wood") })
@@ -43,7 +43,7 @@ function on_message(self, message_id, message, sender)
 		if self.tile_type == hash("rock") then
 			msg.post("#sprite", "play_animation", { id = hash("rock") })
 		elseif self.tile_type == hash("wood") then
-			msg.post("#sprite", "play_animation", { id = hash("test_hex_wood") })
+			msg.post("#sprite", "play_animation", { id = hash("wood") })
 		else 
 			msg.post("#sprite", "play_animation", { id = hash("wood") })
 		end
