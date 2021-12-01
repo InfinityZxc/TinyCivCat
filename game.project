@@ -14,9 +14,19 @@ display_device_info = 0
 input_method = HiddenInputField
 
 [project]
-title = TinyCivCat
+title = Catalization
+custom_resources = 
 dependencies#0 = https://github.com/subsoap/defos/archive/v2.6.0.zip
 
 [sprite]
 max_count = 512
+
+[osx]
+app_icon = /assets/icon.png
+
+[windows]
+app_icon = /assets/icon.ico
+
+[html5]
+show_fullscreen_button = 0
 
