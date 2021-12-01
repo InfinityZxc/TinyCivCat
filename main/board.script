@@ -412,7 +412,7 @@ function on_message(self, message_id, message, sender)
 		thunder_active = false
 		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
 		msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
-		if turn_counter == 69 then
+		if turn_counter == 68 then
 			msg.post("/end_screen#game_end", "game_won")
 		end
 	elseif message_id == hash("new_tile") then
@@ -448,6 +448,8 @@ function on_message(self, message_id, message, sender)
 		turn_counter = 0
 		self.board = new_board()
 		score_calculation(self, hash("none"), hash("none"))
+	elseif message_id == "clear_corruption" then
+		clear_corruption(self, true)
 	end
 end
 
