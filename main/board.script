@@ -8,8 +8,11 @@ local extrawidth
 go.property("extrawidth", 200)
 local extraheight
 go.property("extraheight", 100)
-local delay_cost = 50
+local initial_delay_cost = 100
+local initial_uncorrupt_cost = 100
+local delay_cost = 100
 local uncorrupt_cost = 100
+local ability_cost_increase = 20
 local coins = 0
 local coin_income = 0
 local corruption_delay = 0
@@ -209,6 +212,9 @@ function heal_cell(self, x, y)
 		score_calculation(self, hash("none"), hash("none"))
 		coins = coins - coin_income
 		coins = coins - uncorrupt_cost
+		uncorrupt_cost = uncorrupt_cost + ability_cost_increase
+		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
+		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		if not snow then
 			if coins >= delay_cost then
@@ -225,6 +231,9 @@ function delay_corrupt()
 		snow = true
 		corruption_delay = 1
 		coins = coins - delay_cost
+		delay_cost = delay_cost + ability_cost_increase
+		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
+		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_active")})
 		if not thunder then
@@ -457,6 +466,10 @@ function on_message(self, message_id, message, sender)
 				end
 			end
 		end
+		delay_cost = initial_delay_cost
+		uncorrupt_cost = initial_uncorrupt_cost
+		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
+		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
 		coins = 0
 		coin_income = 0
 		corruption_delay = 0
