@@ -45,6 +45,14 @@ function on_message(self, message_id, message, sender)
 		gui.set_text(gui.get_node("coins"), string.format("COINS: %d", message.coins))
 	elseif message_id == hash("gui_set_income") then
 		gui.set_text(gui.get_node("income"), string.format("INCOME PER TURN: %d", message.income))
+	-- elseif message_id == hash("game_won") then
+	-- 	top_bar = gui.get_node("top_bar")
+	-- -- 	gui.set_text(top_bar, "YOU WON!")
+	-- -- 	gui.set_size(top_bar, vmath.vector3(100, 100, 0))
+	-- elseif message_id == hash("game_lost") then
+	-- 	top_bar = gui.get_node("top_bar")
+	-- 	gui.set_text(top_bar, "YOU LOST :(")
+	-- 	gui.set_size(top_bar, vmath.vector3(100, 100, 0))
 	end
 end
 

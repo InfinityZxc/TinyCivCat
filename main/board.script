@@ -55,7 +55,6 @@ function init(self)
 	timer.delay(0.8, false, function ()
 		msg.post("/gui#main", "acquire_input_focus")
 	end)
-	msg.post("/corruption", "start_corruption")
 end
 
 function init_locals_from_properties(from_where)
@@ -353,7 +352,7 @@ function corruption_iteration(self)
 				local coords_to_corrupt = candidates[math.random(#candidates)]
 				corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, false)
 			else
-				-- end game?
+				msg.post("/end_screen#game_end", "game_lost")
 			end
 		end
 	elseif turn_counter == corruption_beginning then
@@ -380,6 +379,9 @@ function on_message(self, message_id, message, sender)
 		thunder_active = false
 		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
 		msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
+		if turn_counter == 69 then
+			msg.post("/end_screen#game_end", "game_won")
+		end
 	elseif message_id == hash("new_tile") then
 		message.position.z = 1
 		moving_tile_id = factory.create("#hex_factory", message["position"], null, {tile_type = message["type"]})

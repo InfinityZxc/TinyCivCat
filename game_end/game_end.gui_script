@@ -1,0 +1,79 @@
+local showing_map = false
+local won
+
+function init(self)
+	-- Add initialization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	-- Add update code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function show()
+	gui.set_position(gui.get_node("background"), vmath.vector3(960, 540, 0))
+	gui.set_position(gui.get_node("continue"), vmath.vector3(960, 540, 0))
+end
+
+function hide()
+	gui.set_position(gui.get_node("background"), vmath.vector3(960, -540, 0))
+	gui.set_position(gui.get_node("continue"), vmath.vector3(960, -540, 0))
+	gui.set_position(gui.get_node("you_won"), vmath.vector3(960, -540, 0))
+	gui.set_position(gui.get_node("you_lost"), vmath.vector3(960, -540, 0))
+end
+
+function on_message(self, message_id, message, sender)
+	show()
+	msg.post(".", "acquire_input_focus")
+	if message_id == hash("game_won") then
+		gui.set_position(gui.get_node("you_won"), vmath.vector3(960, 540, 0))
+		won = true
+	elseif message_id == hash("game_lost") then
+		gui.set_position(gui.get_node("you_lost"), vmath.vector3(960, 540, 0))
+		won = false
+	end
+end
+
+function on_input(self, action_id, action)
+	-- Add input-handling code here. The game object this script is attached to
+	-- must have acquired input focus:
+	--
+	--    msg.post(".", "acquire_input_focus")
+	--
+	-- All mapped input bindings will be received. Mouse and touch input will
+	-- be received regardless of where on the screen it happened.
+	-- Learn more: https://defold.com/manuals/input/
+	-- Remove this function if not needed
+
+	if action_id == hash("touch_left") and action.pressed then
+		if showing_map and gui.pick_node(gui.get_node("restart"), action.x, action.y) then
+			msg.post("/game#board", "restart")
+			msg.post(".", "release_input_focus")
+			gui.set_position(gui.get_node("restart"), vmath.vector3(100, -100, 0))
+			showing_map = false
+		else
+			hide()
+			gui.set_position(gui.get_node("restart"), vmath.vector3(100, 100, 0))
+			showing_map = true
+			if won then
+				msg.post("/game#board", "clear_corruption")
+			end
+		end
+	end
+	return true
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end
