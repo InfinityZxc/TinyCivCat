@@ -194,11 +194,11 @@ end
 
 function update_income (type)
 	if type == hash("wood") then
-		wood_income = wood_income + 3 * income + 2 * bonus
+		wood_income = wood_income + 3 * income + bonus
 	elseif type == hash("water") then
-		water_income = water_income + income + bonus
+		water_income = water_income + income + 3 * bonus
 	elseif type == hash("rock") then
-		rock_income = rock_income + 2 * income + bonus
+		rock_income = rock_income + 2 * income + 2 * bonus
 	end
 end
 
@@ -209,6 +209,7 @@ function heal_cell(self, x, y)
 		score_calculation(self, hash("none"), hash("none"))
 		coins = coins - coin_income
 		coins = coins - uncorrupt_cost
+		uncorrupt_cost = uncorrupt_cost + 10
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 	end
 end
@@ -218,6 +219,7 @@ function delay_corrupt()
 		snow = true
 		corruption_delay = 1
 		coins = coins - delay_cost
+		delay_cost = delay_cost + 10
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_active")})
 	end
@@ -261,16 +263,9 @@ function new_board()
 				if y%2==1 then
 					pos.x = pos.x + hex_size/2
 				end
-
-				pos.x = pos.x + hex_size/2
-				pos.y = pos.y + hex_size/4
-				--factory.create("#corner_point_factory", pos, null)
-				pos.y = pos.y - hex_size/2
-				factory.create("#corner_point_factory", pos, null)
-				pos.x = pos.x - hex_size/2
-				pos.y = pos.y - hex_size/4
-				factory.create("#corner_point_factory", pos, null)
-				pos.y = pos.y + hex_size/2
+				local pos_bondaries = pos
+				pos_bondaries.z = pos.z / 2
+				factory.create("/game#boundaries_factory", pos_bondaries, null)
 				if y%2==1 then
 					pos.x = pos.x - hex_size/2
 				end
