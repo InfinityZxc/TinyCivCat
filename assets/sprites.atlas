@@ -58,14 +58,6 @@ images {
   image: "/assets/thunder_used.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
-images {
-  image: "/assets/end_screen.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/restart.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
 animations {
   id: "bugged_wood"
   images {
@@ -113,64 +105,6 @@ animations {
   }
   images {
     image: "/assets/bugged_broken_rock/bugged_broken_rock-5.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-  }
-  playback: PLAYBACK_LOOP_FORWARD
-  fps: 3
-  flip_horizontal: 0
-  flip_vertical: 0
-}
-animations {
-  id: "you_lost"
-  images {
-    image: "/assets/you_lost/you_lost-1.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-  }
-  images {
-    image: "/assets/you_lost/you_lost-2.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-  }
-  images {
-    image: "/assets/you_lost/you_lost-3.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-  }
-  images {
-    image: "/assets/you_lost/you_lost-4.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-  }
-  images {
-    image: "/assets/you_lost/you_lost-5.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-  }
-  playback: PLAYBACK_LOOP_FORWARD
-  fps: 3
-  flip_horizontal: 0
-  flip_vertical: 0
-}
-animations {
-  id: "you_won"
-  images {
-    image: "/assets/you_won/you_won-1.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-  }
-  images {
-    image: "/assets/you_won/you_won-2.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-  }
-  images {
-    image: "/assets/you_won/you_won-3.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-  }
-  images {
-    image: "/assets/you_won/you_won-4.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-  }
-  images {
-    image: "/assets/you_won/you_won-5.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-  }
-  images {
-    image: "/assets/you_won/you_won-6.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   playback: PLAYBACK_LOOP_FORWARD
