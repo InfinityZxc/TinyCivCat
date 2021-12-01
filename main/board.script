@@ -298,6 +298,32 @@ function update(self, dt)
 	-- Remove this function if not needed
 end
 
+function clear_corruption(self, completely)
+	for x = 0,boardwidth-1 do
+		for y = 0,boardheight-1 do
+			if self.board[x][y].id then
+				if completely then
+					if self.board[x][y].corrupted then
+						self.board[x][y].corrupted = false;
+						msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = self.board[x][y].tile_type})
+					end
+				else
+					if self.board[x][y].corrupted then
+						local type = unhash[self.board[x][y].tile_type]
+						if type == "rock" then
+							self.board[x][y].corrupted = nil;
+							msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("broken_rock")})
+						else
+							self.board[x][y].corrupted = false;
+							msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = self.board[x][y].tile_type})
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
 function corrupt_tile(self, x, y, completely)
 	local type = unhash[self.board[x][y].tile_type]
 	if type == "rock" then
