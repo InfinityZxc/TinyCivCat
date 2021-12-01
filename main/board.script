@@ -37,11 +37,15 @@ local unhash = {
 	[hash("rock")] = "rock",
 	[hash("broken_rock")] = "broken_rock"
 }
+local thunder = false
+local thunder_active = false
+local snow = false
 
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
-	
+	defos.disable_window_resize()
+
 	-- in case here are some settings that affect properties
 	init_locals_from_properties("#")
 	
@@ -205,14 +209,17 @@ function heal_cell(self, x, y)
 		coins = coins - coin_income
 		coins = coins - uncorrupt_cost
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
+		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = self.board[x][y].tile_type})
 	end
 end
 
 function delay_corrupt()
 	if coins >= delay_cost then
+		snow = true
 		corruption_delay = 1
 		coins = coins - delay_cost
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
+		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_active")})
 	end
 end
 
@@ -365,10 +372,22 @@ function corruption_iteration(self)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == hash("next_turn") then
+	if message_id == hash("ability") then
+		if not snow and message["ability"] == hash("snow") then
+			delay_corrupt()
+		elseif not thunder and message["ability"] == hash("thunder") then
+			thunder_active = true
+			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
+		end
+	elseif message_id == hash("next_turn") then
 		turn_counter = turn_counter + 1
 		corruption_iteration(self)
 		score_calculation(self, hash("none"), hash("none"))
+		snow = false
+		thunder = false
+		thunder_active = false
+		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
+		msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
 	elseif message_id == hash("new_tile") then
 		message.position.z = 1
 		moving_tile_id = factory.create("#hex_factory", message["position"], null, {tile_type = message["type"]})
@@ -465,10 +484,15 @@ function on_input(self, action_id, action)
 		return true
 	end
 		
-	if action_id == hash("touch_left") and action.pressed then
+	if thunder_active and action_id == hash("touch_left") and action.pressed then
+		thunder_active = false
 		local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)
 		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].id and self.board[tile_x][tile_y].corrupted then
 			heal_cell(self, tile_x, tile_y)
+			thunder = true
+			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
+		else
+			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
 		end
 	end
 end
