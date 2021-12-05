@@ -43,6 +43,7 @@ local unhash = {
 local thunder = false
 local thunder_active = false
 local snow = false
+local grid = false
 
 
 function init(self)
@@ -285,7 +286,7 @@ function new_board()
 			if y%2==1 then
 				pos.x = pos.x - hex_size/2
 			end
-			if check_coord(x, y) then
+			if check_coord(x, y) and not grid then
 				pos.y = 64+3*hex_size*y/4+extraheight
 				if y%2==1 then
 					pos.x = pos.x + hex_size/2
@@ -299,6 +300,7 @@ function new_board()
 			end
 		end
 	end
+	grid = true
 	return new_board
 end
 
@@ -359,7 +361,7 @@ end
 
 function corruption_iteration(self)
 	if turn_counter > corruption_beginning and corruption_delay == 0 then
-		for i = 0, math.max(0, math.floor((turn_counter-(delay_cost-initial_delay_cost)/ability_cost_increase-corruption_beginning)/corruption_acceleration)) do
+		for i = 0, math.max(0, math.floor((turn_counter+(delay_cost-initial_delay_cost)/ability_cost_increase-corruption_beginning)/corruption_acceleration)) do
 			local max_corrupted_around = 0
 			local max_cor_ar_pos = first_corruption_hex_pos
 			local candidates = {}
