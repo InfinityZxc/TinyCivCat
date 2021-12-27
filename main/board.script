@@ -53,12 +53,41 @@ function init(self)
 	init_locals_from_properties("#")
 	
 	self.board = new_board()
+	create_grid(self)
+
+	msg.post("/traveller#traveller", "init_vals")
+	
 	score_calculation(self, hash("none"), hash("none"))
 	timer.delay(0.8, false, function ()
 		msg.post("/gui#main", "acquire_input_focus")
 	end)
 	msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
 	msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
+end
+
+function create_grid(self)
+	self.grid = {}
+	local pos = vmath.vector3()
+	for x = 0,boardwidth-1 do
+		pos.x = 64+hex_size*x +extrawidth
+		self.grid[x] = {}
+		for y = 0,boardheight-1 do
+			if check_coord(x, y) then
+				pos.y = 64+3*hex_size*y/4+extraheight
+				if y%2==1 then
+					pos.x = pos.x + hex_size/2
+				end
+				pos.z = 1 / (y + 3)
+				pos.z = pos.z / 2
+				local grid_id = nil
+				factory.create("/game#boundaries_factory", pos, null)
+				self.grid[x][y] = {id = grid_id}
+				if y%2==1 then
+					pos.x = pos.x - hex_size/2
+				end
+			end
+		end
+	end
 end
 
 function init_locals_from_properties(from_where)
@@ -261,7 +290,6 @@ function new_board()
 			if y%2==1 then
 				pos.x = pos.x + hex_size/2
 			end
-			pos.z = 1 / pos.y
 			local tile_type = hash("rock")
 			local id_tile
 			--[[  for check_coord tests
@@ -284,18 +312,6 @@ function new_board()
 			new_board[x][y] = {id = id_tile, x = x, y = y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false}
 			if y%2==1 then
 				pos.x = pos.x - hex_size/2
-			end
-			if check_coord(x, y) then
-				pos.y = 64+3*hex_size*y/4+extraheight
-				if y%2==1 then
-					pos.x = pos.x + hex_size/2
-				end
-				local pos_bondaries = pos
-				pos_bondaries.z = pos.z / 2
-				factory.create("/game#boundaries_factory", pos_bondaries, null)
-				if y%2==1 then
-					pos.x = pos.x - hex_size/2
-				end
 			end
 		end
 	end
