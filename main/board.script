@@ -55,7 +55,7 @@ function init(self)
 	self.board = new_board()
 	create_grid(self)
 
-	msg.post("/traveller#traveller", "init_vals")
+	--msg.post("/traveller#traveller", "init_vals")
 	
 	score_calculation(self, hash("none"), hash("none"))
 	timer.delay(0.8, false, function ()

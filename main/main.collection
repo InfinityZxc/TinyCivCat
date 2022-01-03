@@ -1,24 +1,4 @@
 name: "main"
-instances {
-  id: "traveller"
-  prototype: "/traveller/traveller.go"
-  position {
-    x: 772.0
-    y: 494.0
-    z: 0.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale3 {
-    x: 0.25
-    y: 0.25
-    z: 1.0
-  }
-}
 scale_along_z: 0
 embedded_instances {
   id: "game"
