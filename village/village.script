@@ -1,0 +1,79 @@
+go.property("x", 0)
+go.property("y", 0)
+go.property("human_count", 0)
+go.property("visible_stats", false)
+go.property("wood", 0)
+go.property("rock", 0)
+go.property("water", 0)
+
+function init(self)
+	msg.post("#stats_picture" , "disable")
+	msg.post("#stats_label" , "disable")
+	self.humans = {}
+end
+
+function final(self)
+	while (#self.humans ~= 0) do
+		go.delete(self.humans[#self.humans])
+		table.remove(self.humans)
+	end
+end
+
+function update(self, dt)
+	-- Add update code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("create_human") then 
+		self.human_count = self.human_count + 1
+		local pos = vmath.vector3(0, 0, 1)
+		local id_human = factory.create("#human_factory", pos, null, {
+			id_num = self.human_count, x = self.x, y = self.y, previous_x = self.x, previous_y = self.y, 
+			relative_position_down = true, home_x = self.x, home_y = self.y})
+		self.humans[self.human_count] = {id = id_human}
+		msg.post(msg.url(nil, id_human, "traveller"), "init_vals")
+		
+		timer.delay(0.5, false, function ()
+			if self.human_count < 3 then
+				msg.post("#", "create_human")
+			end
+		end)
+	elseif message_id == hash("change_stats_visibility") then
+		if self.visible_stats then
+			msg.post("#stats_picture" , "disable")
+			msg.post("#stats_label" , "disable")
+		else
+			msg.post("#stats_picture" , "enable")
+			msg.post("#stats_label" , "enable")
+		end
+		self.visible_stats = not self.visible_stats
+	elseif message_id == hash("get_resource") then
+		if message["tile_type"] == hash("water") then
+			self.water = self.water + 1
+		elseif message["tile_type"] == hash("wood") then
+			self.wood = self.wood + 1
+		elseif message["tile_type"] == hash("rock") then
+			self.rock = self.rock + 1
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	-- Add input-handling code here. The game object this script is attached to
+	-- must have acquired input focus:
+	--
+	--    msg.post(".", "acquire_input_focus")
+	--
+	-- All mapped input bindings will be received. Mouse and touch input will
+	-- be received regardless of where on the screen it happened.
+	-- Learn more: https://defold.com/manuals/input/
+	-- Remove this function if not needed
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end

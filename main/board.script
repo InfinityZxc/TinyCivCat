@@ -43,6 +43,7 @@ local unhash = {
 local thunder = false
 local thunder_active = false
 local snow = false
+local village_count = 0
 
 
 function init(self)
@@ -55,7 +56,8 @@ function init(self)
 	self.board = new_board()
 	create_grid(self)
 
-	--msg.post("/traveller#traveller", "init_vals")
+	self.villages = {}
+	village_creation(self, 4, 4)
 	
 	score_calculation(self, hash("none"), hash("none"))
 	timer.delay(0.8, false, function ()
@@ -373,6 +375,65 @@ function corrupt_tile(self, x, y, completely)
 	end
 end
 
+function village_creation(self, x, y)
+	local pos = return_coords_from_hex_index(self, x, y)
+	pos.z = 0.7
+	id_village = factory.create("#village_factory", pos, null, {x = x, y = y})
+	msg.post(msg.url(nil, id_village, "village"), "create_human")
+	go.set(msg.url(nil, id_village, "sprite"), "scale", vmath.vector3(0.5 , 0.5, 1))
+	table.insert(self.villages, {id = id_village, x = x, y = y})
+
+	local sdvig = -1 + (y%2)*2
+	if self.board[x+1][y].id then
+		msg.post(msg.url(nil, id_village, "village"), "get_resource", {tile_type = self.board[x+1][y].tile_type})
+	end
+	if self.board[x-1][y].id then
+		msg.post(msg.url(nil, id_village, "village"), "get_resource", {tile_type = self.board[x-1][y].tile_type})
+	end
+	if self.board[x][y+1].id then
+		msg.post(msg.url(nil, id_village, "village"), "get_resource", {tile_type = self.board[x][y+1].tile_type})
+	end
+	if self.board[x][y-1].id then
+		msg.post(msg.url(nil, id_village, "village"), "get_resource", {tile_type = self.board[x][y-1].tile_type})
+	end
+	if self.board[x+sdvig][y+1].id then
+		msg.post(msg.url(nil, id_village, "village"), "get_resource", {tile_type = self.board[x+sdvig][y+1].tile_type})
+	end
+	if self.board[x+sdvig][y-1].id then
+		msg.post(msg.url(nil, id_village, "village"), "get_resource", {tile_type = self.board[x+sdvig][y-1].tile_type})
+	end
+	
+	village_count = village_count + 1
+end
+
+function village_destruction(self, village_num)
+	go.delete(self.villages[village_num].id)
+	table.remove(self.villages, village_num)
+	village_count = village_count - 1
+end
+
+function check_proximity_of_2_hex(x1, y1, x_around, y_arounnd)
+	local sdvig = -1 + (y1%2)*2
+	if (x_around == x1+1 and y_arounnd == y1) or
+	(x_around == x1-1 and y_arounnd == y1) or
+	(x_around == x1 and y_arounnd == y1+1) or
+	(x_around == x1 and y_arounnd == y1-1) or
+	(x_around == x1+sdvig and y_arounnd == y1+1) or
+	(x_around == x1+sdvig and y_arounnd == y1-1) then
+		return true
+	else
+		return false
+	end
+end
+
+function add_resource_to_villages(self, tile_type, x, y)
+	for village_num = 1, #self.villages do
+		if check_proximity_of_2_hex(self.villages[village_num].x, self.villages[village_num].y, x, y) then
+			msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = tile_type})
+		end
+	end
+end
+
 function corruption_iteration(self)
 	if turn_counter > corruption_beginning and corruption_delay == 0 then
 		for i = 0, math.max(0, math.floor((turn_counter+(delay_cost-initial_delay_cost)/ability_cost_increase-corruption_beginning)/corruption_acceleration)) do
@@ -436,6 +497,7 @@ function on_message(self, message_id, message, sender)
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
 		end
 	elseif message_id == hash("next_turn") then
+		add_resource_to_villages(self, message["tile_type"], message["x"], message["y"])
 		turn_counter = turn_counter + 1
 		corruption_iteration(self)
 		score_calculation(self, hash("none"), hash("none"))
@@ -569,20 +631,31 @@ function on_input(self, action_id, action)
 				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
 				go.animate(moving_tile_id, "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.4)
 				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false}
-				msg.post("#", "next_turn")
+				msg.post("#", "next_turn", {tile_type = tile_type, x = tile_x, y = tile_y})
 				msg.post("/gui#main", "gui_new_tile")
 			else
 				go.delete(moving_tile_id)
 				msg.post("/gui#main", "gui_revert_tile", {tile_type=tile_type})
 			end
 			moving_tile_id = nil
+			
 		else
 			local pos = vmath.vector3(action.x, action.y, 0.5)
 			go.set_position(pos - moving_tile_offset, moving_tile_id)
 		end
 		return true
 	end
-		
+	
+	if action_id == hash("touch_left") and action.released then
+		local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)
+		for num = 1, #self.villages do
+			if self.villages[num].x == tile_x and self.villages[num].y == tile_y then
+				msg.post(msg.url(nil, self.villages[num].id , "village"), "change_stats_visibility")
+				return true
+			end
+		end
+	end
+	
 	if thunder_active and action_id == hash("touch_left") and action.pressed then
 		thunder_active = false
 		local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)

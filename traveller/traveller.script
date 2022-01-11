@@ -1,27 +1,26 @@
+go.property("id_num", 0)
 local hex_size = 0 
 local boardwidth = 0
 local boardheight = 0
 local extrawidth = 0
 local extraheight = 0 
 local map_type = "hex"
-local pos = vmath.vector3(0,0,0)
-local x = 4
-local y = 4
-local relative_position_down = true   -- false = relative_position_right and down 
-local previous = vmath.vector({4, 4})
-local can_move = true
+go.property("x", 4)
+go.property("y", 4)
+go.property("relative_position_down", true)   -- false = relative_position_right and down 
+go.property("previous_x", 4)
+go.property("previous_y", 4)
+go.property("can_move", true)
+go.property("home_x", 4)
+go.property("home_y", 4)
 
 function init(self)
-	--msg.post("#", "init_vals")
 	msg.post("#sprite", "play_animation", { id = hash("rock") })
-	--[[
-	timer.delay(10, false, function ()
-		can_move = false
-	end)
-	]]
+	go.set("#sprite", "scale", vmath.vector3(0.25 , 0.25, 1))
+	
 end
 
-function local_check_coord(x, y)
+function local_check_coord(self, x, y)
 	if map_type == hash("hex") then
 		-- looks a bit like hex(octagon actually, but we need more height), requires some rework, but you get the idea
 		if (x >= boardwidth or x < 0 or y < 0 or y >= boardheight or
@@ -38,13 +37,69 @@ function local_check_coord(x, y)
 		then
 			return false
 		end
-		return true
+		if check_proximity_radius_1(self, x, y) then
+			return true
+		else
+			return false
+		end
 	else
 		if (x >= boardwidth or x < 0 or y < 0 or y >= boardheight) then
 			return false
 		end
+		if check_proximity_radius_1(self, x, y) then
+			return true
+		else
+			return false
+		end
+	end
+end
+
+function check_proximity_radius_1(self, x, y)
+	local sdvig = -1 + (self.home_y%2)*2
+	if (x == self.home_x and y == self.home_y) or
+	(x == self.home_x+1 and y == self.home_y) or
+	(x == self.home_x-1 and y == self.home_y) or
+	(x == self.home_x and y == self.home_y+1) or
+	(x == self.home_x and y == self.home_y-1) or
+	(x == self.home_x+sdvig and y == self.home_y+1) or
+	(x == self.home_x+sdvig and y == self.home_y-1) or
+	
+	(x == self.home_x and y == self.home_y+2) or
+	(x == self.home_x-1 and y == self.home_y+2) then
 		return true
 	end
+	if (self.home_y % 2 == 0) then
+		if (x == self.home_x-2 and y == self.home_y+1) then
+			return true
+		end
+		if self.relative_position_down then
+			if (x == self.home_x-2 and y == self.home_y) or
+			(x == self.home_x-2 and y == self.home_y-1) then
+				return true
+			end
+		else
+			if (x == self.home_x+1 and y == self.home_y+2) or
+			(x == self.home_x+1 and y == self.home_y+1) then
+				return true
+			end
+		end
+	else   -- self.home_y % 2 == 1
+		if (x == self.home_x-1 and y == self.home_y+1) then
+			return true
+		end
+		if self.relative_position_down then
+			if (x == self.home_x-2 and y == self.home_y) or
+			(x == self.home_x-1 and y == self.home_y-1) then
+				return true
+			end
+		else
+			if (x == self.home_x+1 and y == self.home_y+2) or
+			(x == self.home_x+2 and y == self.home_y+1) then
+				return true
+			end
+		end
+	end
+	return false
 end
 
 function final(self)
@@ -79,43 +134,69 @@ function on_message(self, message_id, message, sender)
 		extraheight = go.get("/game#board", "extraheight")
 		map_type = go.get("/game#board", "map_type")
 
-		timer.delay(2, false, function ()
+		local pos = vmath.vector3(0,0,0)
+		pos.x = 64 + hex_size * self.home_x + extrawidth
+		pos.y = 64 + 3 * hex_size * self.home_y / 4+ extraheight
+		if self.home_y%2==1 then
+			pos.x = pos.x + hex_size/2
+		end
+		if not self.relative_position_down then
+			pos.x = pos.x + hex_size/2
+			pos.y = pos.y - hex_size/4
+		else
+			pos.y = pos.y - hex_size/2
+		end
+		go.set(".", "position", pos)
+
+		timer.delay(1, false, function ()
 			msg.post("#", "move")
 		end)
 	elseif message_id == hash("move") then 
-		can_move = true
+		self.can_move = true
+		local pos = vmath.vector3(0,0,0)
+		local previous = vmath.vector({0,0})
 		local x_y_index_vec = vmath.vector()
 		local possible_next = {}
+		local x = self.x
+		local y = self.y
+		previous[1] = self.previous_x
+		previous[2] = self.previous_y
 		
-		if previous[1] ~= x or previous[2] ~= y then
-			table.insert(possible_next, vmath.vector({x,y}))
+		if (previous[1] ~= x or previous[2] ~= y) and local_check_coord(self, x, y) then
+			table.insert(possible_next, vmath.vector({x, y}))
 		end
-		if relative_position_down then
-			if previous[1] ~= x-1 or previous[2] ~= y and local_check_coord(x-1,y) then
-				table.insert(possible_next, vmath.vector({x-1,y}))
+		if self.relative_position_down then
+			if (previous[1] ~= x-1 or previous[2] ~= y) and local_check_coord(self, x-1,y) then
+				table.insert(possible_next, vmath.vector({x-1, y}))
 			end
-			if previous[1] ~= x+(y%2)-1 or previous[2] ~= y-1 and local_check_coord(x+(y%2)-1, y-1) then
+			if (previous[1] ~= x+(y%2)-1 or previous[2] ~= y-1) and local_check_coord(self, x+(y%2)-1, y-1) then
 				table.insert(possible_next, vmath.vector({x+(y%2)-1, y-1}))
 			end
 		else
-			if previous[1] ~= x+1 or previous[2] ~= y and local_check_coord(x+1,y) then
-				table.insert(possible_next, vmath.vector({x+1,y}))
+			if (previous[1] ~= x+1 or previous[2] ~= y) and local_check_coord(self, x+1,y) then
+				table.insert(possible_next, vmath.vector({x+1, y}))
 			end
-			if previous[1] ~= x+(y%2) or previous[2] ~= y+1 and local_check_coord(x+(y%2), y+1) then
+			if (previous[1] ~= x+(y%2) or previous[2] ~= y+1) and local_check_coord(self, x+(y%2), y+1) then
 				table.insert(possible_next, vmath.vector({x+(y%2), y+1}))
 			end
 		end
-		
-		math.randomseed(os.clock())
-		local random_pick = (math.random(#possible_next) + math.random(#possible_next)) % (#possible_next) + 1
-		x_y_index_vec = possible_next[random_pick]
-		
-		previous[1] = x
-		previous[2] = y
-		x = x_y_index_vec[1]
-		y = x_y_index_vec[2]
 
-		relative_position_down = not relative_position_down
+		if (#possible_next == 0) then
+			x_y_index_vec = previous
+		else
+			math.randomseed(os.time())
+			local random_pick = (math.random(#possible_next) + math.random(#possible_next)) % (#possible_next) + 1
+			x_y_index_vec = possible_next[random_pick]
+		end
+		
+		self.previous_x = x
+		self.previous_y = y
+		
+		self.x = x_y_index_vec[1]
+		self.y = x_y_index_vec[2]
+		x = self.x
+		y = self.y 
+		self.relative_position_down = not self.relative_position_down
 		
 		pos.x = 64 + hex_size * x + extrawidth
 		pos.y = 64 + 3 * hex_size * y / 4+ extraheight
@@ -124,21 +205,21 @@ function on_message(self, message_id, message, sender)
 			pos.x = pos.x + hex_size/2
 		end
 
-		if not relative_position_down then
+		if not self.relative_position_down then
 			pos.x = pos.x + hex_size/2
 			pos.y = pos.y - hex_size/4
 		else
 			pos.y = pos.y - hex_size/2
 		end
-		go.animate("/traveller", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.5)
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.5)
 		
 		timer.delay(1, false, function ()
-			if can_move then
+			if self.can_move then
 				msg.post("#", "move")
 			end
 		end)
 	elseif message_id == hash("stop") then 
-		can_move = false
+		self.can_move = false
 	end
 end
 
