@@ -461,6 +461,8 @@ function on_message(self, message_id, message, sender)
 		uncorrupt_cost = initial_uncorrupt_cost
 		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
 		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
+		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_used")})
+		msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 		coins = 0
 		coin_income = 0
 		corruption_delay = 0
