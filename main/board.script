@@ -127,10 +127,45 @@ function is_hex_valid_dfs(self, used, x, y, type)
 	return check_coord(x, y) and self.board[x][y].id and used[x][y] == 0 and self.board[x][y].tile_type == type and not self.board[x][y].corrupted
 end
 
+function spawn_coins(self, x, y, bonus_zero_one, type)
+	if turn_counter > 0 and turn_counter < 4 then
+		local pos = vmath.vector3(self.board[x][y].tile_pos_x, self.board[x][y].tile_pos_y, 1)
+		local coins_needed = 0  -- maximum 10 or some will be invisible
+		pos.z = pos.z - 0.1
+		if type == hash("wood") then
+			coins_needed = 3 + bonus_zero_one
+		elseif type == hash("water") then
+			coins_needed = 1 + 3 * bonus_zero_one
+		elseif type == hash("rock") then
+			coins_needed = 2 + 2 * bonus_zero_one
+		end
+		for coin_number = 1, coins_needed do
+			local delay = coin_number * 3 / 10 -- + (((x + y) / 10) % 1) / 2
+			pos.z = pos.z + 0.01
+			timer.delay(delay, false, function ()
+				factory.create("#coin_factory", pos, null)
+			end)
+		end
+	elseif turn_counter >= 4 then
+		local coins_needed = 0
+		if type == hash("wood") then
+			coins_needed = 3 + bonus_zero_one
+		elseif type == hash("water") then
+			coins_needed = 1 + 3 * bonus_zero_one
+		elseif type == hash("rock") then
+			coins_needed = 2 + 2 * bonus_zero_one
+		end
+		label.set_text(msg.url(nil, self.board[x][y].id, "production_label"), coins_needed)
+	end
+end
+
 function dfs(self, used, x, y, type) 
 	used[x][y] = 1
 	if income > 0 and bonus < bonus_limit then 
 		bonus = bonus + 1
+		spawn_coins(self, x, y, 1, type);
+	else
+		spawn_coins(self, x, y, 0, type);
 	end
 	income = income + 1
 	if check_coord(x, y) and y % 2 == 0 and not self.board[x][y].corrupted then
@@ -414,12 +449,14 @@ function corruption_iteration(self)
 			if (#candidates ~= 0) then
 				local coords_to_corrupt = candidates[math.random(#candidates)]
 				corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, false)
+				label.set_text(msg.url(nil, self.board[coords_to_corrupt.x][coords_to_corrupt.y].id, "production_label"), 0)
 			else
 				msg.post("/end_screen#game_end", "game_lost")
 			end
 		end
 	elseif turn_counter == corruption_beginning then
 		corrupt_tile(self, first_corruption_hex_pos.x, first_corruption_hex_pos.y, true)
+		label.set_text(msg.url(nil, self.board[first_corruption_hex_pos.x][first_corruption_hex_pos.y].id, "production_label"), 0)
 	else
 		corruption_delay = math.max(0, corruption_delay - 1)
 	end
