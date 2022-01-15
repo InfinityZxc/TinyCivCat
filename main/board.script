@@ -288,7 +288,7 @@ function heal_cell(self, x, y)
 	end
 end
 
-function delay_corrupt()
+function delay_corrupt(self)
 	if coins >= delay_cost then
 		snow = true
 		corruption_delay = 1
@@ -298,6 +298,17 @@ function delay_corrupt()
 		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_active")})
+		for x = 0,boardwidth-1 do
+			for y = 0,boardheight-1 do
+				if self.board[x][y].corrupted then
+					local type = unhash[self.board[x][y].tile_type]
+					if type == "rock" then
+						type = "broken_rock"
+					end
+					msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type .. "-" .. math.random(1, 5))})
+				end
+			end
+		end
 		if not thunder then
 			if coins >= uncorrupt_cost then
 				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
@@ -465,7 +476,7 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("ability") then
 		if not snow and message["ability"] == hash("snow") then
-			delay_corrupt()
+			delay_corrupt(self)
 		elseif not thunder and message["ability"] == hash("thunder") and coins >= uncorrupt_cost then
 			thunder_active = true
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
@@ -474,7 +485,20 @@ function on_message(self, message_id, message, sender)
 		turn_counter = turn_counter + 1
 		corruption_iteration(self)
 		score_calculation(self, hash("none"), hash("none"))
-		snow = false
+		if snow then
+			snow = false
+			for x = 0,boardwidth-1 do
+				for y = 0,boardheight-1 do
+					if self.board[x][y].corrupted then
+						local type = unhash[self.board[x][y].tile_type]
+						if type == "rock" then
+							type = "broken_rock"
+						end
+						msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type)})
+					end
+				end
+			end
+		end
 		thunder = false
 		thunder_active = false
 		if coins >= delay_cost then
