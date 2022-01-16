@@ -2,7 +2,7 @@ local step = hash("start")
 local skip = false;
 local TILES_TEXT = "The objective is to fill the whole map.\nTheese are your tiles to build the world with.\nEvery turn you can drag one of the available tiles\nto place it adjacent with any other tile on the map.\nClick anywhere to continue..."
 local COINS_TEXT = "Here are your coins. They will be useful later.\nYou increase your per turn income by adding new tiles.\nForest gives +3, rock +2 and water +1.\nGroups of up to 7 tiles of the same type give additional income.\nClick anywhere to continue..."
-local CORRUPTION_TEXT = "Oh no! Your tile became corrupted.\nCorruption will spread to one adjacent tile every turn.\nEvery 10 turns the number of tiles taken\nby corruption every turn will increase by 1.\nKeep an eye on it!\nClick anywhere to continue..."
+local CORRUPTION_TEXT = "Oh no! Your tile became corrupted.\nCorrupted tiles don't produce coins. \nCorruption will spread to one adjacent tile every turn.\nEvery 10 turns the number of tiles taken\nby corruption every turn will increase by 1.\nKeep an eye on it!\nClick anywhere to continue..."
 local ABILITIES_TEXT = "To fight back against corruption you have two abilities.\nLightning will clear corruption from the tile of your choice.\nTo use it, click once on the lightning and once on the selected tile. \nFreeze will stop corruption spread for 1 turn. \nCost of abilities will increase by 10 with each use.\nGood luck! Click anywhere to continue..."
 
 -- function init(self)
