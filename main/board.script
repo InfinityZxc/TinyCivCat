@@ -48,14 +48,16 @@ local snow = false
 function init(self)
 	msg.post(".", "acquire_input_focus")
 	defos.disable_window_resize()
-
 	-- in case here are some settings that affect properties
 	init_locals_from_properties("#")
 	
 	self.board = new_board()
 	score_calculation(self, hash("none"), hash("none"))
-	timer.delay(0.8, false, function ()
+	timer.delay(0.1, false, function ()
 		msg.post("/gui#main", "acquire_input_focus")
+	end)
+	timer.delay(0.1, false, function ()
+		msg.post("/tutorial#tutorial", "acquire_input_focus")
 	end)
 	msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
 	msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
@@ -422,6 +424,10 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("next_turn") then
 		turn_counter = turn_counter + 1
 		corruption_iteration(self)
+		if turn_counter == corruption_beginning then
+			msg.post("/tutorial#tutorial", "acquire_input_focus")
+			msg.post("/tutorial#tutorial", "corruption")
+		end
 		score_calculation(self, hash("none"), hash("none"))
 		snow = false
 		thunder = false
@@ -511,10 +517,10 @@ local score = 0
 
 function return_coords_from_hex_index(self, x, y)
 	local pos = vmath.vector3(0, 0, 0)
-	pos.x = 64+hex_size*x +extrawidth
-	pos.y = 64+3*hex_size*y/4 +extraheight
-	if y%2==1 then
-		pos.x = pos.x + hex_size/2
+	pos.x = 64 + hex_size * x + extrawidth
+	pos.y = 64 + 3 * hex_size *y / 4 + extraheight
+	if y % 2 == 1 then
+		pos.x = pos.x + hex_size / 2
 	end
 	pos.z = 1 / (y + 3)
 	return pos
