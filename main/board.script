@@ -478,7 +478,7 @@ function on_message(self, message_id, message, sender)
 		turn_counter = 0
 		self.board = new_board()
 		score_calculation(self, hash("none"), hash("none"))
-	elseif message_id == "clear_corruption" then
+	elseif message_id == hash("clear_corruption") then
 		clear_corruption(self, true)
 	end
 end
