@@ -8,7 +8,7 @@ local ABILITIES_TEXT = "To fight back against corruption you have two abilities.
 -- function init(self)
 -- end
 
-function hide()
+function hide_tutorial()
 	local node = gui.get_node("shadow1")
 	local pos = gui.get_position(node)
 	pos.y = pos.y - 1080
@@ -35,7 +35,7 @@ function hide()
 	gui.set_position(node, pos)
 end
 
-function show()
+function show_tutorial()
 	local node = gui.get_node("shadow1")
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
@@ -209,7 +209,7 @@ function on_message(self, message_id, message, sender)
 	-- Remove this function if not needed
 	if not skip and message_id == hash("corruption") then
 		msg.post(".", "acquire_input_focus")
-		show()
+		show_tutorial()
 		tutorial_corruption()
 	end
 end
@@ -227,7 +227,7 @@ function on_input(self, action_id, action)
 	if action_id == hash("touch_left") and action.pressed then
 		if step == hash("start") then
 			if gui.pick_node(gui.get_node("play_without_tutorial"), action.x, action.y) then
-				hide()
+				hide_tutorial()
 				msg.post(".", "release_input_focus")
 				skip = true
 				gui.delete_node(gui.get_node("play_without_tutorial"))
@@ -242,12 +242,12 @@ function on_input(self, action_id, action)
 		elseif step == hash("tiles") then
 			tutorial_coins()
 		elseif step == hash("coins") then
-			hide()
+			hide_tutorial()
 			msg.post(".", "release_input_focus")
 		elseif step == hash("corruption") then
 			tutorial_abilities()
 		elseif step == hash("abilities") then
-			hide()
+			hide_tutorial()
 			msg.post(".", "release_input_focus")
 		end
 	end
