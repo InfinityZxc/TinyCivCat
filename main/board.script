@@ -425,7 +425,6 @@ function on_message(self, message_id, message, sender)
 		turn_counter = turn_counter + 1
 		corruption_iteration(self)
 		if turn_counter == corruption_beginning then
-			msg.post("/tutorial#tutorial", "acquire_input_focus")
 			msg.post("/tutorial#tutorial", "corruption")
 		end
 		score_calculation(self, hash("none"), hash("none"))
