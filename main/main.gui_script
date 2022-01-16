@@ -58,6 +58,38 @@ function show_abilities()
 	gui.set_position(node, pos)
 end
 
+function hide_abilities()
+	local node = gui.get_node("snow")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("snow_cost")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("snow_coins")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder_cost")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder_coins")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+end
+
 function on_message(self, message_id, message, sender)
 	-- Add message-handling code here
 	-- Learn more: https://defold.com/manuals/message-passing/
@@ -82,6 +114,8 @@ function on_message(self, message_id, message, sender)
 		gui.set_text(gui.get_node("snow_cost"), string.format("%d", message.cost))
 	elseif message_id == hash("show_abilities") then
 		show_abilities()
+	elseif message_id == hash("hide_abilities") then
+		hide_abilities()
 	-- elseif message_id == hash("game_won") then
 	-- 	top_bar = gui.get_node("top_bar")
 	-- -- 	gui.set_text(top_bar, "YOU WON!")

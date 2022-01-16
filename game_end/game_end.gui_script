@@ -57,6 +57,7 @@ function on_input(self, action_id, action)
 	if action_id == hash("touch_left") and action.pressed then
 		if showing_map and gui.pick_node(gui.get_node("restart"), action.x, action.y) then
 			msg.post("/game#board", "reset_game")
+			msg.post("/gui#main", "hide_abilities")
 			msg.post(".", "release_input_focus")
 			gui.set_position(gui.get_node("restart"), vmath.vector3(100, -100, 0))
 			showing_map = false

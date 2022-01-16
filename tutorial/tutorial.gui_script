@@ -207,10 +207,14 @@ function on_message(self, message_id, message, sender)
 	-- Add message-handling code here
 	-- Learn more: https://defold.com/manuals/message-passing/
 	-- Remove this function if not needed
-	if not skip and message_id == hash("corruption") then
-		msg.post(".", "acquire_input_focus")
-		show_tutorial()
-		tutorial_corruption()
+	if message_id == hash("corruption") then
+		if skip then
+			msg.post("/gui#main", "show_abilities")
+		else
+			msg.post(".", "acquire_input_focus")
+			show_tutorial()
+			tutorial_corruption()
+		end
 	end
 end
 
@@ -249,6 +253,7 @@ function on_input(self, action_id, action)
 		elseif step == hash("abilities") then
 			hide_tutorial()
 			msg.post(".", "release_input_focus")
+			skip = true
 		end
 	end
 	return true;
