@@ -67,6 +67,10 @@ images {
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
+  image: "/assets/money.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
   image: "/assets/border.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }

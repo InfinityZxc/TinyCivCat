@@ -2,7 +2,6 @@ local tile_types = {hash("wood"), hash("rock"), hash("water")}
 local active_node = nil
 local node1, node2, node1_pos, node2_pos
 
-
 function init(self)
 	-- Add initialization code here
 	-- Learn more: https://defold.com/manuals/script/
@@ -27,6 +26,70 @@ function update(self, dt)
 	-- Remove this function if not needed
 end
 
+function show_abilities()
+	local node = gui.get_node("snow")
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("snow_cost")
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("snow_coins")
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder")
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder_cost")
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder_coins")
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 1080
+	gui.set_position(node, pos)
+end
+
+function hide_abilities()
+	local node = gui.get_node("snow")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("snow_cost")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("snow_coins")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder_cost")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder_coins")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+end
+
 function on_message(self, message_id, message, sender)
 	-- Add message-handling code here
 	-- Learn more: https://defold.com/manuals/message-passing/
@@ -42,13 +105,17 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("set_asset") then
 		gui.play_flipbook(gui.get_node(message.node_id), message.anim_id)
 	elseif message_id == hash("gui_set_coins") then
-		gui.set_text(gui.get_node("coins"), string.format("COINS: %d", message.coins))
+		gui.set_text(gui.get_node("coins"), string.format("%d", message.coins))
 	elseif message_id == hash("gui_set_income") then
-		gui.set_text(gui.get_node("income"), string.format("INCOME PER TURN: %d", message.income))
+		gui.set_text(gui.get_node("income"), string.format("(+%d)", message.income))
 	elseif message_id == hash("gui_set_thunder_cost") then
-		gui.set_text(gui.get_node("thunder_cost"), string.format("%d coins", message.cost))
+		gui.set_text(gui.get_node("thunder_cost"), string.format("%d", message.cost))
 	elseif message_id == hash("gui_set_snow_cost") then
-		gui.set_text(gui.get_node("snow_cost"), string.format("%d coins", message.cost))
+		gui.set_text(gui.get_node("snow_cost"), string.format("%d", message.cost))
+	elseif message_id == hash("show_abilities") then
+		show_abilities()
+	elseif message_id == hash("hide_abilities") then
+		hide_abilities()
 	-- elseif message_id == hash("game_won") then
 	-- 	top_bar = gui.get_node("top_bar")
 	-- -- 	gui.set_text(top_bar, "YOU WON!")
