@@ -1,4 +1,5 @@
 function init(self)
+	go.set_scale(0.25)
 	local pos = vmath.vector3(go.get(".", "position").x , go.get(".", "position").y + 100, 1)
 	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 1)
 	timer.delay(1, false, function ()
