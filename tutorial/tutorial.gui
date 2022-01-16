@@ -3,6 +3,10 @@ fonts {
   name: "main"
   font: "/assets/main.font"
 }
+fonts {
+  name: "main_huge"
+  font: "/assets/main_huge.font"
+}
 textures {
   name: "sprites"
   texture: "/assets/sprites.atlas"
@@ -27,8 +31,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.7
+    y: 0.7
     z: 1.0
     w: 1.0
   }
@@ -48,7 +52,7 @@ nodes {
   blend_mode: BLEND_MODE_ALPHA
   text: "Welcome to Catalization!\n"
   ""
-  font: "main"
+  font: "main_huge"
   id: "text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -295,7 +299,7 @@ nodes {
 nodes {
   position {
     x: 960.0
-    y: 440.0
+    y: 460.0
     z: 0.0
     w: 1.0
   }
