@@ -553,14 +553,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 1.5
+    y: 1.5
     z: 1.0
     w: 1.0
   }
   size {
-    x: 96.0
-    y: 96.0
+    x: 64.0
+    y: 64.0
     z: 0.0
     w: 1.0
   }
@@ -572,7 +572,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "sprites/money"
+  texture: "sprites/coin"
   id: "money"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -607,14 +607,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 0.8
+    y: 0.8
     z: 1.0
     w: 1.0
   }
   size {
-    x: 96.0
-    y: 96.0
+    x: 64.0
+    y: 64.0
     z: 0.0
     w: 1.0
   }
@@ -626,7 +626,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "sprites/money"
+  texture: "sprites/coin"
   id: "thunder_coins"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -661,14 +661,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 0.8
+    y: 0.8
     z: 1.0
     w: 1.0
   }
   size {
-    x: 96.0
-    y: 96.0
+    x: 64.0
+    y: 64.0
     z: 0.0
     w: 1.0
   }
@@ -680,7 +680,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "sprites/money"
+  texture: "sprites/coin"
   id: "snow_coins"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
