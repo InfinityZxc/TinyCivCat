@@ -558,7 +558,7 @@ function on_message(self, message_id, message, sender)
 		make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
 		make_possible_moves_around(self, start_hex_pos.x + 1, start_hex_pos.y)
 		score_calculation(self, hash("none"), hash("none"))
-	elseif message_id == "clear_corruption" then
+	elseif message_id == hash("clear_corruption") then
 		clear_corruption(self, true)
 	end
 end
