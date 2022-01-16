@@ -21,9 +21,11 @@ function update(self, dt)
 end
 
 function on_message(self, message_id, message, sender)
-	-- Add message-handling code here
-	-- Learn more: https://defold.com/manuals/message-passing/
-	-- Remove this function if not needed
+	if message_id == hash("make_light") then
+		msg.post("#sprite", "play_animation", {id = hash("border")})
+	elseif message_id == hash("make_grey") then
+		msg.post("#sprite", "play_animation", {id = hash("border_grey")})
+	end
 end
 
 function on_input(self, action_id, action)
