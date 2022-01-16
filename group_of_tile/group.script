@@ -1,7 +1,10 @@
+go.property("group_type", hash("none"))
+
 function init(self)
 	-- Add initialization code here
 	-- Learn more: https://defold.com/manuals/script/
 	-- Remove this function if not needed
+	msg.post("#sprite", "play_animation", { id = hash(self.group_type) })
 	local xscale = go.get("#sprite", "scale.x")
 	local yscale = go.get("#sprite", "scale.y")
 	go.set("#sprite", "scale.x", xscale / 1.9)
