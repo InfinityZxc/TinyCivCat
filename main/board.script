@@ -12,6 +12,7 @@ local initial_delay_cost = 70
 local initial_uncorrupt_cost = 70
 local delay_cost = 70
 local uncorrupt_cost = 70
+BUY_TILE_COST = 50
 local ability_cost_increase = 10
 local coins = 0
 local coin_income = 0
@@ -484,6 +485,8 @@ function on_message(self, message_id, message, sender)
 		elseif not thunder and message["ability"] == hash("thunder") and coins >= uncorrupt_cost then
 			thunder_active = true
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
+		elseif message["ability"] == hash("buy_tile") then
+			coins = coins - BUY_TILE_COST
 		end
 	elseif message_id == hash("next_turn") then
 		turn_counter = turn_counter + 1
