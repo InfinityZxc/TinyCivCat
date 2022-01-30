@@ -43,25 +43,31 @@ local unhash = {
 local thunder = false
 local thunder_active = false
 local snow = false
+local stats_visibility = false
+local possible_moves_shown = false
 local village_count = 0
 
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
 	defos.disable_window_resize()
-
 	-- in case here are some settings that affect properties
 	init_locals_from_properties("#")
 	
 	self.board = new_board()
+	make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
+	make_possible_moves_around(self, start_hex_pos.x + 1, start_hex_pos.y)
 	create_grid(self)
-
+	
 	self.villages = {}
 	village_creation(self, 4, 4)
 	
 	score_calculation(self, hash("none"), hash("none"))
-	timer.delay(0.8, false, function ()
+	timer.delay(0.1, false, function ()
 		msg.post("/gui#main", "acquire_input_focus")
+	end)
+	timer.delay(0.1, false, function ()
+		msg.post("/tutorial#tutorial", "acquire_input_focus")
 	end)
 	msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
 	msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
@@ -81,8 +87,7 @@ function create_grid(self)
 				end
 				pos.z = 1 / (y + 3)
 				pos.z = pos.z / 2
-				local grid_id = nil
-				factory.create("/game#boundaries_factory", pos, null)
+				local grid_id = factory.create("/game#boundaries_factory", pos, null)
 				self.grid[x][y] = {id = grid_id}
 				if y%2==1 then
 					pos.x = pos.x - hex_size/2
@@ -131,10 +136,44 @@ function is_hex_valid_dfs(self, used, x, y, type)
 	return check_coord(x, y) and self.board[x][y].id and used[x][y] == 0 and self.board[x][y].tile_type == type and not self.board[x][y].corrupted
 end
 
+function spawn_coins(self, x, y, bonus_zero_one, type)
+	if turn_counter > 0 and turn_counter < 4 then
+		local pos = vmath.vector3(self.board[x][y].tile_pos_x, self.board[x][y].tile_pos_y, 1)
+		local coins_needed = 0  -- maximum 10 or some will be invisible
+		pos.z = pos.z - 0.1
+		if type == hash("wood") then
+			coins_needed = 3 + bonus_zero_one
+		elseif type == hash("water") then
+			coins_needed = 1 + 3 * bonus_zero_one
+		elseif type == hash("rock") then
+			coins_needed = 2 + 2 * bonus_zero_one
+		end
+		for coin_number = 1, coins_needed do
+			local delay = coin_number * 3 / 10 -- + (((x + y) / 10) % 1) / 2
+			pos.z = pos.z + 0.01
+			timer.delay(delay, false, function ()
+				factory.create("#coin_factory", pos, null)
+			end)
+		end
+	end
+	local coins_needed = 0
+	if type == hash("wood") then
+		coins_needed = 3 + bonus_zero_one
+	elseif type == hash("water") then
+		coins_needed = 1 + 3 * bonus_zero_one
+	elseif type == hash("rock") then
+		coins_needed = 2 + 2 * bonus_zero_one
+	end
+	label.set_text(msg.url(nil, self.board[x][y].id, "production_label"), coins_needed)
+end
+
 function dfs(self, used, x, y, type) 
 	used[x][y] = 1
 	if income > 0 and bonus < bonus_limit then 
 		bonus = bonus + 1
+		spawn_coins(self, x, y, 1, type);
+	else
+		spawn_coins(self, x, y, 0, type);
 	end
 	income = income + 1
 	if check_coord(x, y) and y % 2 == 0 and not self.board[x][y].corrupted then
@@ -257,7 +296,7 @@ function heal_cell(self, x, y)
 	end
 end
 
-function delay_corrupt()
+function delay_corrupt(self)
 	if coins >= delay_cost then
 		snow = true
 		corruption_delay = 1
@@ -267,6 +306,17 @@ function delay_corrupt()
 		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_active")})
+		for x = 0,boardwidth-1 do
+			for y = 0,boardheight-1 do
+				if self.board[x][y].corrupted then
+					local type = unhash[self.board[x][y].tile_type]
+					if type == "rock" then
+						type = "broken_rock"
+					end
+					msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type .. "-" .. math.random(1, 5))})
+				end
+			end
+		end
 		if not thunder then
 			if coins >= uncorrupt_cost then
 				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
@@ -299,7 +349,7 @@ function new_board()
 				id_tile = factory.create("#hex_factory", pos, null, {tile_type = tile_type})
 			end 
 			--]]
-			if (x == start_hex_pos.x or x == start_hex_pos.x +1) and y ==  start_hex_pos.y then
+			if (x == start_hex_pos.x or x == start_hex_pos.x +1) and y == start_hex_pos.y then
 				random_pick = math.random(#starting_set)
 				tile_type = starting_set[random_pick]
 				if tile_type == hash("wood") then
@@ -311,7 +361,7 @@ function new_board()
 			else
 				id_tile = nil
 			end
-			new_board[x][y] = {id = id_tile, x = x, y = y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false}
+			new_board[x][y] = {id = id_tile, x = x, y = y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false, possible_move = false}
 			if y%2==1 then
 				pos.x = pos.x - hex_size/2
 			end
@@ -436,7 +486,7 @@ end
 
 function corruption_iteration(self)
 	if turn_counter > corruption_beginning and corruption_delay == 0 then
-		for i = 0, math.max(0, math.floor((turn_counter+(delay_cost-initial_delay_cost)/ability_cost_increase-corruption_beginning)/corruption_acceleration)) do
+		for i = 0, math.max(0, math.floor((turn_counter-(delay_cost-initial_delay_cost)/ability_cost_increase-corruption_beginning)/corruption_acceleration)) do
 			local max_corrupted_around = 0
 			local max_cor_ar_pos = first_corruption_hex_pos
 			local candidates = {}
@@ -477,12 +527,14 @@ function corruption_iteration(self)
 			if (#candidates ~= 0) then
 				local coords_to_corrupt = candidates[math.random(#candidates)]
 				corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, false)
+				label.set_text(msg.url(nil, self.board[coords_to_corrupt.x][coords_to_corrupt.y].id, "production_label"), 0)
 			else
 				msg.post("/end_screen#game_end", "game_lost")
 			end
 		end
 	elseif turn_counter == corruption_beginning then
 		corrupt_tile(self, first_corruption_hex_pos.x, first_corruption_hex_pos.y, true)
+		label.set_text(msg.url(nil, self.board[first_corruption_hex_pos.x][first_corruption_hex_pos.y].id, "production_label"), 0)
 	else
 		corruption_delay = math.max(0, corruption_delay - 1)
 	end
@@ -491,7 +543,7 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("ability") then
 		if not snow and message["ability"] == hash("snow") then
-			delay_corrupt()
+			delay_corrupt(self)
 		elseif not thunder and message["ability"] == hash("thunder") and coins >= uncorrupt_cost then
 			thunder_active = true
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
@@ -500,8 +552,24 @@ function on_message(self, message_id, message, sender)
 		add_resource_to_villages(self, message["tile_type"], message["x"], message["y"])
 		turn_counter = turn_counter + 1
 		corruption_iteration(self)
+		if turn_counter == corruption_beginning then
+			msg.post("/tutorial#tutorial", "corruption")
+		end
 		score_calculation(self, hash("none"), hash("none"))
-		snow = false
+		if snow then
+			snow = false
+			for x = 0,boardwidth-1 do
+				for y = 0,boardheight-1 do
+					if self.board[x][y].corrupted then
+						local type = unhash[self.board[x][y].tile_type]
+						if type == "rock" then
+							type = "broken_rock"
+						end
+						msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type)})
+					end
+				end
+			end
+		end
 		thunder = false
 		thunder_active = false
 		if coins >= delay_cost then
@@ -539,6 +607,8 @@ function on_message(self, message_id, message, sender)
 		uncorrupt_cost = initial_uncorrupt_cost
 		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
 		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
+		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_used")})
+		msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 		coins = 0
 		coin_income = 0
 		corruption_delay = 0
@@ -552,9 +622,12 @@ function on_message(self, message_id, message, sender)
 		income = 0
 		bonus = 0
 		turn_counter = 0
+		stats_visibility = false
 		self.board = new_board()
+		make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
+		make_possible_moves_around(self, start_hex_pos.x + 1, start_hex_pos.y)
 		score_calculation(self, hash("none"), hash("none"))
-	elseif message_id == "clear_corruption" then
+	elseif message_id == hash("clear_corruption") then
 		clear_corruption(self, true)
 	end
 end
@@ -587,10 +660,10 @@ local score = 0
 
 function return_coords_from_hex_index(self, x, y)
 	local pos = vmath.vector3(0, 0, 0)
-	pos.x = 64+hex_size*x +extrawidth
-	pos.y = 64+3*hex_size*y/4 +extraheight
-	if y%2==1 then
-		pos.x = pos.x + hex_size/2
+	pos.x = 64 + hex_size * x + extrawidth
+	pos.y = 64 + 3 * hex_size *y / 4 + extraheight
+	if y % 2 == 1 then
+		pos.x = pos.x + hex_size / 2
 	end
 	pos.z = 1 / (y + 3)
 	return pos
@@ -620,6 +693,48 @@ function close_hex_number(self, x, y)
 	return close_hex
 end
 
+function show_hide_moves(self)
+	if possible_moves_shown then 
+		for x = 0,boardwidth-1 do
+			for y = 0,boardheight-1 do
+				if check_coord(x, y) and not self.board[x][y].possible_move and not self.board[x][y].id then
+					msg.post(msg.url(nil, self.grid[x][y].id, "boundaries"), "make_grey")
+				end
+			end
+		end
+	else
+		for x = 0,boardwidth-1 do
+			for y = 0,boardheight-1 do
+				if check_coord(x, y) then
+					msg.post(msg.url(nil, self.grid[x][y].id, "boundaries"), "make_light")
+				end
+			end
+		end
+	end
+end
+
+function make_possible_moves_around(self, x, y)
+	if check_coord(x+1, y) then
+		self.board[x+1][y].possible_move = true
+	end
+	if check_coord(x-1, y) then
+		self.board[x-1][y].possible_move = true
+	end
+	if check_coord(x, y+1) then
+		self.board[x][y+1].possible_move = true
+	end
+	if check_coord(x, y-1) then
+		self.board[x][y-1].possible_move = true
+	end
+	local sdvig = -1 + (y%2)*2
+	if check_coord(x+sdvig, y+1) then
+		self.board[x+sdvig][y+1].possible_move = true
+	end
+	if check_coord(x+sdvig, y-1) then
+		self.board[x+sdvig][y-1].possible_move = true
+	end
+end
+
 function on_input(self, action_id, action)
 	if action_id == hash("touch_left") and moving_tile_id then
 		if action.released then
@@ -630,18 +745,27 @@ function on_input(self, action_id, action)
 			if check_coord(tile_x, tile_y) and not self.board[tile_x][tile_y].id and close_hex_number(self, tile_x, tile_y)>0 then
 				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
 				go.animate(moving_tile_id, "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.4)
-				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false}
-				msg.post("#", "next_turn", {tile_type = tile_type, x = tile_x, y = tile_y})
+				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false, possible_move = true}
+				msg.post("#", "next_turn")
 				msg.post("/gui#main", "gui_new_tile")
+				if stats_visibility then
+					msg.post(msg.url(nil, self.board[tile_x][tile_y].id, "tile"), "change_stats_visibility")
+				end
+				make_possible_moves_around(self, tile_x, tile_y)
 			else
 				go.delete(moving_tile_id)
 				msg.post("/gui#main", "gui_revert_tile", {tile_type=tile_type})
 			end
 			moving_tile_id = nil
-			
+			possible_moves_shown = false
+			show_hide_moves(self)
 		else
 			local pos = vmath.vector3(action.x, action.y, 0.5)
 			go.set_position(pos - moving_tile_offset, moving_tile_id)
+			if not possible_moves_shown then
+				possible_moves_shown = true
+				show_hide_moves(self)
+			end
 		end
 		return true
 	end
@@ -665,6 +789,21 @@ function on_input(self, action_id, action)
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 		else
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
+		end
+		return
+	end
+
+	if action_id == hash("touch_left") and action.pressed then
+		local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)
+		if check_coord(tile_x, tile_y) then
+			for x = 0,boardwidth-1 do
+				for y = 0,boardheight-1 do
+					if self.board[x][y].id then
+						msg.post(msg.url(nil, self.board[x][y].id, "tile"), "change_stats_visibility")
+					end
+				end
+			end
+			stats_visibility = not stats_visibility
 		end
 	end
 end
