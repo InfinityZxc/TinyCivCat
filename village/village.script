@@ -5,11 +5,16 @@ go.property("visible_stats", false)
 go.property("wood", 0)
 go.property("rock", 0)
 go.property("water", 0)
+go.property("resource_equal_max", 2)
+go.property("control_radius", 1)
+go.property("income", 0)
+go.property("max_upgrade", 0)
 
 function init(self)
 	msg.post("#stats_picture" , "disable")
 	msg.post("#stats_label" , "disable")
 	self.humans = {}
+	msg.post("#", "create_human")
 end
 
 function final(self)
@@ -25,21 +30,26 @@ function update(self, dt)
 	-- Remove this function if not needed
 end
 
+function grow(self)
+	if self.control_radius < 2 then
+		self.control_radius = self.control_radius + 1
+		self.resource_equal_max = self.resource_equal_max + 2 * self.control_radius
+		msg.post("#", "create_human")
+		msg.post("/game#board", "village_grow", {village_x = self.x, village_y = self.y, radius = self.control_radius})
+	elseif self.max_upgrade == 0 then
+		self.max_upgrade = 1
+	end
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == hash("create_human") then 
 		self.human_count = self.human_count + 1
-		local pos = vmath.vector3(0, 0, 1)
+		local pos = vmath.vector3(0, 0, 0)
 		local id_human = factory.create("#human_factory", pos, null, {
 			id_num = self.human_count, x = self.x, y = self.y, previous_x = self.x, previous_y = self.y, 
 			relative_position_down = true, home_x = self.x, home_y = self.y})
 		self.humans[self.human_count] = {id = id_human}
 		msg.post(msg.url(nil, id_human, "traveller"), "init_vals")
-		
-		timer.delay(0.5, false, function ()
-			if self.human_count < 3 then
-				msg.post("#", "create_human")
-			end
-		end)
 	elseif message_id == hash("change_stats_visibility") then
 		if self.visible_stats then
 			msg.post("#stats_picture" , "disable")
@@ -50,26 +60,26 @@ function on_message(self, message_id, message, sender)
 		end
 		self.visible_stats = not self.visible_stats
 	elseif message_id == hash("get_resource") then
-		if message["tile_type"] == hash("water") then
-			self.water = self.water + 1
-		elseif message["tile_type"] == hash("wood") then
-			self.wood = self.wood + 1
-		elseif message["tile_type"] == hash("rock") then
-			self.rock = self.rock + 1
+		if message["radius"] == self.control_radius then
+			if message["tile_type"] == hash("water") then
+				self.water = self.water + 1
+			elseif message["tile_type"] == hash("wood") then
+				self.wood = self.wood + 1
+			elseif message["tile_type"] == hash("rock") then
+				self.rock = self.rock + 1
+			end
 		end
+		
+		if (self.rock == self.resource_equal_max and self.water == self.resource_equal_max 
+		and self.wood == self.resource_equal_max) then
+			grow(self)
+		end
+		
+		label.set_text("#stats_label", self.wood .. "/" .. self.resource_equal_max .. " " ..
+			self.rock .. "/" .. self.resource_equal_max .. " " ..
+			self.water .. "/" .. self.resource_equal_max)
+		
 	end
-end
-
-function on_input(self, action_id, action)
-	-- Add input-handling code here. The game object this script is attached to
-	-- must have acquired input focus:
-	--
-	--    msg.post(".", "acquire_input_focus")
-	--
-	-- All mapped input bindings will be received. Mouse and touch input will
-	-- be received regardless of where on the screen it happened.
-	-- Learn more: https://defold.com/manuals/input/
-	-- Remove this function if not needed
 end
 
 function on_reload(self)

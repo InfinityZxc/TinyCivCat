@@ -35,14 +35,14 @@ embedded_components {
   id: "sprite"
   type: "sprite"
   data: "tile_set: \"/assets/sprites.atlas\"\n"
-  "default_animation: \"logo_256\"\n"
+  "default_animation: \"village\"\n"
   "material: \"/builtins/materials/sprite.material\"\n"
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""
   position {
     x: 0.0
-    y: 0.0
-    z: 0.0
+    y: 20.0
+    z: 0.2
   }
   rotation {
     x: 0.0
@@ -62,7 +62,7 @@ embedded_components {
   position {
     x: 0.0
     y: 50.0
-    z: 0.1
+    z: 0.25
   }
   rotation {
     x: 0.0
@@ -109,14 +109,14 @@ embedded_components {
   "pivot: PIVOT_CENTER\n"
   "blend_mode: BLEND_MODE_ALPHA\n"
   "line_break: false\n"
-  "text: \"111111111111\"\n"
+  "text: \"0\"\n"
   "font: \"/assets/main.font\"\n"
   "material: \"/builtins/fonts/label.material\"\n"
   ""
   position {
     x: 0.0
     y: 60.0
-    z: 0.2
+    z: 0.3
   }
   rotation {
     x: 0.0
