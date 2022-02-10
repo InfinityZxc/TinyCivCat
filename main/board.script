@@ -48,10 +48,14 @@ local snow = false
 local stats_visibility = false
 local possible_moves_shown = false
 
+local camera_x_bound = 320
+local camera_y_bound = 180
+
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
 	defos.disable_window_resize()
+	camera.bounds(nil, -camera_x_bound, 1080 + camera_y_bound, 1920 + camera_x_bound, -camera_y_bound)
 	-- in case here are some settings that affect properties
 	init_locals_from_properties("#")
 	
@@ -711,7 +715,8 @@ function on_input(self, action_id, action)
 		
 	if thunder_active and action_id == hash("touch_left") and action.pressed then
 		thunder_active = false
-		local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)
+		local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.x, action.y, 0))
+		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
 		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].id and self.board[tile_x][tile_y].corrupted then
 			heal_cell(self, tile_x, tile_y)
 			thunder = true
