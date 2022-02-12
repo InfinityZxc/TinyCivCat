@@ -13,6 +13,7 @@ go.property("previous_y", 4)
 go.property("can_move", true)
 go.property("home_x", 4)
 go.property("home_y", 4)
+go.property("steps_count", 0)
 
 function init(self)
 	-- msg.post("#sprite", "play_animation", { id = hash("rock") })
@@ -211,8 +212,17 @@ function on_message(self, message_id, message, sender)
 			pos.y = pos.y - hex_size/2
 		end
 		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 2)
-		
-		timer.delay(1, false, function ()
+
+		self.steps_count = self.steps_count + 1
+		local delay_time = 1.25
+		if self.steps_count == 10 then
+			self.steps_count = 0
+			delay_time = 3.5
+			timer.delay(2.5, false, function ()
+				msg.post("/game#board", "resource_collected", { x = x, y = y})
+			end)
+		end
+		timer.delay(delay_time, false, function ()
 			if self.can_move then
 				msg.post("#", "move")
 			end

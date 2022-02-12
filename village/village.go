@@ -42,7 +42,7 @@ embedded_components {
   position {
     x: 0.0
     y: 20.0
-    z: 0.2
+    z: 0.6
   }
   rotation {
     x: 0.0
@@ -52,17 +52,17 @@ embedded_components {
   }
 }
 embedded_components {
-  id: "stats_picture"
+  id: "stats_picture_wood"
   type: "sprite"
   data: "tile_set: \"/assets/sprites.atlas\"\n"
-  "default_animation: \"thunder\"\n"
+  "default_animation: \"resource_wood\"\n"
   "material: \"/builtins/materials/sprite.material\"\n"
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""
   position {
-    x: 0.0
-    y: 50.0
-    z: 0.25
+    x: -75.0
+    y: 100.0
+    z: 0.7
   }
   rotation {
     x: 0.0
@@ -116,7 +116,47 @@ embedded_components {
   position {
     x: 0.0
     y: 60.0
-    z: 0.3
+    z: 0.75
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+}
+embedded_components {
+  id: "stats_picture_water"
+  type: "sprite"
+  data: "tile_set: \"/assets/sprites.atlas\"\n"
+  "default_animation: \"resource_water\"\n"
+  "material: \"/builtins/materials/sprite.material\"\n"
+  "blend_mode: BLEND_MODE_ALPHA\n"
+  ""
+  position {
+    x: 75.0
+    y: 100.0
+    z: 0.7
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+}
+embedded_components {
+  id: "stats_picture_rock"
+  type: "sprite"
+  data: "tile_set: \"/assets/sprites.atlas\"\n"
+  "default_animation: \"resource_rock\"\n"
+  "material: \"/builtins/materials/sprite.material\"\n"
+  "blend_mode: BLEND_MODE_ALPHA\n"
+  ""
+  position {
+    x: 0.0
+    y: 100.0
+    z: 0.7
   }
   rotation {
     x: 0.0

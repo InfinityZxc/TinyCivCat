@@ -168,13 +168,23 @@ function spawn_coins(self, x, y, bonus_zero_one, type)
 	label.set_text(msg.url(nil, self.board[x][y].id, "production_label"), coins_needed)
 end
 
+function spawn_resource(self, x, y)
+	if self.board[x][y].id then
+		local pos = vmath.vector3(self.board[x][y].tile_pos_x, self.board[x][y].tile_pos_y, 1)
+		pos.z = pos.z - 0.1
+		timer.delay(0.5, false, function ()
+			factory.create("#coin_factory", pos, null, {type = self.board[x][y].tile_type})
+		end)
+	end
+end
+
 function dfs(self, used, x, y, type) 
 	used[x][y] = 1
 	if income > 0 and bonus < bonus_limit then 
 		bonus = bonus + 1
-		spawn_coins(self, x, y, 1, type);
+		--spawn_coins(self, x, y, 1, type);
 	else
-		spawn_coins(self, x, y, 0, type);
+		--spawn_coins(self, x, y, 0, type);
 	end
 	income = income + 1
 	if check_coord(x, y) and y % 2 == 0 and not self.board[x][y].corrupted then
@@ -445,32 +455,44 @@ function bfs_for_distances_to_village(self, x, y, village_num, max_distance, dis
 	if check_coord(x+1, y) and self.board[x+1][y].id then
 		table.insert(distance_1, {x = x+1, y = y})
 		self.board[x+1][y].distance_to_village = 1
-		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x+1][y].tile_type, radius = 1})
+		self.board[x+1][y].village_center_x = x
+		self.board[x+1][y].village_center_y = y
+		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x+1][y].tile_type, radius = 1, x = x+1, y = y})
 	end
 	if check_coord(x-1, y) and self.board[x-1][y].id then
 		table.insert(distance_1, {x = x-1, y = y})
 		self.board[x-1][y].distance_to_village = 1
-		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x-1][y].tile_type, radius = 1})
+		self.board[x-1][y].village_center_x = x
+		self.board[x-1][y].village_center_y = y
+		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x-1][y].tile_type, radius = 1, x = x-1, y = y})
 	end
 	if check_coord(x, y+1) and self.board[x][y+1].id then
 		table.insert(distance_1, {x = x, y = y+1})
 		self.board[x][y+1].distance_to_village = 1
-		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x][y+1].tile_type, radius = 1})
+		self.board[x][y+1].village_center_x = x
+		self.board[x][y+1].village_center_y = y
+		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x][y+1].tile_type, radius = 1, x = x, y = y+1})
 	end
 	if check_coord(x, y-1) and self.board[x][y-1].id then
 		table.insert(distance_1, {x = x, y = y-1})
 		self.board[x][y-1].distance_to_village = 1
-		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x][y-1].tile_type, radius = 1})
+		self.board[x][y-1].village_center_x = x
+		self.board[x][y-1].village_center_y = y
+		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x][y-1].tile_type, radius = 1, x = x, y = y-1})
 	end
 	if check_coord(x+sdvig, y+1) and self.board[x+sdvig][y+1].id then
 		table.insert(distance_1, {x = x+sdvig, y = y+1})
 		self.board[x+sdvig][y+1].distance_to_village = 1
-		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x+sdvig][y+1].tile_type, radius = 1})
+		self.board[x+sdvig][y+1].village_center_x = x
+		self.board[x+sdvig][y+1].village_center_y = y
+		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x+sdvig][y+1].tile_type, radius = 1, x = x+sdvig, y = y+1})
 	end
 	if check_coord(x+sdvig, y-1) and self.board[x+sdvig][y-1].id then
 		table.insert(distance_1, {x = x+sdvig, y = y-1})
 		self.board[x+sdvig][y-1].distance_to_village = 1
-		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x+sdvig][y-1].tile_type, radius = 1})
+		self.board[x+sdvig][y-1].village_center_x = x
+		self.board[x+sdvig][y-1].village_center_y = y
+		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = self.board[x+sdvig][y-1].tile_type, radius = 1, x = x+sdvig, y = y-1})
 	end
 	if max_distance >= 2 then 
 		for num = 1, #distance_1 do
@@ -481,48 +503,60 @@ function bfs_for_distances_to_village(self, x, y, village_num, max_distance, dis
 				used[x+1][y] = 1
 				if self.board[x+1][y].distance_to_village >= 2 then
 					self.board[x+1][y].distance_to_village = 2
+					self.board[x+1][y].village_center_x = self.board[x][y].village_center_x
+					self.board[x+1][y].village_center_y = self.board[x][y].village_center_y
 					msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", 
-					{tile_type = self.board[x+1][y].tile_type, radius = 2})
+					{tile_type = self.board[x+1][y].tile_type, radius = 2, x = x+1, y = y})
 				end
 			end
 			if check_coord(x-1, y) and self.board[x-1][y].id and used[x-1][y] == 0 then
 				used[x-1][y] = 1
 				if self.board[x-1][y].distance_to_village >= 2 then
 					self.board[x-1][y].distance_to_village = 2
+					self.board[x-1][y].village_center_x = self.board[x][y].village_center_x
+					self.board[x-1][y].village_center_y = self.board[x][y].village_center_y
 					msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", 
-					{tile_type = self.board[x-1][y].tile_type, radius = 2})
+					{tile_type = self.board[x-1][y].tile_type, radius = 2, x = x-1, y = y})
 				end
 			end
 			if check_coord(x, y+1) and self.board[x][y+1].id and used[x][y+1] == 0 then
 				used[x][y+1] = 1
 				if self.board[x][y+1].distance_to_village >= 2 then
 					self.board[x][y+1].distance_to_village = 2
+					self.board[x][y+1].village_center_x = self.board[x][y].village_center_x
+					self.board[x][y+1].village_center_y = self.board[x][y].village_center_y
 					msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", 
-					{tile_type = self.board[x][y+1].tile_type, radius = 2})
+					{tile_type = self.board[x][y+1].tile_type, radius = 2, x = x, y = y+1})
 				end
 			end
 			if check_coord(x, y-1) and self.board[x][y-1].id and used[x][y-1] == 0 then
 				used[x][y-1] = 1
 				if self.board[x][y-1].distance_to_village >= 2 then
 					self.board[x][y-1].distance_to_village = 2
+					self.board[x][y-1].village_center_x = self.board[x][y].village_center_x
+					self.board[x][y-1].village_center_y = self.board[x][y].village_center_y
 					msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", 
-					{tile_type = self.board[x][y-1].tile_type, radius = 2})
+					{tile_type = self.board[x][y-1].tile_type, radius = 2, x = x, y = y-1})
 				end
 			end
 			if check_coord(x+sdvig, y+1) and self.board[x+sdvig][y+1].id and used[x+sdvig][y+1] == 0 then
 				used[x+sdvig][y+1] = 1
 				if self.board[x+sdvig][y+1].distance_to_village >= 2 then
 					self.board[x+sdvig][y+1].distance_to_village = 2
+					self.board[x+sdvig][y+1].village_center_x = self.board[x][y].village_center_x
+					self.board[x+sdvig][y+1].village_center_y = self.board[x][y].village_center_y
 					msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", 
-					{tile_type = self.board[x+sdvig][y+1].tile_type, radius = 2})
+					{tile_type = self.board[x+sdvig][y+1].tile_type, radius = 2, x = x+sdvig, y = y+1})
 				end
 			end
 			if check_coord(x+sdvig, y-1) and self.board[x+sdvig][y-1].id and used[x+sdvig][y-1] == 0 then
 				used[x+sdvig][y-1] = 1
 				if self.board[x+sdvig][y-1].distance_to_village >= 2 then
 					self.board[x+sdvig][y-1].distance_to_village = 2
+					self.board[x+sdvig][y-1].village_center_x = self.board[x][y].village_center_x
+					self.board[x+sdvig][y-1].village_center_y = self.board[x][y].village_center_y
 					msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", 
-					{tile_type = self.board[x+sdvig][y-1].tile_type, radius = 2})
+					{tile_type = self.board[x+sdvig][y-1].tile_type, radius = 2, x = x+sdvig, y = y-1})
 				end
 			end
 		end
@@ -531,7 +565,7 @@ end
 
 function village_creation(self, x, y)
 	local pos = return_coords_from_hex_index(self, x, y)
-	pos.z = 0.7
+	pos.z = 0.2
 	id_village = factory.create("#village_factory", pos, null, {x = x, y = y})
 	msg.post(msg.url(nil, id_village, "village"), "create_human")
 	go.set(msg.url(nil, id_village, "sprite"), "scale", vmath.vector3(0.5 , 0.5, 1))
@@ -612,7 +646,7 @@ function add_resource_to_villages(self, tile_type, x, y)
 		if min_distance_to_village ~= big_constant then
 			for village_num = 1, #self.villages do
 				if self.villages[village_num].x == village_x and self.villages[village_num].y == village_y then
-					msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = tile_type, radius = min_distance_to_village + 1})
+					msg.post(msg.url(nil, self.villages[village_num].id, "village"), "get_resource", {tile_type = tile_type, radius = min_distance_to_village + 1, x = x , y = y})
 					self.board[x][y].distance_to_village = min_distance_to_village + 1
 					self.board[x][y].village_center_x = village_x
 					self.board[x][y].village_center_y = village_y
@@ -774,6 +808,8 @@ function on_message(self, message_id, message, sender)
 				bfs_helper(self, num, message["radius"])
 			end
 		end
+	elseif message_id == hash("resource_collected") then
+		spawn_resource(self, message["x"], message["y"])
 	end
 end
 

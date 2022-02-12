@@ -11,8 +11,13 @@ go.property("income", 0)
 go.property("max_upgrade", 0)
 
 function init(self)
-	msg.post("#stats_picture" , "disable")
+	msg.post("#stats_picture_wood" , "disable")
+	msg.post("#stats_picture_rock" , "disable")
+	msg.post("#stats_picture_water" , "disable")
 	msg.post("#stats_label" , "disable")
+	go.set("#stats_picture_wood", "scale", vmath.vector3(0.25 , 0.25, 1))
+	go.set("#stats_picture_rock", "scale", vmath.vector3(0.25 , 0.25, 1))
+	go.set("#stats_picture_water", "scale", vmath.vector3(0.25 , 0.25, 1))
 	self.humans = {}
 	msg.post("#", "create_human")
 end
@@ -37,6 +42,7 @@ function grow(self)
 		msg.post("#", "create_human")
 		msg.post("/game#board", "village_grow", {village_x = self.x, village_y = self.y, radius = self.control_radius})
 	elseif self.max_upgrade == 0 then
+		msg.post("#", "create_human")
 		self.max_upgrade = 1
 	end
 end
@@ -52,10 +58,14 @@ function on_message(self, message_id, message, sender)
 		msg.post(msg.url(nil, id_human, "traveller"), "init_vals")
 	elseif message_id == hash("change_stats_visibility") then
 		if self.visible_stats then
-			msg.post("#stats_picture" , "disable")
+			msg.post("#stats_picture_wood" , "disable")
+			msg.post("#stats_picture_rock" , "disable")
+			msg.post("#stats_picture_water" , "disable")
 			msg.post("#stats_label" , "disable")
 		else
-			msg.post("#stats_picture" , "enable")
+			msg.post("#stats_picture_wood" , "enable")
+			msg.post("#stats_picture_rock" , "enable")
+			msg.post("#stats_picture_water" , "enable")
 			msg.post("#stats_label" , "enable")
 		end
 		self.visible_stats = not self.visible_stats
@@ -68,6 +78,7 @@ function on_message(self, message_id, message, sender)
 			elseif message["tile_type"] == hash("rock") then
 				self.rock = self.rock + 1
 			end
+			msg.post("/game#board", "resource_collected", { x = message["x"], y = message["y"]})
 		end
 		
 		if (self.rock == self.resource_equal_max and self.water == self.resource_equal_max 
