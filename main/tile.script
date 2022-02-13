@@ -50,6 +50,14 @@ function on_message(self, message_id, message, sender)
 			msg.post("#production_label" , "enable")
 		end
 		self.visible_stats = not self.visible_stats
+	elseif message_id == hash("upgrade_triangle") then
+		if self.tile_type == hash("rock") then
+			msg.post("#sprite", "play_animation", { id = hash("logo_256") })
+		elseif self.tile_type == hash("wood") then
+			msg.post("#sprite", "play_animation", { id = hash("logo_256") })
+		else 
+			msg.post("#sprite", "play_animation", { id = hash("logo_256") })
+		end
 	end
 end
 
