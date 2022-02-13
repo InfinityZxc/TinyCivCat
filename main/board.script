@@ -588,7 +588,7 @@ function village_creation(self, x, y)
 		end
 	end
 	local pos = return_coords_from_hex_index(self, x, y)
-	pos.z = 0.2
+	pos.z = 0.4
 	id_village = factory.create("#village_factory", pos, null, {x = x, y = y})
 	msg.post(msg.url(nil, id_village, "village"), "create_human")
 	go.set(msg.url(nil, id_village, "sprite"), "scale", vmath.vector3(0.5 , 0.5, 1))
@@ -643,6 +643,9 @@ function village_destruction(self, village_num, x, y)
 		self.board[x+sdvig][y-1].village_center_x = nil
 		self.board[x+sdvig][y-1].village_center_y = nil
 	end
+	self.board[x][y].distance_to_village = big_constant
+	self.board[x][y].village_center_x = nil
+	self.board[x][y].village_center_y = nil
 	go.delete(self.villages[village_num].id)
 	table.remove(self.villages, village_num)
 	village_count = village_count - 1
