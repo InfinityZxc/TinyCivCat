@@ -61,7 +61,7 @@ function init(self)
 	create_grid(self)
 	
 	self.villages = {}
-	village_creation(self, 4, 4)
+	--village_creation(self, 4, 4)
 	
 	score_calculation(self, hash("none"), hash("none"))
 	timer.delay(0.1, false, function ()
@@ -136,7 +136,7 @@ end
 function is_hex_valid_dfs(self, used, x, y, type)
 	return check_coord(x, y) and self.board[x][y].id and used[x][y] == 0 and self.board[x][y].tile_type == type and not self.board[x][y].corrupted
 end
-
+--[[
 function spawn_coins(self, x, y, bonus_zero_one, type)
 	if turn_counter > 0 and turn_counter < 4 then
 		local pos = vmath.vector3(self.board[x][y].tile_pos_x, self.board[x][y].tile_pos_y, 1)
@@ -167,9 +167,9 @@ function spawn_coins(self, x, y, bonus_zero_one, type)
 	end
 	label.set_text(msg.url(nil, self.board[x][y].id, "production_label"), coins_needed)
 end
-
+--]]
 function spawn_resource(self, x, y)
-	if self.board[x][y].id then
+	if self.board[x][y].id and not self.board[x][y].corrupted then
 		local pos = vmath.vector3(self.board[x][y].tile_pos_x, self.board[x][y].tile_pos_y, 1)
 		pos.z = pos.z - 0.1
 		timer.delay(0.5, false, function ()
@@ -563,7 +563,30 @@ function bfs_for_distances_to_village(self, x, y, village_num, max_distance, dis
 	end
 end
 
+function abs(a)
+	if a < 0 then
+		return -a
+	else
+		return a
+	end
+end
+
+function bool_hex2_arond_hex1_in_radius2(x1, y1, x2, y2)
+	if (abs(y1 - y2) < 3) and  (abs(x1 - x2) < 3) and (abs(x1 - x2) + abs(y1 - y2) < 4) and
+	not (x1 - x2 == (-1 + (y1%2)*2)*2 and abs(x1 - x2) == 2 and abs(y1 - y2) == 1)
+	then
+		return true
+	else
+		return false
+	end
+end
+
 function village_creation(self, x, y)
+	for village_num = 1, village_count do
+		if bool_hex2_arond_hex1_in_radius2(self.villages[village_num].x, self.villages[village_num].y, x, y) then
+			return false
+		end
+	end
 	local pos = return_coords_from_hex_index(self, x, y)
 	pos.z = 0.2
 	id_village = factory.create("#village_factory", pos, null, {x = x, y = y})
@@ -577,18 +600,48 @@ function village_creation(self, x, y)
 	bfs_helper(self, village_count, 1)
 end
 
-function village_destruction(self, village_num)
-	for x = 0,boardwidth-1 do
-		for y = 0,boardheight-1 do
-			if self.board[x][y].id then
-				if self.board[x][y].village_center_x == self.villages[village_num].x and 
-				self.board[x][y].village_center_y == self.villages[village_num].y then
-					--self.board[x][y].distance_to_village = big_constant
-					--self.board[x][y].village_center_x = nil
-					--self.board[x][y].village_center_y = nil
-				end
+function village_destruction(self, village_num, x, y)
+	if village_num ~= 0 then
+		x = self.villages[village_num].x
+		y = self.villages[village_num].y
+	else
+		for village_num_search = 1, village_count do
+			if self.villages[village_num_search].x == x and self.villages[village_num_search].y == y then
+				village_num = village_num_search
+				break
 			end
 		end
+	end
+	local sdvig = -1 + (y%2)*2
+	if check_coord(x+1, y) and self.board[x+1][y].id then
+		self.board[x+1][y].distance_to_village = big_constant
+		self.board[x+1][y].village_center_x = nil
+		self.board[x+1][y].village_center_y = nil
+	end
+	if check_coord(x-1, y) and self.board[x-1][y].id then
+		self.board[x-1][y].distance_to_village = big_constant
+		self.board[x-1][y].village_center_x = nil
+		self.board[x-1][y].village_center_y = nil
+	end
+	if check_coord(x, y+1) and self.board[x][y+1].id then
+		self.board[x][y+1].distance_to_village = big_constant
+		self.board[x][y+1].village_center_x = nil
+		self.board[x][y+1].village_center_y = nil
+	end
+	if check_coord(x, y-1) and self.board[x][y-1].id then
+		self.board[x][y-1].distance_to_village = big_constant
+		self.board[x][y-1].village_center_x = nil
+		self.board[x][y-1].village_center_y = nil
+	end
+	if check_coord(x+sdvig, y+1) and self.board[x+sdvig][y+1].id then
+		self.board[x+sdvig][y+1].distance_to_village = big_constant
+		self.board[x+sdvig][y+1].village_center_x = nil
+		self.board[x+sdvig][y+1].village_center_y = nil
+	end
+	if check_coord(x+sdvig, y-1) and self.board[x+sdvig][y-1].id then
+		self.board[x+sdvig][y-1].distance_to_village = big_constant
+		self.board[x+sdvig][y-1].village_center_x = nil
+		self.board[x+sdvig][y-1].village_center_y = nil
 	end
 	go.delete(self.villages[village_num].id)
 	table.remove(self.villages, village_num)
@@ -687,6 +740,11 @@ function corruption_iteration(self)
 						if check_coord(x+sdvig, y-1) and self.board[x+sdvig][y-1].corrupted then
 							around_corrupted_count = around_corrupted_count+1
 						end
+						if self.board[x][y].distance_to_village == 1 then
+							around_corrupted_count = around_corrupted_count-1
+						elseif self.board[x][y].distance_to_village == 0 then
+							around_corrupted_count = around_corrupted_count-2
+						end
 						if around_corrupted_count == max_corrupted_around then
 							table.insert(candidates, vmath.vector3(x,y,0))
 						elseif around_corrupted_count > max_corrupted_around then
@@ -699,6 +757,9 @@ function corruption_iteration(self)
 			end
 			if (#candidates ~= 0) then
 				local coords_to_corrupt = candidates[math.random(#candidates)]
+				if self.board[coords_to_corrupt.x][coords_to_corrupt.y].distance_to_village == 0 then
+					village_destruction(self, 0, coords_to_corrupt.x, coords_to_corrupt.y)
+				end
 				corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, false)
 				label.set_text(msg.url(nil, self.board[coords_to_corrupt.x][coords_to_corrupt.y].id, "production_label"), 0)
 			else
@@ -723,6 +784,9 @@ function on_message(self, message_id, message, sender)
 		end
 	elseif message_id == hash("next_turn") then
 		add_resource_to_villages(self, message["tile_type"], message["x"], message["y"])
+		if turn_counter/15 >= village_count then
+			village_creation(self, message["x"], message["y"])
+		end
 		turn_counter = turn_counter + 1
 		corruption_iteration(self)
 		if turn_counter == corruption_beginning then
