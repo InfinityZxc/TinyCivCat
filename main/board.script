@@ -513,7 +513,7 @@ function bfs_handle_hex(self, hex_number, next, depth, village_x, village_y, vis
 	end
 end
 
-function grow_dfs(self, village_num)
+function grow_bfs(self, village_num)
 
 end
 
