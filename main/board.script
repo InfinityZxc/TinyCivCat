@@ -450,6 +450,80 @@ function bfs_helper(self, village_num, radius)
 	radius, hexes_distance_1, used)
 end
 
+function global_bfs_helper(self, x, y)
+	local visited = {}
+	local even = {}
+	local odd = {}
+	for i = 0, boardwidth do
+		used[i] = {}
+		for j = 0, boardheight do
+			visited[i][j] = 0
+		end
+	end
+	global_bfs(self, x, y, visited, 0, odd, even, x, y)
+end
+
+function global_bfs(self, x, y)
+	local visited = {}
+	local next = {}
+	next[0] = {}
+	next[1] = {}
+	for i = 0, boardwidth do
+		visited[i] = {}
+		for j = 0, boardheight do
+			visited[i][j] = 0
+		end
+	end
+	local depth = 0
+	table.insert(next[depth%2], {next_x = x, next_y = y})
+	print(x, y)
+	while #next[0] ~= 0 or #next[1] ~= 0 do
+		print(x,y)
+		for next_hex_num = 1, #next[depth%2] do
+			bfs_handle_hex(self, next_hex_num, next, depth, x, y, visited)
+		end
+		next[depth%2] = {}
+		depth = depth + 1
+	end
+end
+
+function bfs_handle_hex(self, hex_number, next, depth, village_x, village_y, visited)
+	print(#next[depth%2])
+	local x = next[depth%2][hex_number].next_x
+	local y = next[depth%2][hex_number].next_y
+	print(x, y)
+	visited[x][y] = 1
+	if depth <= self.board[x][y].distance_to_village then
+		if depth < self.board[x][y].distance_to_village then
+			self.board[x][y].distance_to_village = depth
+			self.board[x][y].village_center_x = village_x
+			self.board[x][y].village_center_y = village_y
+			if check_coord(x, y) and self.board[x][y].id then
+				label.set_text(msg.url(nil, self.board[x][y].id, "production_label"), depth)
+			end
+		end
+		local sdvig = -1 + (y%2)*2
+		if check_coord(x+1, y) and visited[x+1][y] == 0 then
+			table.insert(next[(depth+1)%2], {next_x = x+1, next_y = y})
+		end
+		if check_coord(x-1, y) and visited[x-1][y] == 0 then
+			table.insert(next[(depth+1)%2], {next_x = x-1, next_y = y})
+		end
+		if check_coord(x, y+1) and visited[x][y+1] == 0 then
+			table.insert(next[(depth+1)%2], {next_x = x, next_y = y+1})
+		end
+		if check_coord(x, y-1) and visited[x][y-1] == 0 then
+			table.insert(next[(depth+1)%2], {next_x = x, next_y = y-1})
+		end
+		if check_coord(x+sdvig, y+1) and visited[x+sdvig][y+1] == 0 then
+			table.insert(next[(depth+1)%2], {next_x = x+sdvig, next_y = y+1})
+		end
+		if check_coord(x+sdvig, y-1) and visited[x+sdvig][y-1] == 0 then
+			table.insert(next[(depth+1)%2], {next_x = x+sdvig, next_y = y-1})
+		end
+	end
+end
+
 function bfs_for_distances_to_village(self, x, y, village_num, max_distance, distance_1, used)
 	local sdvig = -1 + (y%2)*2
 	if check_coord(x+1, y) and self.board[x+1][y].id then
@@ -597,7 +671,8 @@ function village_creation(self, x, y)
 	self.board[x][y].village_center_y = y
 	self.board[x][y].distance_to_village = 0
 	village_count = village_count + 1
-	bfs_helper(self, village_count, 1)
+	--bfs_helper(self, village_count, 1)
+	global_bfs(self, x, y)
 end
 
 function village_destruction(self, village_num, x, y)
@@ -764,14 +839,14 @@ function corruption_iteration(self)
 					village_destruction(self, 0, coords_to_corrupt.x, coords_to_corrupt.y)
 				end
 				corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, false)
-				label.set_text(msg.url(nil, self.board[coords_to_corrupt.x][coords_to_corrupt.y].id, "production_label"), 0)
+				--label.set_text(msg.url(nil, self.board[coords_to_corrupt.x][coords_to_corrupt.y].id, "production_label"), 0)
 			else
 				msg.post("/end_screen#game_end", "game_lost")
 			end
 		end
 	elseif turn_counter == corruption_beginning then
 		corrupt_tile(self, first_corruption_hex_pos.x, first_corruption_hex_pos.y, true)
-		label.set_text(msg.url(nil, self.board[first_corruption_hex_pos.x][first_corruption_hex_pos.y].id, "production_label"), 0)
+		--label.set_text(msg.url(nil, self.board[first_corruption_hex_pos.x][first_corruption_hex_pos.y].id, "production_label"), 0)
 	else
 		corruption_delay = math.max(0, corruption_delay - 1)
 	end
