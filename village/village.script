@@ -9,6 +9,7 @@ go.property("resource_equal_max", 2)
 go.property("control_radius", 1)
 go.property("income", 0)
 go.property("max_upgrade", 0)
+go.property("id", 0)
 
 function init(self)
 	msg.post("#stats_picture_wood" , "disable")
@@ -40,11 +41,18 @@ function grow(self)
 		self.control_radius = self.control_radius + 1
 		self.resource_equal_max = self.resource_equal_max + 2 * self.control_radius
 		msg.post("#", "create_human")
-		msg.post("/game#board", "village_grow", {village_x = self.x, village_y = self.y, radius = self.control_radius})
+		msg.post("/game#board", "village_grow", {id = self.id})
 	elseif self.max_upgrade == 0 then
 		msg.post("#", "create_human")
 		self.max_upgrade = 1
 	end
+end
+
+function update_labels_and_income(self)
+	self.income = 5 * self.water + 10 * self.rock + 15 * self.wood
+	label.set_text("#stats_label", self.wood .. "/" .. self.resource_equal_max .. " " ..
+	self.rock .. "/" .. self.resource_equal_max .. " " ..
+	self.water .. "/" .. self.resource_equal_max .. " inc:" .. self.income)
 end
 
 function on_message(self, message_id, message, sender)
@@ -70,7 +78,7 @@ function on_message(self, message_id, message, sender)
 		end
 		self.visible_stats = not self.visible_stats
 	elseif message_id == hash("get_resource") then
-		if message["radius"] == self.control_radius then
+		if message["radius"] <= self.control_radius then
 			if message["tile_type"] == hash("water") then
 				self.water = self.water + 1
 			elseif message["tile_type"] == hash("wood") then
@@ -85,11 +93,18 @@ function on_message(self, message_id, message, sender)
 		and self.wood == self.resource_equal_max) then
 			grow(self)
 		end
-		
-		label.set_text("#stats_label", self.wood .. "/" .. self.resource_equal_max .. " " ..
-			self.rock .. "/" .. self.resource_equal_max .. " " ..
-			self.water .. "/" .. self.resource_equal_max)
-		
+		update_labels_and_income(self)
+	elseif message_id == hash("lose_resource") then
+		if message["radius"] <= self.control_radius then
+			if message["tile_type"] == hash("water") then
+				self.water = self.water - 1
+			elseif message["tile_type"] == hash("wood") then
+				self.wood = self.wood - 1
+			elseif message["tile_type"] == hash("rock") then
+				self.rock = self.rock - 1
+			end
+		end
+		update_labels_and_income(self)
 	end
 end
 
