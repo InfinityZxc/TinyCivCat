@@ -42,9 +42,11 @@ function grow(self)
 		self.resource_equal_max = self.resource_equal_max + 2 * self.control_radius
 		msg.post("#", "create_human")
 		msg.post("/game#board", "village_grow", {id = self.id})
+		sprite.play_flipbook("#sprite", hash("village2"))
 	elseif self.max_upgrade == 0 then
 		msg.post("#", "create_human")
 		self.max_upgrade = 1
+		sprite.play_flipbook("#sprite", hash("village3"))
 	end
 end
 
