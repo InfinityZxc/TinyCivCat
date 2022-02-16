@@ -37,17 +37,6 @@ function on_message(self, message_id, message, sender)
 			msg.post("#sprite", "play_animation", { id = hash("rock") })
 			change_tile(self, hash("rock"))
 		end
-		--[[
-	elseif message_id == hash("change_stats_visibility") then
-		if self.visible_stats then
-			msg.post("#coin_sprite" , "disable")
-			msg.post("#production_label" , "disable")
-		else
-			msg.post("#coin_sprite" , "enable")
-			msg.post("#production_label" , "enable")
-		end
-		self.visible_stats = not self.visible_stats
-		--]]
 	end
 end
 

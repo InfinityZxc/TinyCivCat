@@ -32,7 +32,7 @@ local moving_tile_id = nil
 local moving_tile_offset = nil
 local map_type = hash("hex")
 go.property("map_type", hash("hex"))
-local corruption_beginning = 15
+local corruption_beginning = 100
 local corruption_acceleration = 10
 local unhash = {
 	[hash("wood")] = "wood",
@@ -178,6 +178,71 @@ function spawn_resource(self, x, y)
 	end
 end
 
+function set_tile_group (self, x, y, type)
+	if type == hash("wood") then
+		local pos = vmath.vector3()
+		pos.x = self.board[x][y].tile_pos_x
+		pos.y = self.board[x][y].tile_pos_y
+		pos.z = 1 / (pos.y + 3)
+		if self.board[x][y] and self.board[x][y].id and self.board[x][y].id_group then
+			msg.post(msg.url(nil, self.board[x][y].id_group, "sprite"), "play_animation", {id = hash("group_wood")})
+		else
+			self.board[x][y].id_group = factory.create("/game#group_factory", pos, null, {group_type = hash("group_wood")})
+		end
+	elseif type == hash("rock") then
+		local pos = vmath.vector3()
+		pos.x = self.board[x][y].tile_pos_x
+		pos.y = self.board[x][y].tile_pos_y
+		pos.z = 1 / (pos.y + 3)
+		if self.board[x][y] and self.board[x][y].id and self.board[x][y].id_group then
+			msg.post(msg.url(nil, self.board[x][y].id_group, "sprite"), "play_animation", {id = hash("group_rock")})
+		else 
+			self.board[x][y].id_group = factory.create("/game#group_factory", pos, null, {group_type = hash("group_rock")})
+		end
+	elseif type == hash("water") then
+		local pos = vmath.vector3()
+		pos.x = self.board[x][y].tile_pos_x
+		pos.y = self.board[x][y].tile_pos_y
+		pos.z = 1 / (pos.y + 3)
+		if self.board[x][y] and self.board[x][y].id and self.board[x][y].id_group then
+			msg.post(msg.url(nil, self.board[x][y].id_group, "sprite"), "play_animation", {id = hash("group_water")})
+		else 
+			self.board[x][y].id_group = factory.create("/game#group_factory", pos, null, {group_type = hash("group_water")})
+		end
+	end
+end
+
+local neig_even_x = {-1, -1, 0, 1, 0, -1}
+local neig_even_y = {0, -1, -1, 0, 1, 1}
+local neig_odd_x = {-1, 0, 1, 1, 1, 0}
+local neig_odd_y = {0, -1, -1, 0, 1, 1}
+
+--[[function is_hex_valid_bridges(self, x, y, type)
+	return check_coord(x, y) and self.board[x][y].id and self.board[x][y].tile_type == type and not self.board[x][y].corrupted
+end
+
+function find_bridge(self, used, tin, fup, x, y, type, time, prev_x, prev_y)
+	used[x][y] = 1
+	tin[x][y] = time
+	fup[x][y] = time
+	time = time + 1
+	if check_coord(x, y) and y % 2 == 0 and not self.board[x][y].corrupted then
+		for i = 1, 6 do
+			if is_hex_valid_dfs(self, used, x + neig_even_x[i], y + neig_even_y[i], type) then 
+				dfs(self, used, x + neig_even_x[i], y + neig_even_y[i], type)
+			end
+		end
+	elseif check_coord(x, y)  and y % 2 == 1 and not self.board[x][y].corrupted then 
+		for i = 1, 6 do
+			if is_hex_valid_dfs(self, used, x + neig_odd_x[i], y + neig_odd_y[i], type) then 
+				dfs(self, used, x + neig_odd_x[i], y + neig_odd_y[i], type)
+			end
+		end
+	end
+
+end
+--]]
+
 function dfs(self, used, x, y, type) 
 	used[x][y] = 1
 	if income > 0 and bonus < bonus_limit then 
@@ -186,44 +251,22 @@ function dfs(self, used, x, y, type)
 	else
 		--spawn_coins(self, x, y, 0, type);
 	end
-	income = income + 1
+	if self.board[x][y].upgraded then 
+		income = income + 2
+	else 
+		income = income + 1
+	end
 	if check_coord(x, y) and y % 2 == 0 and not self.board[x][y].corrupted then
-		if is_hex_valid_dfs(self, used, x-1, y, type) then
-			dfs(self, used, x - 1, y, type)
-		end
-		if is_hex_valid_dfs(self, used, x+1, y, type) then
-			dfs(self, used, x + 1, y, type)
-		end
-		if is_hex_valid_dfs(self, used, x-1, y + 1, type) then
-			dfs(self, used, x - 1, y + 1, type)
-		end
-		if is_hex_valid_dfs(self, used, x, y + 1, type) then
-			dfs(self, used, x, y + 1, type)
-		end
-		if is_hex_valid_dfs(self, used, x-1, y - 1, type) then
-			dfs(self, used, x - 1, y - 1, type)
-		end
-		if is_hex_valid_dfs(self, used, x, y - 1, type) then
-			dfs(self, used, x, y - 1, type)
+		for i = 1, 6 do
+			if is_hex_valid_dfs(self, used, x + neig_even_x[i], y + neig_even_y[i], type) then 
+				dfs(self, used, x + neig_even_x[i], y + neig_even_y[i], type)
+			end
 		end
 	elseif check_coord(x, y)  and y % 2 == 1 and not self.board[x][y].corrupted then 
-		if is_hex_valid_dfs(self, used, x-1, y, type) then
-			dfs(self, used, x - 1, y, type)
-		end
-		if is_hex_valid_dfs(self, used, x+1, y, type) then
-			dfs(self, used, x + 1, y, type)
-		end
-		if is_hex_valid_dfs(self, used, x+1, y+1, type) then
-			dfs(self, used, x + 1, y + 1, type)
-		end
-		if is_hex_valid_dfs(self, used, x, y+1, type) then
-			dfs(self, used, x, y + 1, type)
-		end
-		if is_hex_valid_dfs(self, used, x, y-1, type) then
-			dfs(self, used, x, y - 1, type)
-		end
-		if is_hex_valid_dfs(self, used, x+1, y-1, type) then
-			dfs(self, used, x + 1, y - 1, type)
+		for i = 1, 6 do
+			if is_hex_valid_dfs(self, used, x + neig_odd_x[i], y + neig_odd_y[i], type) then 
+				dfs(self, used, x + neig_odd_x[i], y + neig_odd_y[i], type)
+			end
 		end
 	end
 end
@@ -389,7 +432,7 @@ function new_board()
 				id_tile = nil
 			end
 			new_board[x][y] = {id = id_tile, x = x, y = y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false, possible_move = false,
-			distance_to_village = big_constant, village_center_x = nil, village_center_y = nil, village_num = nil}
+			distance_to_village = big_constant, village_center_x = nil, village_center_y = nil, village_num = nil, upgraded = false}
 			if y%2==1 then
 				pos.x = pos.x - hex_size/2
 			end
@@ -437,26 +480,22 @@ function clear_corruption(self, completely)
 end
 
 function corrupt_tile(self, x, y, completely)
-	local type = unhash[self.board[x][y].tile_type]
-	if type == "rock" then
-		if self.board[x][y].corrupted == false and not completely then
-			self.board[x][y].corrupted = nil
-			if self.board[x][y].distance_to_village ~= 0 then
+	if not self.board[x][y].corrupted then
+		local type = unhash[self.board[x][y].tile_type]
+		if type == "rock" then
+			if self.board[x][y].corrupted == false and not completely then
+				self.board[x][y].corrupted = nil
 				msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("broken_rock")})
+			else
+				type = "broken_rock"
+				self.board[x][y].corrupted = true;
+				msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type)})
 			end
 		else
-			type = "broken_rock"
 			self.board[x][y].corrupted = true;
 			msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type)})
 		end
-	else
-		self.board[x][y].corrupted = true;
-		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type)})
-	end
-	if village_count >= 0 and self.board[x][y].corrupted then
-		if self.board[x][y].distance_to_village == 0 then
-			village_destruction(self, 0, x, y)
-		else
+		if village_count >= 0 and self.board[x][y].corrupted then
 			msg.post(msg.url(nil, self.villages[self.board[x][y].village_num].id, "village"), "lose_resource", 
 			{tile_type = self.board[x][y].tile_type, radius = self.board[x][y].distance_to_village, x = x , y = y})
 		end
@@ -734,12 +773,23 @@ function corruption_iteration(self)
 			end
 			if (#candidates ~= 0) then
 				local coords_to_corrupt = candidates[math.random(#candidates)]
+				if self.board[coords_to_corrupt.x][coords_to_corrupt.y].distance_to_village == 0 then
+					village_destruction(self, 0, coords_to_corrupt.x, coords_to_corrupt.y)
+					corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, true)
+				end
+				if self.board[coords_to_corrupt.x][coords_to_corrupt.y].upgraded then
+					destroy_structure(self, coords_to_corrupt.x, coords_to_corrupt.y)
+				end
 				corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, false)
 			else
 				msg.post("/end_screen#game_end", "game_lost")
 			end
 		end
 	elseif turn_counter == corruption_beginning then
+		if self.board[first_corruption_hex_pos.x][first_corruption_hex_pos.y].upgraded then
+			destroy_structure(self, first_corruption_hex_pos.x, first_corruption_hex_pos.y)
+			print(1)
+		end
 		corrupt_tile(self, first_corruption_hex_pos.x, first_corruption_hex_pos.y, true)
 	else
 		corruption_delay = math.max(0, corruption_delay - 1)
@@ -770,6 +820,13 @@ function on_message(self, message_id, message, sender)
 		corruption_iteration(self)
 		if turn_counter == corruption_beginning then
 			msg.post("/tutorial#tutorial", "corruption")
+		end
+		for x = 0, boardwidth-1 do
+			for y = 0, boardheight-1 do
+				if self.board[x][y] and self.board[x][y].id and self.board[x][y].id_group then
+					msg.post(msg.url(nil, self.board[x][y].id_group, "sprite"), "play_animation", {id = hash("group_empty")})
+				end
+			end
 		end
 		score_calculation(self, hash("none"), hash("none"))
 		if snow then
@@ -960,6 +1017,107 @@ function make_possible_moves_around(self, x, y)
 	end
 end
 
+function is_for_upgrade(self, x, y, type)
+	return check_coord(x, y) and self.board[x][y].id and self.board[x][y].tile_type == type and not self.board[x][y].upgraded and not self.board[x][y].corrupted and self.board[x][y].distance_to_village ~= 0
+end
+
+function upgrade_cell(self, x, y, direction, inverted)
+	self.board[x][y].upgraded = true
+	if not inverted then
+		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("upgraded_" .. unhash[self.board[x][y].tile_type] .. "_" .. direction)})
+		print("upgraded_" .. unhash[self.board[x][y].tile_type] .. "_" .. direction)
+	else 
+		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("upgraded_" .. unhash[self.board[x][y].tile_type] .. "_" .. direction .. "_inverted")})
+	end
+	--msg.post(self.board[x][y].id, "upgrade_triangle")
+end
+
+function downgrade_cell(self, x, y)
+	self.board[x][y].upgraded = false
+	msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash(self.board[x][y].tile_type)})
+	--msg.post(self.board[x][y].id, "downgrade_cell")
+end
+
+
+function is_for_downgrade(self, x, y, type)
+	return check_coord(x, y) and self.board[x][y].id and self.board[x][y].tile_type == type and self.board[x][y].upgraded
+end
+
+function destroy_structure(self, x, y)
+	if check_coord(x, y) and y % 2 == 0 then
+		for i = 1, 6 do
+			if is_for_downgrade(self, x + neig_even_x[i], y + neig_even_y[i], self.board[x][y].tile_type) then
+				j = i + 1
+				if i == 6 then
+					j = 1
+				end
+				if  is_for_downgrade(self, x + neig_even_x[j], y + neig_even_y[j], self.board[x][y].tile_type) then
+					downgrade_cell(self, x, y)
+					downgrade_cell(self, x + neig_even_x[i], y + neig_even_y[i]) 
+					downgrade_cell(self, x + neig_even_x[j], y + neig_even_y[j]) 
+				end
+			end
+		end
+	elseif check_coord(x, y) and y % 2 == 1 then
+		for i = 1, 6 do
+			if is_for_downgrade(self, x + neig_odd_x[i], y + neig_odd_y[i], self.board[x][y].tile_type) then
+				j = i + 1
+				if i == 6 then
+					j = 1
+				end
+				if  is_for_downgrade(self, x + neig_odd_x[j], y + neig_odd_y[j], self.board[x][y].tile_type) then
+					downgrade_cell(self, x, y)
+					downgrade_cell(self, x + neig_odd_x[i], y + neig_odd_y[i])
+					downgrade_cell(self, x + neig_odd_x[j], y + neig_odd_y[j]) 
+				end
+			end
+		end
+	end
+end
+
+function make_upadge_structure(self, x, y) 
+	-- check triangle structure
+	local inverted = false
+	local directions = {}
+	directions[0] = "left"
+	directions[1] = "up"
+	directions[2] = "right"
+	if check_coord(x, y) and y % 2 == 0 then
+		for i = 1, 6 do
+			inverted = not inverted
+			if is_for_upgrade(self, x + neig_even_x[i], y + neig_even_y[i], self.board[x][y].tile_type) then
+				j = i + 1
+				if i == 6 then
+					j = 1
+				end
+				if  is_for_upgrade(self, x + neig_even_x[j], y + neig_even_y[j], self.board[x][y].tile_type) then
+					upgrade_cell(self, x, y, directions[(i - 1) % 3], inverted)
+					upgrade_cell(self, x + neig_even_x[i], y + neig_even_y[i], directions[(i + 1) % 3], inverted) 
+					upgrade_cell(self, x + neig_even_x[j], y + neig_even_y[j], directions[(i) % 3], inverted) 
+				end
+			end
+		end
+	elseif check_coord(x, y) and y % 2 == 1 then
+		inverted = false
+		for i = 1, 6 do
+			inverted = not inverted
+			if is_for_upgrade(self, x + neig_odd_x[i], y + neig_odd_y[i], self.board[x][y].tile_type) then
+				j = i + 1
+				if i == 6 then
+					j = 1
+				end
+				if  is_for_upgrade(self, x + neig_odd_x[j], y + neig_odd_y[j], self.board[x][y].tile_type) then
+					upgrade_cell(self, x, y, directions[(i - 1) % 3], inverted)
+					upgrade_cell(self, x + neig_odd_x[i], y + neig_odd_y[i], directions[(i+1)%3], inverted) 
+					upgrade_cell(self, x + neig_odd_x[j], y + neig_odd_y[j], directions[i % 3], inverted) 
+				end
+			end
+		end
+	end
+	-- end of checking triangles (нужно как-то хранить в board структуру в которую входит клетка, 
+	--возможно хранить поле струткура с названиями, но это в будущем)
+end
+
 function on_input(self, action_id, action)
 	if action_id == hash("touch_left") and moving_tile_id then
 		if action.released then
@@ -972,7 +1130,7 @@ function on_input(self, action_id, action)
 				go.animate(moving_tile_id, "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.4)
 				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false, possible_move = true,
 				distance_to_village = self.board[tile_x][tile_y].distance_to_village, village_center_x = self.board[tile_x][tile_y].village_center_x, 
-				village_center_y = self.board[tile_x][tile_y].village_center_y, village_num = self.board[tile_x][tile_y].village_num}
+				village_center_y = self.board[tile_x][tile_y].village_center_y, village_num = self.board[tile_x][tile_y].village_num, upgraded = false}
 				msg.post("#", "next_turn", {tile_type = tile_type, x = tile_x, y = tile_y})
 				msg.post("/gui#main", "gui_new_tile")
 				--[[
@@ -981,6 +1139,7 @@ function on_input(self, action_id, action)
 				end
 				]]--
 				make_possible_moves_around(self, tile_x, tile_y)
+				make_upadge_structure(self, tile_x, tile_y)
 			else
 				go.delete(moving_tile_id)
 				msg.post("/gui#main", "gui_revert_tile", {tile_type=tile_type})
@@ -1012,6 +1171,7 @@ function on_input(self, action_id, action)
 		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].id and self.board[tile_x][tile_y].corrupted then
 			heal_cell(self, tile_x, tile_y)
 			thunder = true
+			make_upadge_structure(self, tile_x, tile_y)
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 		else
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
