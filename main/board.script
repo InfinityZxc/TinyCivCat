@@ -252,6 +252,7 @@ function tile_group(self, type)
 end
 
 function score_calculation(self, new_type, old_type)
+	--[[
 	tile_group(self, hash("wood"))
 	wood_score = wood_score + wood_income
 	coin_income = wood_income
@@ -261,6 +262,16 @@ function score_calculation(self, new_type, old_type)
 	tile_group(self, hash("rock"))
 	rock_score = rock_score + rock_income
 	coin_income = coin_income + rock_income
+	coins = coins + coin_income
+	msg.post("/gui#main", "gui_set_coins", {coins = coins})
+	msg.post("/gui#main", "gui_set_income", {income = coin_income})
+	--]]
+	coin_income = 0
+	for village_num = 1, #self.villages do
+		if self.villages[village_num].id then
+			coin_income = coin_income + self.villages[village_num].income
+		end
+	end
 	coins = coins + coin_income
 	msg.post("/gui#main", "gui_set_coins", {coins = coins})
 	msg.post("/gui#main", "gui_set_income", {income = coin_income})
@@ -290,7 +301,6 @@ function heal_cell(self, x, y)
 	if (coins >= uncorrupt_cost) and self.board[x][y].corrupted then
 		self.board[x][y].corrupted = false;
 		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = self.board[x][y].tile_type})
-		score_calculation(self, hash("none"), hash("none"))
 		coins = coins - coin_income
 		coins = coins - uncorrupt_cost
 		uncorrupt_cost = uncorrupt_cost + ability_cost_increase
@@ -623,7 +633,7 @@ function village_creation(self, x, y)
 	id_village = factory.create("#village_factory", pos, null, {id = village_next_id, x = x, y = y})
 	msg.post(msg.url(nil, id_village, "village"), "create_human")
 	go.set(msg.url(nil, id_village, "sprite"), "scale", vmath.vector3(0.5 , 0.5, 1))
-	self.villages[village_next_id] = {id = id_village, x = x, y = y, radius = 1, village_order = village_next_id}
+	self.villages[village_next_id] = {id = id_village, x = x, y = y, radius = 1, village_order = village_next_id, income = 0}
 	self.board[x][y].village_center_x = x
 	self.board[x][y].village_center_y = y
 	self.board[x][y].distance_to_village = 0
@@ -755,6 +765,7 @@ function on_message(self, message_id, message, sender)
 		if turn_counter/15 >= (village_next_id-1) then
 			village_creation(self, message["x"], message["y"])
 		end
+		
 		turn_counter = turn_counter + 1
 		corruption_iteration(self)
 		if turn_counter == corruption_beginning then
@@ -841,6 +852,8 @@ function on_message(self, message_id, message, sender)
 		grow_bfs(self, message["id"], message["x"], message["y"])
 	elseif message_id == hash("resource_collected") then
 		spawn_resource(self, message["x"], message["y"])
+	elseif message_id == hash("income_update") then
+		self.villages[message["id"]].income = message["income"]
 	end
 end
 

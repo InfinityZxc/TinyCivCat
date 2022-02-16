@@ -56,6 +56,7 @@ function update_labels_and_income(self)
 	label.set_text("#stats_label", self.wood .. "/" .. self.resource_equal_max .. " " ..
 	self.rock .. "/" .. self.resource_equal_max .. " " ..
 	self.water .. "/" .. self.resource_equal_max .. " inc:" .. self.income)
+	msg.post("/game#board", "income_update", {id = self.id, income = self.income})
 end
 
 function on_message(self, message_id, message, sender)
