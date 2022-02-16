@@ -12,9 +12,6 @@ function init(self)
 	local yscale = go.get("#sprite", "scale.y")
 	go.set("#sprite", "scale.x", xscale / 2)
 	go.set("#sprite", "scale.y", yscale / 2)
-	--go.set("#coin_sprite", "scale", vmath.vector3(0.125 , 0.125, 1))
-	--msg.post("#coin_sprite" , "disable")
-	--msg.post("#production_label" , "disable")
 end
 
 function final(self)

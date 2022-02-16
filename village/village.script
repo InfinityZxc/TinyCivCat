@@ -53,7 +53,7 @@ end
 
 function update_labels_and_income(self)
 	self.income = 5 * self.water + 10 * self.rock + 15 * self.wood
-	label.set_text("#stats_label", self.wood .. "/" .. self.resource_equal_max .. " " ..
+	label.set_text("#stats_label", "        " .. self.wood .. "/" .. self.resource_equal_max .. " " ..
 	self.rock .. "/" .. self.resource_equal_max .. " " ..
 	self.water .. "/" .. self.resource_equal_max .. " inc:" .. self.income)
 	msg.post("/game#board", "income_update", {id = self.id, income = self.income})
@@ -93,8 +93,8 @@ function on_message(self, message_id, message, sender)
 			msg.post("/game#board", "resource_collected", { x = message["x"], y = message["y"]})
 		end
 		
-		if (self.rock == self.resource_equal_max and self.water == self.resource_equal_max 
-		and self.wood == self.resource_equal_max) then
+		if (self.rock >= self.resource_equal_max and self.water >= self.resource_equal_max 
+		and self.wood >= self.resource_equal_max) then
 			grow(self)
 		end
 		update_labels_and_income(self)

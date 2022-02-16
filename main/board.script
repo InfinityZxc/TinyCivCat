@@ -34,7 +34,8 @@ local moving_tile_id = nil
 local moving_tile_offset = nil
 local map_type = hash("hex")
 go.property("map_type", hash("hex"))
-local corruption_beginning = 100
+local corruption_beginning = 15
+local spawn_village_every_x_turn = 15
 local corruption_acceleration = 10
 local unhash = {
 	[hash("wood")] = "wood",
@@ -142,38 +143,7 @@ end
 function is_hex_valid_dfs(self, used, x, y, type)
 	return check_coord(x, y) and self.board[x][y].id and used[x][y] == 0 and self.board[x][y].tile_type == type and not self.board[x][y].corrupted
 end
---[[
-function spawn_coins(self, x, y, bonus_zero_one, type)
-	if turn_counter > 0 and turn_counter < 4 then
-		local pos = vmath.vector3(self.board[x][y].tile_pos_x, self.board[x][y].tile_pos_y, 1)
-		local coins_needed = 0  -- maximum 10 or some will be invisible
-		pos.z = pos.z - 0.1
-		if type == hash("wood") then
-			coins_needed = 3 + bonus_zero_one
-		elseif type == hash("water") then
-			coins_needed = 1 + 3 * bonus_zero_one
-		elseif type == hash("rock") then
-			coins_needed = 2 + 2 * bonus_zero_one
-		end
-		for coin_number = 1, coins_needed do
-			local delay = coin_number * 3 / 10 -- + (((x + y) / 10) % 1) / 2
-			pos.z = pos.z + 0.01
-			timer.delay(delay, false, function ()
-				factory.create("#coin_factory", pos, null)
-			end)
-		end
-	end
-	local coins_needed = 0
-	if type == hash("wood") then
-		coins_needed = 3 + bonus_zero_one
-	elseif type == hash("water") then
-		coins_needed = 1 + 3 * bonus_zero_one
-	elseif type == hash("rock") then
-		coins_needed = 2 + 2 * bonus_zero_one
-	end
-	label.set_text(msg.url(nil, self.board[x][y].id, "production_label"), coins_needed)
-end
---]]
+
 function spawn_resource(self, x, y)
 	if self.board[x][y].id and not self.board[x][y].corrupted then
 		local pos = vmath.vector3(self.board[x][y].tile_pos_x, self.board[x][y].tile_pos_y, 1)
@@ -253,9 +223,6 @@ function dfs(self, used, x, y, type)
 	used[x][y] = 1
 	if income > 0 and bonus < bonus_limit then 
 		bonus = bonus + 1
-		--spawn_coins(self, x, y, 1, type);
-	else
-		--spawn_coins(self, x, y, 0, type);
 	end
 	if self.board[x][y].upgraded then 
 		income = income + 2
@@ -418,7 +385,7 @@ function new_board()
 			if y%2==1 then
 				pos.x = pos.x + hex_size/2
 			end
-			local tile_type = hash("rock")
+			local tile_type = nil
 			local id_tile
 			--[[  for check_coord tests
 			if check_coord(x, y) then
@@ -542,10 +509,6 @@ function bfs_handle_hex(self, hex_number, next, depth, village_x, village_y, vis
 			self.board[x][y].village_num = village_num
 		end
 		
-		if check_coord(x, y) and self.board[x][y].id then
-			label.set_text(msg.url(nil, self.board[x][y].id, "production_label"), depth .. "  " .. village_num)
-		end	
-			
 		local sdvig = -1 + (y%2)*2
 		if check_coord(x+1, y) and visited[x+1][y] == 0 then
 			visited[x+1][y] = 1
@@ -611,16 +574,18 @@ function grow_bfs_handle_hex(self, hex_number, next, depth, village_x, village_y
 			self.board[x][y].village_center_y = village_y
 			self.board[x][y].village_num = village_num
 			if self.board[x][y].id and depth == 2 then 
+				if self.board[x][y].upgraded == true then
+					add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
+				end
 				add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
 			end
-		elseif depth == 2 then
+		elseif village_num == self.board[x][y].village_num and self.board[x][y].id and depth == 2 then
+			if self.board[x][y].upgraded == true then
+				add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
+			end
 			add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
 		end
-
-		if check_coord(x, y) and self.board[x][y].id then
-			label.set_text(msg.url(nil, self.board[x][y].id, "production_label"), depth .. "  " .. village_num)
-		end	
-
+		
 		local sdvig = -1 + (y%2)*2
 		if check_coord(x+1, y) and visited[x+1][y] == 0 then
 			visited[x+1][y] = 1
@@ -794,7 +759,6 @@ function corruption_iteration(self)
 	elseif turn_counter == corruption_beginning then
 		if self.board[first_corruption_hex_pos.x][first_corruption_hex_pos.y].upgraded then
 			destroy_structure(self, first_corruption_hex_pos.x, first_corruption_hex_pos.y)
-			print(1)
 		end
 		corrupt_tile(self, first_corruption_hex_pos.x, first_corruption_hex_pos.y, true)
 	else
@@ -813,16 +777,12 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("next_turn") then
 		add_resource_to_villages(self, message["tile_type"], message["x"], message["y"])
 		
-		if self.board[message["x"]][message["y"]].village_num ~= nil then
-			label.set_text(msg.url(nil, self.board[ message["x"]][message["y"]].id, "production_label"), 
-			self.board[message["x"]][message["y"]].distance_to_village .. "  " .. self.board[message["x"]][message["y"]].village_num)
-		end
-		
-		if turn_counter/15 >= (village_next_id-1) then
+		if turn_counter/spawn_village_every_x_turn >= (village_next_id-1) then
 			village_creation(self, message["x"], message["y"])
 		end
 		
 		turn_counter = turn_counter + 1
+		make_upadge_structure(self, message["x"], message["y"])
 		corruption_iteration(self)
 		if turn_counter == corruption_beginning then
 			msg.post("/tutorial#tutorial", "corruption")
@@ -1031,10 +991,10 @@ function upgrade_cell(self, x, y, direction, inverted)
 	self.board[x][y].upgraded = true
 	if not inverted then
 		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("upgraded_" .. unhash[self.board[x][y].tile_type] .. "_" .. direction)})
-		print("upgraded_" .. unhash[self.board[x][y].tile_type] .. "_" .. direction)
 	else 
 		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("upgraded_" .. unhash[self.board[x][y].tile_type] .. "_" .. direction .. "_inverted")})
 	end
+	add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
 	--msg.post(self.board[x][y].id, "upgrade_triangle")
 end
 
@@ -1088,7 +1048,7 @@ function make_upadge_structure(self, x, y)
 	directions[0] = "left"
 	directions[1] = "up"
 	directions[2] = "right"
-	if check_coord(x, y) and y % 2 == 0 then
+	if check_coord(x, y) and y % 2 == 0 and is_for_upgrade(self, x, y, self.board[x][y].tile_type) then
 		for i = 1, 6 do
 			inverted = not inverted
 			if is_for_upgrade(self, x + neig_even_x[i], y + neig_even_y[i], self.board[x][y].tile_type) then
@@ -1103,7 +1063,7 @@ function make_upadge_structure(self, x, y)
 				end
 			end
 		end
-	elseif check_coord(x, y) and y % 2 == 1 then
+	elseif check_coord(x, y) and y % 2 == 1 and is_for_upgrade(self, x, y, self.board[x][y].tile_type) then
 		inverted = false
 		for i = 1, 6 do
 			inverted = not inverted
@@ -1146,7 +1106,6 @@ function on_input(self, action_id, action)
 				end
 				]]--
 				make_possible_moves_around(self, tile_x, tile_y)
-				make_upadge_structure(self, tile_x, tile_y)
 			else
 				go.delete(moving_tile_id)
 				msg.post("/gui#main", "gui_revert_tile", {tile_type=tile_type})
@@ -1166,7 +1125,8 @@ function on_input(self, action_id, action)
 	end
 	
 	if action_id == hash("touch_left") and action.released then
-		local tile_x, tile_y = return_hex_index_from_coords(self, action.x, action.y)
+		local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.x, action.y, 0))
+		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
 		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].distance_to_village == 0 then
 			msg.post(msg.url(nil, self.villages[self.board[tile_x][tile_y].village_num].id , "village"), "change_stats_visibility")
 		end
