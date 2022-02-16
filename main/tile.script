@@ -58,6 +58,9 @@ function on_message(self, message_id, message, sender)
 		else 
 			msg.post("#sprite", "play_animation", { id = hash("logo_256") })
 		end
+	elseif
+	message_id == hash("downgrade_cell") then
+		msg.post("#sprite", "play_animation", {id = hash(self.tile_type) })
 	end
 end
 
