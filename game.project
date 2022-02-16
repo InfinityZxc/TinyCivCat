@@ -31,5 +31,5 @@ app_icon = /assets/icon.ico
 show_fullscreen_button = 0
 
 [label]
-max_count = 128
+max_count = 256
 

@@ -12,6 +12,7 @@ go.property("max_upgrade", 0)
 go.property("id", 0)
 
 function init(self)
+	sprite.play_flipbook("#sprite", hash("village1"))
 	msg.post("#stats_picture_wood" , "disable")
 	msg.post("#stats_picture_rock" , "disable")
 	msg.post("#stats_picture_water" , "disable")
@@ -41,7 +42,7 @@ function grow(self)
 		self.control_radius = self.control_radius + 1
 		self.resource_equal_max = self.resource_equal_max + 2 * self.control_radius
 		msg.post("#", "create_human")
-		msg.post("/game#board", "village_grow", {id = self.id})
+		msg.post("/game#board", "village_grow", {id = self.id, x = self.x, y = self.y})
 		sprite.play_flipbook("#sprite", hash("village2"))
 	elseif self.max_upgrade == 0 then
 		msg.post("#", "create_human")
@@ -80,7 +81,7 @@ function on_message(self, message_id, message, sender)
 		end
 		self.visible_stats = not self.visible_stats
 	elseif message_id == hash("get_resource") then
-		if message["radius"] <= self.control_radius then
+		if message["radius"] <= self.control_radius and message["radius"] ~= 0 then
 			if message["tile_type"] == hash("water") then
 				self.water = self.water + 1
 			elseif message["tile_type"] == hash("wood") then
@@ -97,7 +98,7 @@ function on_message(self, message_id, message, sender)
 		end
 		update_labels_and_income(self)
 	elseif message_id == hash("lose_resource") then
-		if message["radius"] <= self.control_radius then
+		if message["radius"] <= self.control_radius and message["radius"] ~= 0 then
 			if message["tile_type"] == hash("water") then
 				self.water = self.water - 1
 			elseif message["tile_type"] == hash("wood") then

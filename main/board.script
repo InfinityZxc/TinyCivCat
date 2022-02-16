@@ -431,7 +431,9 @@ function corrupt_tile(self, x, y, completely)
 	if type == "rock" then
 		if self.board[x][y].corrupted == false and not completely then
 			self.board[x][y].corrupted = nil
-			msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("broken_rock")})
+			if self.board[x][y].distance_to_village ~= 0 then
+				msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("broken_rock")})
+			end
 		else
 			type = "broken_rock"
 			self.board[x][y].corrupted = true;
@@ -441,8 +443,10 @@ function corrupt_tile(self, x, y, completely)
 		self.board[x][y].corrupted = true;
 		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type)})
 	end
-	if village_count >= 0 then
-		if self.board[x][y].distance_to_village ~= big_constant and self.board[x][y].corrupted then
+	if village_count >= 0 and self.board[x][y].corrupted then
+		if self.board[x][y].distance_to_village == 0 then
+			village_destruction(self, 0, x, y)
+		else
 			msg.post(msg.url(nil, self.villages[self.board[x][y].village_num].id, "village"), "lose_resource", 
 			{tile_type = self.board[x][y].tile_type, radius = self.board[x][y].distance_to_village, x = x , y = y})
 		end
@@ -475,16 +479,18 @@ function bfs_handle_hex(self, hex_number, next, depth, village_x, village_y, vis
 	local x = next[depth%2][hex_number].next_x
 	local y = next[depth%2][hex_number].next_y
 	visited[x][y] = 1
-	if depth <= self.board[x][y].distance_to_village then
+	if check_coord(x, y) and depth <= self.board[x][y].distance_to_village then
 		if depth < self.board[x][y].distance_to_village then
 			self.board[x][y].distance_to_village = depth
 			self.board[x][y].village_center_x = village_x
 			self.board[x][y].village_center_y = village_y
 			self.board[x][y].village_num = village_num
-			if check_coord(x, y) and self.board[x][y].id then
-				label.set_text(msg.url(nil, self.board[x][y].id, "production_label"), depth .. "  " .. village_num)
-			end
 		end
+		
+		if check_coord(x, y) and self.board[x][y].id then
+			label.set_text(msg.url(nil, self.board[x][y].id, "production_label"), depth .. "  " .. village_num)
+		end	
+			
 		local sdvig = -1 + (y%2)*2
 		if check_coord(x+1, y) and visited[x+1][y] == 0 then
 			visited[x+1][y] = 1
@@ -513,8 +519,79 @@ function bfs_handle_hex(self, hex_number, next, depth, village_x, village_y, vis
 	end
 end
 
-function grow_bfs(self, village_num)
+function grow_bfs(self, village_num, x ,y)
+	self.villages[village_num].radius = 2
+	local visited = {}
+	local next = {}
+	next[0] = {}
+	next[1] = {}
+	for i = x-3, x+3 do
+		visited[i] = {}
+		for j = y-3, y+3 do
+			visited[i][j] = 0
+		end
+	end
+	local depth = 0
+	table.insert(next[depth%2], {next_x = x, next_y = y})
+	while depth <= 2 do
+		for next_hex_num = 1, #next[depth%2] do
+			grow_bfs_handle_hex(self, next_hex_num, next, depth, x, y, visited, village_num)
+		end
+		next[depth%2] = {}
+		depth = depth + 1
+	end
+end
 
+function grow_bfs_handle_hex(self, hex_number, next, depth, village_x, village_y, visited, village_num)
+	local x = next[depth%2][hex_number].next_x
+	local y = next[depth%2][hex_number].next_y
+	visited[x][y] = 1
+	if check_coord(x, y) and depth <= self.board[x][y].distance_to_village then
+		if depth < self.board[x][y].distance_to_village or 
+		(depth == self.board[x][y].distance_to_village) and depth == 2 and
+		self.villages[self.board[x][y].village_num].radius == 1
+		then
+			self.board[x][y].distance_to_village = depth
+			self.board[x][y].village_center_x = village_x
+			self.board[x][y].village_center_y = village_y
+			self.board[x][y].village_num = village_num
+			if self.board[x][y].id and depth == 2 then 
+				add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
+			end
+		elseif depth == 2 then
+			add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
+		end
+
+		if check_coord(x, y) and self.board[x][y].id then
+			label.set_text(msg.url(nil, self.board[x][y].id, "production_label"), depth .. "  " .. village_num)
+		end	
+
+		local sdvig = -1 + (y%2)*2
+		if check_coord(x+1, y) and visited[x+1][y] == 0 then
+			visited[x+1][y] = 1
+			table.insert(next[(depth+1)%2], {next_x = x+1, next_y = y})
+		end
+		if check_coord(x-1, y) and visited[x-1][y] == 0 then
+			visited[x-1][y] = 1
+			table.insert(next[(depth+1)%2], {next_x = x-1, next_y = y})
+		end
+		if check_coord(x, y+1) and visited[x][y+1] == 0 then
+			visited[x][y+1] = 1
+			table.insert(next[(depth+1)%2], {next_x = x, next_y = y+1})
+		end
+		if check_coord(x, y-1) and visited[x][y-1] == 0 then
+			visited[x][y-1] = 1
+			table.insert(next[(depth+1)%2], {next_x = x, next_y = y-1})
+		end
+		if check_coord(x+sdvig, y+1) and visited[x+sdvig][y+1] == 0 then
+			visited[x+sdvig][y+1] = 1
+			table.insert(next[(depth+1)%2], {next_x = x+sdvig, next_y = y+1})
+		end
+		if check_coord(x+sdvig, y-1) and visited[x+sdvig][y-1] == 0 then
+			visited[x+sdvig][y-1] = 1
+			table.insert(next[(depth+1)%2], {next_x = x+sdvig, next_y = y-1})
+		end
+	end
 end
 
 function abs(a)
@@ -543,7 +620,7 @@ function village_creation(self, x, y)
 	end
 	local pos = return_coords_from_hex_index(self, x, y)
 	msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash('empty_hex')})
-	id_village = factory.create("#village_factory", pos, null, {x = x, y = y})
+	id_village = factory.create("#village_factory", pos, null, {id = village_next_id, x = x, y = y})
 	msg.post(msg.url(nil, id_village, "village"), "create_human")
 	go.set(msg.url(nil, id_village, "sprite"), "scale", vmath.vector3(0.5 , 0.5, 1))
 	self.villages[village_next_id] = {id = id_village, x = x, y = y, radius = 1, village_order = village_next_id}
@@ -553,8 +630,8 @@ function village_creation(self, x, y)
 	self.board[x][y].village_num = village_next_id
 	global_bfs(self, x, y, village_next_id)
 	village_count = village_count + 1
-	for i = 0, boardwidth-1 do
-		for j = 0, boardheight-1 do
+	for i = x-1, x+1 do
+		for j = y-1, y+1 do
 			if check_coord(i, j) and self.board[i][j].id and self.board[i][j].village_num == village_next_id 
 			and self.board[i][j].distance_to_village == 1 and not self.board[i][j].corrupted then
 				add_resource_to_villages(self, self.board[i][j].tile_type, i, j)
@@ -573,7 +650,7 @@ function village_destruction(self, village_num, x, y)
 	end
 	for i = 0, boardwidth-1 do
 		for j = 0, boardheight-1 do
-			if self.board[i][j].village_num == village_num then
+			if check_coord(i, j) and self.board[i][j].village_num == village_num then
 				self.board[i][j].distance_to_village = big_constant
 				self.board[i][j].village_center_x = nil
 				self.board[i][j].village_center_y = nil
@@ -582,12 +659,11 @@ function village_destruction(self, village_num, x, y)
 		end
 	end
 	go.delete(self.villages[village_num].id)
-	msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash('empty_hex')})
 	self.villages[village_num].id = nil
 	village_count = village_count - 1
-	for villages_num = 1, (#self.villages) do
-		if self.villages[villages_num].id then
-			global_bfs(self, x, y)
+	for other_village_num = 1, (#self.villages) do
+		if self.villages[other_village_num].id then
+			global_bfs(self, self.villages[other_village_num].x, self.villages[other_village_num].y, other_village_num)
 		end
 	end
 end
@@ -648,9 +724,6 @@ function corruption_iteration(self)
 			end
 			if (#candidates ~= 0) then
 				local coords_to_corrupt = candidates[math.random(#candidates)]
-				if self.board[coords_to_corrupt.x][coords_to_corrupt.y].distance_to_village == 0 then
-					village_destruction(self, 0, coords_to_corrupt.x, coords_to_corrupt.y)
-				end
 				corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, false)
 			else
 				msg.post("/end_screen#game_end", "game_lost")
@@ -756,13 +829,16 @@ function on_message(self, message_id, message, sender)
 		turn_counter = 0
 		stats_visibility = false
 		self.board = new_board()
+		self.villages = {}
+		village_count = 0
+		village_next_id = 1
 		make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
 		make_possible_moves_around(self, start_hex_pos.x + 1, start_hex_pos.y)
 		score_calculation(self, hash("none"), hash("none"))
 	elseif message_id == hash("clear_corruption") then
 		clear_corruption(self, true)
 	elseif message_id == hash("village_grow") then
-		grow_bfs(self, message["id"])
+		grow_bfs(self, message["id"], message["x"], message["y"])
 	elseif message_id == hash("resource_collected") then
 		spawn_resource(self, message["x"], message["y"])
 	end
@@ -886,9 +962,11 @@ function on_input(self, action_id, action)
 				village_center_y = self.board[tile_x][tile_y].village_center_y, village_num = self.board[tile_x][tile_y].village_num}
 				msg.post("#", "next_turn", {tile_type = tile_type, x = tile_x, y = tile_y})
 				msg.post("/gui#main", "gui_new_tile")
+				--[[
 				if stats_visibility then
 					msg.post(msg.url(nil, self.board[tile_x][tile_y].id, "tile"), "change_stats_visibility")
 				end
+				]]--
 				make_possible_moves_around(self, tile_x, tile_y)
 			else
 				go.delete(moving_tile_id)
