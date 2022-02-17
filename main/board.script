@@ -483,8 +483,7 @@ function corrupt_tile(self, x, y, completely)
 			msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type)})
 		end
 		if village_count >= 0 and self.board[x][y].corrupted then
-			msg.post(msg.url(nil, self.villages[self.board[x][y].village_num].id, "village"), "lose_resource", 
-			{tile_type = self.board[x][y].tile_type, radius = self.board[x][y].distance_to_village, x = x , y = y})
+			subtract_resource_from_villages(self, self.board[x][y].tile_type, x, y)
 		end
 	end
 end
@@ -517,6 +516,12 @@ function bfs_handle_hex(self, hex_number, next, depth, village_x, village_y, vis
 	visited[x][y] = 1
 	if check_coord(x, y) and depth <= self.board[x][y].distance_to_village then
 		if depth < self.board[x][y].distance_to_village then
+			if self.board[x][y].village_num ~= nil and self.board[x][y].id and self.board[x][y].village_num ~= village_num then
+				if self.board[x][y].upgraded then
+					subtract_resource_from_villages(self, self.board[x][y].tile_type, x, y)
+				end
+				subtract_resource_from_villages(self, self.board[x][y].tile_type, x, y)
+			end
 			self.board[x][y].distance_to_village = depth
 			self.board[x][y].village_center_x = village_x
 			self.board[x][y].village_center_y = village_y
@@ -581,18 +586,18 @@ function grow_bfs_handle_hex(self, hex_number, next, depth, village_x, village_y
 	if check_coord(x, y) and depth <= self.board[x][y].distance_to_village then
 		if depth < self.board[x][y].distance_to_village or 
 		(depth == self.board[x][y].distance_to_village) and depth == 2 and
-		self.villages[self.board[x][y].village_num].radius == 1
-		then
-			self.board[x][y].distance_to_village = depth
-			self.board[x][y].village_center_x = village_x
-			self.board[x][y].village_center_y = village_y
-			self.board[x][y].village_num = village_num
-			if self.board[x][y].id and depth == 2 then 
-				if self.board[x][y].upgraded == true then
-					add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
-				end
+		self.villages[self.board[x][y].village_num].radius == 1 and
+		self.board[x][y].village_num ~= village_num then
+		self.board[x][y].distance_to_village = depth
+		self.board[x][y].village_center_x = village_x
+		self.board[x][y].village_center_y = village_y
+		self.board[x][y].village_num = village_num
+		if self.board[x][y].id and depth == 2 then 
+			if self.board[x][y].upgraded == true then
 				add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
 			end
+			add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
+		end
 		elseif village_num == self.board[x][y].village_num and self.board[x][y].id and depth == 2 then
 			if self.board[x][y].upgraded == true then
 				add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
@@ -668,6 +673,9 @@ function village_creation(self, x, y)
 		for j = y-1, y+1 do
 			if check_coord(i, j) and self.board[i][j].id and self.board[i][j].village_num == village_next_id 
 			and self.board[i][j].distance_to_village == 1 and not self.board[i][j].corrupted then
+				if self.board[x][y].upgraded == true then
+					add_resource_to_villages(self, self.board[x][y].tile_type, i, j)
+				end
 				add_resource_to_villages(self, self.board[i][j].tile_type, i, j)
 			end
 		end
@@ -710,6 +718,16 @@ function add_resource_to_villages(self, tile_type, x, y)
 		end
 	end
 end
+
+function subtract_resource_from_villages(self, tile_type, x, y)
+	if village_count >= 0 then
+		if self.board[x][y].distance_to_village ~= big_constant then
+			msg.post(msg.url(nil, self.villages[self.board[x][y].village_num].id, "village"), "lose_resource", 
+			{tile_type = tile_type, radius = self.board[x][y].distance_to_village, x = x , y = y})
+		end
+	end
+end
+
 
 function corruption_iteration(self)
 	if turn_counter > corruption_beginning and corruption_delay == 0 then
@@ -1016,6 +1034,7 @@ function downgrade_cell(self, x, y)
 	self.board[x][y].upgraded = false
 	msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash(self.board[x][y].tile_type)})
 	--msg.post(self.board[x][y].id, "downgrade_cell")
+	subtract_resource_from_villages(self, self.board[x][y].tile_type, x, y)
 end
 
 

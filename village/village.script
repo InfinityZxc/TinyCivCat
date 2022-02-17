@@ -16,10 +16,12 @@ function init(self)
 	msg.post("#stats_picture_wood" , "disable")
 	msg.post("#stats_picture_rock" , "disable")
 	msg.post("#stats_picture_water" , "disable")
+	msg.post("#stats_picture_coin" , "disable")
 	msg.post("#stats_label" , "disable")
 	go.set("#stats_picture_wood", "scale", vmath.vector3(0.25 , 0.25, 1))
 	go.set("#stats_picture_rock", "scale", vmath.vector3(0.25 , 0.25, 1))
 	go.set("#stats_picture_water", "scale", vmath.vector3(0.25 , 0.25, 1))
+	go.set("#stats_picture_coin", "scale", vmath.vector3(0.25 , 0.25, 1))
 	self.humans = {}
 	msg.post("#", "create_human")
 end
@@ -40,7 +42,7 @@ end
 function grow(self)
 	if self.control_radius < 2 then
 		self.control_radius = self.control_radius + 1
-		self.resource_equal_max = self.resource_equal_max + 2 * self.control_radius
+		self.resource_equal_max = self.resource_equal_max + 2 * self.control_radius + (self.control_radius - 1) * 2
 		msg.post("#", "create_human")
 		msg.post("/game#board", "village_grow", {id = self.id, x = self.x, y = self.y})
 		sprite.play_flipbook("#sprite", hash("village2"))
@@ -52,10 +54,10 @@ function grow(self)
 end
 
 function update_labels_and_income(self)
-	self.income = 5 * self.water + 10 * self.rock + 15 * self.wood
-	label.set_text("#stats_label", "        " .. self.wood .. "/" .. self.resource_equal_max .. " " ..
+	self.income = 5 * self.water + 10 * self.rock + 15 * self.wood + 10 * self.max_upgrade
+	label.set_text("#stats_label", self.wood .. "/" .. self.resource_equal_max .. " " ..
 	self.rock .. "/" .. self.resource_equal_max .. " " ..
-	self.water .. "/" .. self.resource_equal_max .. " inc:" .. self.income)
+	self.water .. "/" .. self.resource_equal_max .. " " .. self.income)
 	msg.post("/game#board", "income_update", {id = self.id, income = self.income})
 end
 
@@ -73,11 +75,13 @@ function on_message(self, message_id, message, sender)
 			msg.post("#stats_picture_wood" , "disable")
 			msg.post("#stats_picture_rock" , "disable")
 			msg.post("#stats_picture_water" , "disable")
+			msg.post("#stats_picture_coin" , "disable")
 			msg.post("#stats_label" , "disable")
 		else
 			msg.post("#stats_picture_wood" , "enable")
 			msg.post("#stats_picture_rock" , "enable")
 			msg.post("#stats_picture_water" , "enable")
+			msg.post("#stats_picture_coin" , "enable")
 			msg.post("#stats_label" , "enable")
 		end
 		self.visible_stats = not self.visible_stats

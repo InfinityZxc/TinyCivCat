@@ -81,9 +81,9 @@ embedded_components {
   "  w: 0.0\n"
   "}\n"
   "scale {\n"
-  "  x: 1.0\n"
-  "  y: 1.0\n"
-  "  z: 1.0\n"
+  "  x: 0.8\n"
+  "  y: 0.8\n"
+  "  z: 0.8\n"
   "  w: 0.0\n"
   "}\n"
   "color {\n"
@@ -134,7 +134,7 @@ embedded_components {
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""
   position {
-    x: 75.0
+    x: 25.0
     y: 100.0
     z: 0.54
   }
@@ -154,7 +154,27 @@ embedded_components {
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""
   position {
+    x: -25.0
+    y: 100.0
+    z: 0.54
+  }
+  rotation {
     x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+}
+embedded_components {
+  id: "stats_picture_coin"
+  type: "sprite"
+  data: "tile_set: \"/assets/sprites.atlas\"\n"
+  "default_animation: \"coin\"\n"
+  "material: \"/builtins/materials/sprite.material\"\n"
+  "blend_mode: BLEND_MODE_ALPHA\n"
+  ""
+  position {
+    x: 75.0
     y: 100.0
     z: 0.54
   }
