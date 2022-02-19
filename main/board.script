@@ -51,6 +51,7 @@ local possible_moves_shown = false
 local village_count = 0
 local village_next_id = 1
 local big_constant = 420
+local max_turn = 232
 
 local camera_x_bound = 320
 local camera_y_bound = 180
@@ -860,7 +861,7 @@ function on_message(self, message_id, message, sender)
 		else
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 		end
-		if turn_counter == 68 then
+		if turn_counter == max_turn then
 			msg.post("/end_screen#game_end", "game_won")
 		end
 	elseif message_id == hash("new_tile") then
