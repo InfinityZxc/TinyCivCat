@@ -3,8 +3,12 @@ key_trigger {
   action: "space"
 }
 mouse_trigger {
-  input: MOUSE_BUTTON_1
+  input: MOUSE_BUTTON_LEFT
   action: "touch_left"
+}
+mouse_trigger {
+  input: MOUSE_BUTTON_RIGHT
+  action: "touch_right"
 }
 mouse_trigger {
   input: MOUSE_WHEEL_UP
