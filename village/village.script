@@ -13,6 +13,10 @@ go.property("id", 0)
 
 function init(self)
 	sprite.play_flipbook("#sprite", hash("village1"))
+	msg.post("#sprite" , "disable")
+	timer.delay(0.5, false, function ()
+		msg.post("#sprite" , "enable")
+	end)
 	msg.post("#stats_picture_wood" , "disable")
 	msg.post("#stats_picture_rock" , "disable")
 	msg.post("#stats_picture_water" , "disable")
@@ -23,7 +27,9 @@ function init(self)
 	go.set("#stats_picture_water", "scale", vmath.vector3(0.25 , 0.25, 1))
 	go.set("#stats_picture_coin", "scale", vmath.vector3(0.25 , 0.25, 1))
 	self.humans = {}
-	msg.post("#", "create_human")
+	timer.delay(0.5, false, function ()
+		msg.post("#", "create_human")
+	end)
 end
 
 function final(self)

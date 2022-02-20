@@ -52,6 +52,7 @@ local possible_moves_shown = false
 local village_count = 0
 local village_next_id = 1
 local big_constant = 420
+local max_turn = 232
 
 local camera_x_bound = 320
 local camera_y_bound = 180
@@ -663,9 +664,10 @@ function village_creation(self, x, y)
 		end
 	end
 	local pos = return_coords_from_hex_index(self, x, y)
-	msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash('empty_hex')})
+	timer.delay(0.5, false, function ()
+		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash('empty_hex')})
+	end)
 	id_village = factory.create("#village_factory", pos, null, {id = village_next_id, x = x, y = y})
-	msg.post(msg.url(nil, id_village, "village"), "create_human")
 	go.set(msg.url(nil, id_village, "sprite"), "scale", vmath.vector3(0.5 , 0.5, 1))
 	self.villages[village_next_id] = {id = id_village, x = x, y = y, radius = 1, village_order = village_next_id, income = 0}
 	self.board[x][y].village_center_x = x
@@ -819,9 +821,7 @@ function on_message(self, message_id, message, sender)
 		add_resource_to_villages(self, message["tile_type"], message["x"], message["y"])
 		
 		if turn_counter/spawn_village_every_x_turn >= (village_next_id-1) then
-			timer.delay(0.5, false, function ()
-				village_creation(self, message["x"], message["y"])
-			end)
+			village_creation(self, message["x"], message["y"])
 		end
 		
 		turn_counter = turn_counter + 1
@@ -864,7 +864,7 @@ function on_message(self, message_id, message, sender)
 		else
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 		end
-		if turn_counter == 68 then
+		if turn_counter == max_turn then
 			msg.post("/end_screen#game_end", "game_won")
 		end
 	elseif message_id == hash("new_tile") then
@@ -906,6 +906,11 @@ function on_message(self, message_id, message, sender)
 		turn_counter = 0
 		stats_visibility = false
 		self.board = new_board()
+		for village_num = 1, #self.villages do
+			if self.villages[village_num].id then
+				go.delete(self.villages[village_num].id)
+			end
+		end
 		self.villages = {}
 		village_count = 0
 		village_next_id = 1
