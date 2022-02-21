@@ -1,9 +1,9 @@
 local step = hash("start")
 local skip = false;
-local TILES_TEXT = "The objective is to fill the whole map.\nTheese are your tiles to build the world with.\nEvery turn you can drag one of the available tiles\nto place it adjacent with any other tile on the map.\nClick anywhere to continue..."
-local COINS_TEXT = "Here are your coins. They will be useful later.\nYou increase your per turn income by adding new tiles.\nForest gives +3, rock +2 and water +1.\nGroups of up to 7 tiles of the same type give additional income.\nClick anywhere to continue..."
-local CORRUPTION_TEXT = "Oh no! Your tile became corrupted.\nCorrupted tiles don't produce coins. \nCorruption will spread to one adjacent tile every turn.\nEvery 10 turns the number of tiles taken\nby corruption every turn will increase by 1.\nKeep an eye on it!\nClick anywhere to continue..."
-local ABILITIES_TEXT = "To fight back against corruption you have two abilities.\nLightning will clear corruption from the tile of your choice.\nTo use it, click once on the lightning and once on the selected tile. \nFreeze will stop corruption spread for 1 turn. \nCost of abilities will increase by 10 with each use.\nGood luck! Click anywhere to continue..."
+local TILES_TEXT = "The objective is to fill the whole map.\nTheese are your tiles to build the world with.\nEvery turn you can drag one of the available tiles\nto place it adjacent with any other tile on the map.\nRight click on the tile to change it for 50 coins.\nClick anywhere to continue..."
+local COINS_TEXT = "Every 15 turns a village will spawn on the newly placed tile.\nYou can increase your per turn income\nby surrounding them with diverse resources.\nVillages grow in efficiency and resource pool area\nif provided with enough resources.\nClick anywhere to continue..."
+local CORRUPTION_TEXT = "Oh no! Your tile became corrupted.\nCurruption blocks village supply and can destroy them directly.\nCorruption will spread to one adjacent tile every turn.\nEvery 10 turns the number of tiles taken\nby corruption per turn will increase by 1.\nKeep an eye on it! Click anywhere to continue..."
+local ABILITIES_TEXT = "To fight back against corruption you have two abilities.\nLightning will clear corruption from the tile of your choice.\nTo use it, click on the lightning and once again on the selected tile.\nFreeze will stop corruption spread for 1 turn.\nDrag the map around to see the rest of the world.\nGood luck! Click anywhere to continue..."
 
 -- function init(self)
 -- end
@@ -233,6 +233,8 @@ function on_input(self, action_id, action)
 			if gui.pick_node(gui.get_node("play_without_tutorial"), action.x, action.y) then
 				hide_tutorial()
 				msg.post(".", "release_input_focus")
+				msg.post("/camera_body", "acquire_input_focus")
+				msg.post("/gui#main", "acquire_input_focus")
 				skip = true
 				gui.delete_node(gui.get_node("play_without_tutorial"))
 				gui.delete_node(gui.get_node("play_with_tutorial"))
@@ -253,6 +255,8 @@ function on_input(self, action_id, action)
 		elseif step == hash("abilities") then
 			hide_tutorial()
 			msg.post(".", "release_input_focus")
+			msg.post("/camera_body", "acquire_input_focus")
+			msg.post("/gui#main", "acquire_input_focus")
 			skip = true
 		end
 	end
