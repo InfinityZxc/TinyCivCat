@@ -682,7 +682,7 @@ function village_creation(self, x, y)
 			and self.board[i][j].distance_to_village == 1 and not self.board[i][j].corrupted then
 				if self.board[i][j].upgraded == true then
 					timer.delay(0.5, false, function ()
-						add_resource_to_villages(self, self.board[x][y].tile_type, i, j)
+						add_resource_to_villages(self, self.board[i][j].tile_type, i, j)
 					end)
 				end
 				add_resource_to_villages(self, self.board[i][j].tile_type, i, j)
@@ -1061,7 +1061,7 @@ function is_for_downgrade(self, x, y, type)
 end
 
 function destroy_structure(self, x, y)
-	if check_coord(x, y) and y % 2 == 0 then
+	if check_coord(x, y) and y % 2 == 0 and is_for_downgrade(self, x, y, self.board[x][y].tile_type) then
 		for i = 1, 6 do
 			if is_for_downgrade(self, x + neig_even_x[i], y + neig_even_y[i], self.board[x][y].tile_type) then
 				j = i + 1
@@ -1075,7 +1075,7 @@ function destroy_structure(self, x, y)
 				end
 			end
 		end
-	elseif check_coord(x, y) and y % 2 == 1 then
+	elseif check_coord(x, y) and y % 2 == 1 and is_for_downgrade(self, x, y, self.board[x][y].tile_type) then
 		for i = 1, 6 do
 			if is_for_downgrade(self, x + neig_odd_x[i], y + neig_odd_y[i], self.board[x][y].tile_type) then
 				j = i + 1
