@@ -1050,9 +1050,16 @@ function make_possible_moves_around(self, x, y)
 end
 
 function is_for_upgrade(self, x, y, type)
-	return check_coord(x, y) and self.board[x][y].id and self.board[x][y].tile_type == type 
-	and self.board[x][y].structure_direction == nil and self.board[x][y].structure_name == nil
-	and not self.board[x][y].corrupted and self.board[x][y].distance_to_village ~= 0
+	if type ~= hash("rock") then
+		return check_coord(x, y) and self.board[x][y].id and self.board[x][y].tile_type == type 
+		and self.board[x][y].structure_direction == nil and self.board[x][y].structure_name == nil
+		and not self.board[x][y].corrupted and self.board[x][y].distance_to_village ~= 0
+	else
+		return check_coord(x, y) and self.board[x][y].id and self.board[x][y].tile_type == type 
+		and self.board[x][y].corrupted ~= nil and self.board[x][y].structure_direction == nil
+		and self.board[x][y].structure_name == nil and not self.board[x][y].corrupted 
+		and self.board[x][y].distance_to_village ~= 0
+	end
 end
 
 function upgrade_cell(self, x, y, direction, inverted)
