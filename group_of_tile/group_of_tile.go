@@ -1,6 +1,6 @@
 components {
-  id: "tile"
-  component: "/main/tile.script"
+  id: "group"
+  component: "/group_of_tile/group.script"
   position {
     x: 0.0
     y: 0.0
@@ -17,14 +17,14 @@ embedded_components {
   id: "sprite"
   type: "sprite"
   data: "tile_set: \"/assets/sprites.atlas\"\n"
-  "default_animation: \"empty_hex\"\n"
+  "default_animation: \"group_empty\"\n"
   "material: \"/builtins/materials/sprite.material\"\n"
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""
   position {
     x: 0.0
     y: 0.0
-    z: 0.5
+    z: 0.0
   }
   rotation {
     x: 0.0

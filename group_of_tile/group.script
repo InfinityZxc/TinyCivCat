@@ -1,21 +1,14 @@
-go.property("type", hash("coin"))
+go.property("group_type", hash("none"))
 
 function init(self)
-	go.set_scale(0.25)
-	local anim_id = hash("coin")
-	if self.type == hash("rock") then
-		anim_id = hash("resource_rock")
-	elseif self.type == hash("water") then
-		anim_id = hash("resource_water")
-	elseif self.type == hash("wood") then
-		anim_id = hash("resource_wood")
-	end
-	msg.post("#sprite", "play_animation", { id = anim_id })
-	local pos = vmath.vector3(go.get(".", "position").x , go.get(".", "position").y + 100, 1)
-	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 1)
-	timer.delay(1, false, function ()
-		go.delete(".")
-	end)
+	-- Add initialization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+	msg.post("#sprite", "play_animation", { id = hash(self.group_type) })
+	local xscale = go.get("#sprite", "scale.x")
+	local yscale = go.get("#sprite", "scale.y")
+	go.set("#sprite", "scale.x", xscale / 1.9)
+	go.set("#sprite", "scale.y", yscale / 2)
 end
 
 function final(self)

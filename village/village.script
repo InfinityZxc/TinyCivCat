@@ -1,0 +1,129 @@
+go.property("x", 0)
+go.property("y", 0)
+go.property("human_count", 0)
+go.property("visible_stats", false)
+go.property("wood", 0)
+go.property("rock", 0)
+go.property("water", 0)
+go.property("resource_equal_max", 2)
+go.property("control_radius", 1)
+go.property("income", 0)
+go.property("max_upgrade", 0)
+go.property("id", 0)
+
+function init(self)
+	sprite.play_flipbook("#sprite", hash("village1"))
+	msg.post("#sprite" , "disable")
+	timer.delay(0.5, false, function ()
+		msg.post("#sprite" , "enable")
+	end)
+	msg.post("#stats_picture_wood" , "disable")
+	msg.post("#stats_picture_rock" , "disable")
+	msg.post("#stats_picture_water" , "disable")
+	msg.post("#stats_picture_coin" , "disable")
+	msg.post("#stats_label" , "disable")
+	go.set("#stats_picture_wood", "scale", vmath.vector3(0.25 , 0.25, 1))
+	go.set("#stats_picture_rock", "scale", vmath.vector3(0.25 , 0.25, 1))
+	go.set("#stats_picture_water", "scale", vmath.vector3(0.25 , 0.25, 1))
+	go.set("#stats_picture_coin", "scale", vmath.vector3(0.25 , 0.25, 1))
+	self.humans = {}
+	timer.delay(0.5, false, function ()
+		msg.post("#", "create_human")
+	end)
+end
+
+function final(self)
+	while (#self.humans ~= 0) do
+		go.delete(self.humans[#self.humans])
+		table.remove(self.humans)
+	end
+end
+
+function update(self, dt)
+	-- Add update code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function grow(self)
+	if self.control_radius < 2 then
+		self.control_radius = self.control_radius + 1
+		self.resource_equal_max = self.resource_equal_max + 2 * self.control_radius + (self.control_radius - 1) * 2
+		msg.post("#", "create_human")
+		msg.post("/game#board", "village_grow", {id = self.id, x = self.x, y = self.y})
+		sprite.play_flipbook("#sprite", hash("village2"))
+	elseif self.max_upgrade == 0 then
+		msg.post("#", "create_human")
+		self.max_upgrade = 1
+		sprite.play_flipbook("#sprite", hash("village3"))
+	end
+end
+
+function update_labels_and_income(self)
+	self.income = 5 * self.water + 10 * self.rock + 15 * self.wood + 10 * self.max_upgrade
+	label.set_text("#stats_label", self.wood .. "/" .. self.resource_equal_max .. " " ..
+	self.rock .. "/" .. self.resource_equal_max .. " " ..
+	self.water .. "/" .. self.resource_equal_max .. " " .. self.income)
+	msg.post("/game#board", "income_update", {id = self.id, income = self.income})
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("create_human") then 
+		self.human_count = self.human_count + 1
+		local pos = vmath.vector3(0, 0, 0)
+		local id_human = factory.create("#human_factory", pos, null, {
+			id_num = self.human_count, x = self.x, y = self.y, previous_x = self.x, previous_y = self.y, 
+			relative_position_down = true, home_x = self.x, home_y = self.y})
+		self.humans[self.human_count] = {id = id_human}
+		msg.post(msg.url(nil, id_human, "traveller"), "init_vals")
+	elseif message_id == hash("change_stats_visibility") then
+		if self.visible_stats then
+			msg.post("#stats_picture_wood" , "disable")
+			msg.post("#stats_picture_rock" , "disable")
+			msg.post("#stats_picture_water" , "disable")
+			msg.post("#stats_picture_coin" , "disable")
+			msg.post("#stats_label" , "disable")
+		else
+			msg.post("#stats_picture_wood" , "enable")
+			msg.post("#stats_picture_rock" , "enable")
+			msg.post("#stats_picture_water" , "enable")
+			msg.post("#stats_picture_coin" , "enable")
+			msg.post("#stats_label" , "enable")
+		end
+		self.visible_stats = not self.visible_stats
+	elseif message_id == hash("get_resource") then
+		if message["radius"] <= self.control_radius and message["radius"] ~= 0 then
+			if message["tile_type"] == hash("water") then
+				self.water = self.water + 1
+			elseif message["tile_type"] == hash("wood") then
+				self.wood = self.wood + 1
+			elseif message["tile_type"] == hash("rock") then
+				self.rock = self.rock + 1
+			end
+			msg.post("/game#board", "resource_collected", { x = message["x"], y = message["y"]})
+		end
+		
+		if (self.rock >= self.resource_equal_max and self.water >= self.resource_equal_max 
+		and self.wood >= self.resource_equal_max) then
+			grow(self)
+		end
+		update_labels_and_income(self)
+	elseif message_id == hash("lose_resource") then
+		if message["radius"] <= self.control_radius and message["radius"] ~= 0 then
+			if message["tile_type"] == hash("water") then
+				self.water = self.water - 1
+			elseif message["tile_type"] == hash("wood") then
+				self.wood = self.wood - 1
+			elseif message["tile_type"] == hash("rock") then
+				self.rock = self.rock - 1
+			end
+		end
+		update_labels_and_income(self)
+	end
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end
