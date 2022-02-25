@@ -25,6 +25,12 @@ function on_message(self, message_id, message, sender)
 		msg.post("#sprite", "play_animation", {id = hash("border")})
 	elseif message_id == hash("make_grey") then
 		msg.post("#sprite", "play_animation", {id = hash("border_grey")})
+	elseif message_id == hash("make_orange") then
+		msg.post("#sprite", "play_animation", {id = hash("border_orange")})
+	elseif message_id == hash("make_dark_red") then
+		msg.post("#sprite", "play_animation", {id = hash("border_dark_red")})
+	elseif message_id == hash("make_blue") then
+		msg.post("#sprite", "play_animation", {id = hash("border_blue")})
 	end
 end
 
