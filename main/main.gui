@@ -1381,7 +1381,7 @@ nodes {
   position {
     x: 1600.0
     y: 206.0
-    z: 1.0
+    z: -1.0
     w: 1.0
   }
   rotation {

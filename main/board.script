@@ -338,7 +338,6 @@ function heal_cell(self, x, y)
 	if (coins >= uncorrupt_cost) and self.board[x][y].corrupted then
 		self.board[x][y].corrupted = false;
 		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = self.board[x][y].tile_type})
-		coins = coins - coin_income
 		coins = coins - uncorrupt_cost
 		uncorrupt_cost = uncorrupt_cost + ability_cost_increase
 		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
