@@ -10,6 +10,9 @@ go.property("control_radius", 1)
 go.property("income", 0)
 go.property("max_upgrade", 0)
 go.property("id", 0)
+go.property("show_hide_possible", true)
+local show_hide_time = 1
+local hex_size = 128
 
 function init(self)
 	sprite.play_flipbook("#sprite", hash("village1"))
@@ -17,19 +20,45 @@ function init(self)
 	timer.delay(0.5, false, function ()
 		msg.post("#sprite" , "enable")
 	end)
-	msg.post("#stats_picture_wood" , "disable")
-	msg.post("#stats_picture_rock" , "disable")
-	msg.post("#stats_picture_water" , "disable")
-	msg.post("#stats_picture_coin" , "disable")
-	msg.post("#stats_label" , "disable")
-	go.set("#stats_picture_wood", "scale", vmath.vector3(0.20 , 0.20, 1))
-	go.set("#stats_picture_rock", "scale", vmath.vector3(0.25 , 0.20, 1))
-	go.set("#stats_picture_water", "scale", vmath.vector3(0.20 , 0.20, 1))
-	go.set("#stats_picture_coin", "scale", vmath.vector3(0.20 , 0.20, 1))
+	
+	self.stats_labels = {}
+	create_labels(self)
+	
 	self.humans = {}
 	timer.delay(0.5, false, function ()
 		msg.post("#", "create_human")
 	end)
+end
+
+function create_labels(self)
+	local village_pos = go.get_position(".")
+	local pos = vmath.vector3(village_pos.x, village_pos.y, 0)
+	local id_stat_label
+	village_pos.z = 0
+
+	pos.x = pos.x
+	pos.y = pos.y + hex_size/2
+	id_stat_label = factory.create("#stats_factory", village_pos, null, {type = hash("resource_wood"), count = 0, 
+	offset_x = pos.x - village_pos.x, offset_y = pos.y - village_pos.y})
+	self.stats_labels["wood"] = {id = id_stat_label}
+	
+	pos.x = pos.x + hex_size/2
+	pos.y = pos.y - hex_size/4
+	id_stat_label = factory.create("#stats_factory", village_pos, null, {type = hash("resource_rock"), count = 0, 
+	offset_x = pos.x - village_pos.x, offset_y = pos.y - village_pos.y})
+	self.stats_labels["rock"] = {id = id_stat_label}
+	
+	pos.x = pos.x
+	pos.y = pos.y - hex_size/2
+	id_stat_label = factory.create("#stats_factory", village_pos, null, {type = hash("resource_water"), count = 0, 
+	offset_x = pos.x - village_pos.x, offset_y = pos.y - village_pos.y})
+	self.stats_labels["water"] = {id = id_stat_label}
+
+	pos.x = pos.x - hex_size/2
+	pos.y = pos.y - hex_size/4
+	id_stat_label = factory.create("#stats_factory", village_pos, null, {type = hash("coin"), count = 0, 
+	offset_x = pos.x - village_pos.x, offset_y = pos.y - village_pos.y})
+	self.stats_labels["coin"] = {id = id_stat_label}
 end
 
 function final(self)
@@ -61,9 +90,12 @@ end
 
 function update_labels_and_income(self)
 	self.income = 5 * self.water + 10 * self.rock + 15 * self.wood + 10 * self.max_upgrade
-	label.set_text("#stats_label", self.wood .. "/" .. self.resource_equal_max .. " " ..
-	self.rock .. "/" .. self.resource_equal_max .. " " ..
-	self.water .. "/" .. self.resource_equal_max .. " " .. self.income)
+	
+	msg.post(msg.url(nil, self.stats_labels["coin"].id, "stats_label"), "update", {info = self.income})
+	msg.post(msg.url(nil, self.stats_labels["wood"].id, "stats_label"), "update", {info = self.wood})
+	msg.post(msg.url(nil, self.stats_labels["rock"].id, "stats_label"), "update", {info = self.rock})
+	msg.post(msg.url(nil, self.stats_labels["water"].id, "stats_label"), "update", {info = self.water})
+	
 	msg.post("/game#board", "income_update", {id = self.id, income = self.income})
 end
 
@@ -77,24 +109,40 @@ function on_message(self, message_id, message, sender)
 		self.humans[self.human_count] = {id = id_human}
 		msg.post(msg.url(nil, id_human, "traveller"), "init_vals")
 	elseif message_id == hash("change_stats_visibility") then
-		pos = vmath.vector3(0, 0, 0.54)
-		if self.visible_stats then
-			pos.x = pos.x + 100
-			--go.set("#stats_picture_wood", "position", pos)
-			--go.animate("#stats_picture_wood", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.4)
-			msg.post("#stats_picture_wood" , "disable")
-			msg.post("#stats_picture_rock" , "disable")
-			msg.post("#stats_picture_water" , "disable")
-			msg.post("#stats_picture_coin" , "disable")
-			msg.post("#stats_label" , "disable")
-		else
-			msg.post("#stats_picture_wood" , "enable")
-			msg.post("#stats_picture_rock" , "enable")
-			msg.post("#stats_picture_water" , "enable")
-			msg.post("#stats_picture_coin" , "enable")
-			msg.post("#stats_label" , "enable")
+		if self.show_hide_possible then
+			self.show_hide_possible = false
+			if self.visible_stats then
+				timer.delay(0, false, function ()
+					msg.post(msg.url(nil, self.stats_labels["wood"].id, "stats_label"), "hide")
+				end)
+				timer.delay(0.1, false, function ()
+					msg.post(msg.url(nil, self.stats_labels["rock"].id, "stats_label"), "hide")
+				end)
+				timer.delay(0.2, false, function ()
+					msg.post(msg.url(nil, self.stats_labels["water"].id, "stats_label"), "hide")
+				end)
+				timer.delay(0.3, false, function ()
+					msg.post(msg.url(nil, self.stats_labels["coin"].id, "stats_label"), "hide")
+				end)
+			else
+				timer.delay(0, false, function ()
+					msg.post(msg.url(nil, self.stats_labels["wood"].id, "stats_label"), "show")
+				end)
+				timer.delay(0.1, false, function ()
+					msg.post(msg.url(nil, self.stats_labels["rock"].id, "stats_label"), "show")
+				end)
+				timer.delay(0.2, false, function ()
+					msg.post(msg.url(nil, self.stats_labels["water"].id, "stats_label"), "show")
+				end)
+				timer.delay(0.3, false, function ()
+					msg.post(msg.url(nil, self.stats_labels["coin"].id, "stats_label"), "show")
+				end)
+			end
+			self.visible_stats = not self.visible_stats
+			timer.delay(show_hide_time + 0.5, false, function ()
+				self.show_hide_possible = true
+			end)
 		end
-		self.visible_stats = not self.visible_stats
 	elseif message_id == hash("get_resource") then
 		if message["radius"] <= self.control_radius and message["radius"] ~= 0 then
 			if message["tile_type"] == hash("water") then
