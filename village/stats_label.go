@@ -58,7 +58,7 @@ embedded_components {
   position {
     x: 0.0
     y: 0.0
-    z: 0.93
+    z: 0.94
   }
   rotation {
     x: 0.0
@@ -78,7 +78,27 @@ embedded_components {
   position {
     x: 0.0
     y: 30.0
-    z: 0.92
+    z: 0.93
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+}
+embedded_components {
+  id: "background"
+  type: "sprite"
+  data: "tile_set: \"/assets/sprites.atlas\"\n"
+  "default_animation: \"border_grey\"\n"
+  "material: \"/builtins/materials/sprite.material\"\n"
+  "blend_mode: BLEND_MODE_ALPHA\n"
+  ""
+  position {
+    x: 0.0
+    y: 15.0
+    z: 0.91
   }
   rotation {
     x: 0.0

@@ -66,6 +66,10 @@ function final(self)
 		go.delete(self.humans[#self.humans])
 		table.remove(self.humans)
 	end
+	go.delete(self.stats_labels["coin"])
+	go.delete(self.stats_labels["wood"])
+	go.delete(self.stats_labels["rock"])
+	go.delete(self.stats_labels["water"])
 end
 
 function update(self, dt)
@@ -81,6 +85,10 @@ function grow(self)
 		msg.post("#", "create_human")
 		msg.post("/game#board", "village_grow", {id = self.id, x = self.x, y = self.y})
 		sprite.play_flipbook("#sprite", hash("village2"))
+		msg.post(msg.url(nil, self.stats_labels["coin"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
+		msg.post(msg.url(nil, self.stats_labels["wood"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
+		msg.post(msg.url(nil, self.stats_labels["rock"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
+		msg.post(msg.url(nil, self.stats_labels["water"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
 	elseif self.max_upgrade == 0 then
 		msg.post("#", "create_human")
 		self.max_upgrade = 1
@@ -91,10 +99,10 @@ end
 function update_labels_and_income(self)
 	self.income = 5 * self.water + 10 * self.rock + 15 * self.wood + 10 * self.max_upgrade
 	
-	msg.post(msg.url(nil, self.stats_labels["coin"].id, "stats_label"), "update", {info = self.income})
-	msg.post(msg.url(nil, self.stats_labels["wood"].id, "stats_label"), "update", {info = self.wood})
-	msg.post(msg.url(nil, self.stats_labels["rock"].id, "stats_label"), "update", {info = self.rock})
-	msg.post(msg.url(nil, self.stats_labels["water"].id, "stats_label"), "update", {info = self.water})
+	msg.post(msg.url(nil, self.stats_labels["coin"].id, "stats_label"), "update_count", {info = self.income})
+	msg.post(msg.url(nil, self.stats_labels["wood"].id, "stats_label"), "update_count", {info = self.wood})
+	msg.post(msg.url(nil, self.stats_labels["rock"].id, "stats_label"), "update_count", {info = self.rock})
+	msg.post(msg.url(nil, self.stats_labels["water"].id, "stats_label"), "update_count", {info = self.water})
 	
 	msg.post("/game#board", "income_update", {id = self.id, income = self.income})
 end
@@ -139,7 +147,7 @@ function on_message(self, message_id, message, sender)
 				end)
 			end
 			self.visible_stats = not self.visible_stats
-			timer.delay(show_hide_time + 0.5, false, function ()
+			timer.delay(show_hide_time + 0.4, false, function ()
 				self.show_hide_possible = true
 			end)
 		end

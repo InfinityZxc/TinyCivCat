@@ -1,18 +1,18 @@
 go.property("type", hash("coin"))
 go.property("count", 0)
+go.property("needed_count", 0)
 go.property("offset_x", 0)
 go.property("offset_y", 0)
 local show_hide_time = 1
 
-
-
 function init(self)
-	msg.post("#sprite", "play_animation", { id = self.type })
+	msg.post("#sprite", "play_animation", {id = self.type})
 	go.set("#sprite", "scale", vmath.vector3(0.05 , 0.05, 1))
+	go.set("#background", "scale", vmath.vector3(0.25 , 0.25, 1))
 	label.set_text("#label", self.count)
-	print(go.get_position("."))
 	msg.post("#label" , "disable")
 	msg.post("#sprite" , "disable")
+	msg.post("#background" , "disable")
 end
 
 function final(self)
@@ -31,16 +31,18 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then 
 		msg.post("#label" , "enable")
 		msg.post("#sprite" , "enable")
+		msg.post("#background" , "enable")
 		local pos = go.get_position(".")
 		pos.x = pos.x + self.offset_x
 		pos.y = pos.y + self.offset_y
 		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_OUTBACK, show_hide_time)
 
-		local scale_vec = vmath.vector3(0.20 , 0.20, 1)
+		local scale_vec = vmath.vector3(0.20, 0.20, 1)
 		go.animate("#sprite", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_OUTBACK, show_hide_time)
-		scale_vec = vmath.vector3(0.6 , 0.6, 1)
+		scale_vec = vmath.vector3(0.6, 0.6, 1)
 		go.animate("#label", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_OUTBACK, show_hide_time)
-		
+		scale_vec = vmath.vector3(0.25, 0.25, 1)
+		go.animate("#background", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_OUTBACK, show_hide_time)
 	elseif message_id == hash("hide") then 
 		local pos = go.get_position(".")
 		pos.x = pos.x - self.offset_x
@@ -51,13 +53,28 @@ function on_message(self, message_id, message, sender)
 		go.animate("#sprite", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_LINEAR, show_hide_time/1.6)
 		scale_vec = vmath.vector3(0.15 , 0.15, 1)
 		go.animate("#label", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_LINEAR, show_hide_time)
+		scale_vec = vmath.vector3(0.03, 0.03, 1)
+		go.animate("#background", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_LINEAR, show_hide_time)
 		
 		timer.delay(show_hide_time/1.6, false, function ()
 			msg.post("#label" , "disable")
 			msg.post("#sprite" , "disable")
+			msg.post("#background" , "disable")
 		end)
-	elseif message_id == hash("update") then 
-		
+	elseif message_id == hash("update_count") then
+		self.count = message["info"]
+		update_label(self)
+	elseif message_id == hash("update_needed") then
+		self.needed_count = message["info"]
+		update_label(self)
+	end
+end
+
+function update_label(self)
+	if self.type ~= hash("coin") then
+		label.set_text("#label", self.count.."/"..self.needed_count)
+	else
+		label.set_text("#label", self.count)
 	end
 end
 
