@@ -60,8 +60,8 @@ embedded_components {
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""
   position {
-    x: -75.0
-    y: 100.0
+    x: 0.0
+    y: 0.0
     z: 0.54
   }
   rotation {
@@ -134,8 +134,8 @@ embedded_components {
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""
   position {
-    x: 25.0
-    y: 100.0
+    x: 0.0
+    y: 0.0
     z: 0.54
   }
   rotation {
@@ -154,8 +154,8 @@ embedded_components {
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""
   position {
-    x: -25.0
-    y: 100.0
+    x: 0.0
+    y: 0.0
     z: 0.54
   }
   rotation {
@@ -174,8 +174,8 @@ embedded_components {
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""
   position {
-    x: 75.0
-    y: 100.0
+    x: 0.0
+    y: 0.0
     z: 0.54
   }
   rotation {
