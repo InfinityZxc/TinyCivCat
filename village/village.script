@@ -11,7 +11,7 @@ go.property("income", 0)
 go.property("max_upgrade", 0)
 go.property("id", 0)
 go.property("show_hide_possible", true)
-local show_hide_time = 1
+SHOW_HIDE_TIME = 1
 local hex_size = 128
 
 function init(self)
@@ -97,7 +97,7 @@ function grow(self)
 end
 
 function update_labels_and_income(self)
-	self.income = 5 * self.water + 10 * self.rock + 15 * self.wood + 10 * self.max_upgrade
+	self.income = 1 * self.water + 2 * self.rock + 3 * self.wood + 2 * self.max_upgrade
 	
 	msg.post(msg.url(nil, self.stats_labels["coin"].id, "stats_label"), "update_count", {info = self.income})
 	msg.post(msg.url(nil, self.stats_labels["wood"].id, "stats_label"), "update_count", {info = self.wood})
@@ -147,7 +147,7 @@ function on_message(self, message_id, message, sender)
 				end)
 			end
 			self.visible_stats = not self.visible_stats
-			timer.delay(show_hide_time + 0.4, false, function ()
+			timer.delay(SHOW_HIDE_TIME + 0.4, false, function ()
 				self.show_hide_possible = true
 			end)
 		end

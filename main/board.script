@@ -10,12 +10,12 @@ local extrawidth
 go.property("extrawidth", 0)
 local extraheight
 go.property("extraheight", 0)
-local initial_delay_cost = 70
-local initial_uncorrupt_cost = 70
-local delay_cost = 70
-local uncorrupt_cost = 70
-BUY_TILE_COST = 50
-local ability_cost_increase = 10
+local initial_delay_cost = 35
+local initial_uncorrupt_cost = 35
+local delay_cost = 35
+local uncorrupt_cost = 35
+BUY_TILE_COST = 40
+local ability_cost_increase = 3
 local coins = 0
 local coin_income = 0
 local corruption_delay = 0
@@ -746,7 +746,7 @@ end
 
 function corruption_iteration(self)
 	if turn_counter > corruption_beginning and corruption_delay == 0 then
-		for i = 0, math.max(0, math.floor((turn_counter-(delay_cost-initial_delay_cost)/ability_cost_increase-corruption_beginning)/corruption_acceleration)) do
+		for i = 0, (math.max(0, math.floor((turn_counter-(delay_cost-initial_delay_cost)/ability_cost_increase-corruption_beginning)/corruption_acceleration))) - 1 + (turn_counter%2) do
 			local max_corrupted_around = 0
 			local max_cor_ar_pos = first_corruption_hex_pos
 			local candidates = {}
