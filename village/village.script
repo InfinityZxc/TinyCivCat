@@ -52,10 +52,14 @@ function grow(self)
 		msg.post("#", "create_human")
 		msg.post("/game#board", "village_grow", {id = self.id, x = self.x, y = self.y})
 		sprite.play_flipbook("#sprite", hash("village2"))
+
+		msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#village2_appears",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
 	elseif self.max_upgrade == 0 then
 		msg.post("#", "create_human")
 		self.max_upgrade = 1
 		sprite.play_flipbook("#sprite", hash("village3"))
+
+		msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#village3_appears",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
 	end
 end
 

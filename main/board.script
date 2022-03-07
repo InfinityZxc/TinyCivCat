@@ -57,6 +57,8 @@ local max_turn = 232
 local camera_x_bound = 320
 local camera_y_bound = 180
 
+local theme_sound_gain = 0.02
+
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
@@ -83,6 +85,7 @@ function init(self)
 	end)
 	msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
 	msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
+	sound.play("/sound#begining_of_game", { delay = 1, gain = theme_sound_gain, pan = -1.0, speed = 1.0} )
 end
 
 function create_grid(self)
@@ -690,6 +693,7 @@ function village_creation(self, x, y)
 		end
 	end
 	village_next_id = village_next_id + 1
+	msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#village_creation",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
 end
 
 function village_destruction(self, village_num, x, y)
@@ -717,6 +721,8 @@ function village_destruction(self, village_num, x, y)
 			global_bfs(self, self.villages[other_village_num].x, self.villages[other_village_num].y, other_village_num)
 		end
 	end
+
+	msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#village_destruction",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
 end
 
 function add_resource_to_villages(self, tile_type, x, y)
@@ -811,6 +817,10 @@ function corruption_iteration(self)
 			destroy_structure(self, first_corruption_hex_pos.x, first_corruption_hex_pos.y)
 		end
 		corrupt_tile(self, first_corruption_hex_pos.x, first_corruption_hex_pos.y, true)
+		
+		sound.stop("/sound#begining_of_game")
+		sound.play("/sound#corruption_appears_theme", { delay = 1, gain = 0.08, pan = -1.0, speed = 1.0} )
+		
 		if (first_corruption_hex_pos.y % 2 == 0) then
 			for i = 1, 6 do
 				make_upgrade_structure(self, first_corruption_hex_pos.x + neig_even_x[i], first_corruption_hex_pos.y + neig_even_y[i])
@@ -829,6 +839,7 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("ability") then
 		if not snow and message["ability"] == hash("snow") then
 			delay_corrupt(self)
+			msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#snow",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
 		elseif not thunder and message["ability"] == hash("thunder") and coins >= uncorrupt_cost then
 			thunder_active = true
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
@@ -1099,6 +1110,7 @@ function delete_triangle(self, x1, y1, x2, y2, x3, y3)
 		downgrade_cell(self, x1, y1)
 		downgrade_cell(self, x2, y2) 
 		downgrade_cell(self, x3, y3) 
+		msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#triangle_" .. unhash[self.board[x1][y1].tile_type] .. "_destroyed",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
 		return true
 	end
 	return false
@@ -1158,6 +1170,7 @@ function make_upgrade_structure(self, x, y)
 					upgrade_cell(self, x, y, directions[(i - 1) % 3], inverted)
 					upgrade_cell(self, x + neig_even_x[i], y + neig_even_y[i], directions[(i + 1) % 3], inverted) 
 					upgrade_cell(self, x + neig_even_x[j], y + neig_even_y[j], directions[(i) % 3], inverted) 
+					msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#triangle_" .. unhash[self.board[x][y].tile_type] .. "_build",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
 					do return end
 				end
 			end
@@ -1176,6 +1189,7 @@ function make_upgrade_structure(self, x, y)
 					upgrade_cell(self, x, y, directions[(i - 1) % 3], inverted)
 					upgrade_cell(self, x + neig_odd_x[i], y + neig_odd_y[i], directions[(i+1)%3], inverted) 
 					upgrade_cell(self, x + neig_odd_x[j], y + neig_odd_y[j], directions[i % 3], inverted)
+					msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#triangle_" .. unhash[self.board[x][y].tile_type] .. "_build",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
 					do return end
 				end
 			end
@@ -1241,6 +1255,7 @@ function on_input(self, action_id, action)
 			thunder = true
 			make_upgrade_structure(self, tile_x, tile_y)
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
+			msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#thunder",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
 		else
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
 		end
