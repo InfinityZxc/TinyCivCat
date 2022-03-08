@@ -49,7 +49,7 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("game_won") then
 		gui.play_flipbook(gui.get_node("anim"), hash("you_won"))
 		won = true
-		msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#won_theme",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
+		msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#won_theme",  gain = 0.02, delay = 0.2, pan = -1.0, speed = 0.7})
 		triangle_score = message.triangle_score
 		village_score = message.village_score
 		heal_cell_score = message.heal_cell_score
@@ -62,7 +62,7 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("game_lost") then
 		gui.play_flipbook(gui.get_node("anim"), hash("you_lost"))
 		won = false
-		msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#lost_theme",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
+		msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#lost_theme",  gain = 0.02, delay = 0.2, pan = -1.0, speed = 0.7})
 		triangle_score = message.triangle_score
 		village_score = message.village_score
 		heal_cell_score = message.heal_cell_score
