@@ -59,6 +59,12 @@ local camera_y_bound = 180
 
 local theme_sound_gain = 0.02
 
+local triangle_score = 0
+local village_score = 0
+local heal_cell_score = 0
+local village2_score = 0
+local village3_score = 0
+
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
@@ -342,6 +348,7 @@ function heal_cell(self, x, y)
 		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
 		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
+		heal_cell_score = heal_cell_score + 1
 		if not snow then
 			if coins >= delay_cost then
 				msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
@@ -693,6 +700,7 @@ function village_creation(self, x, y)
 		end
 	end
 	village_next_id = village_next_id + 1
+	village_score = village_score + 1
 	msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#village_creation",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
 end
 
@@ -809,7 +817,9 @@ function corruption_iteration(self)
 					end
 				end
 			else
-				msg.post("/end_screen#game_end", "game_lost")
+				sound.stop("/sound")
+				msg.post("/end_screen#game_end", "game_lost", {triangle_score = triangle_score, village_score = village_score, 
+				heal_cell_score = heal_cell_score, village2_score = village2_score, village3_score = village3_score, turn_counter = turn_counter})
 			end
 		end
 	elseif turn_counter == corruption_beginning then
@@ -894,7 +904,9 @@ function on_message(self, message_id, message, sender)
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 		end
 		if turn_counter == max_turn then
-			msg.post("/end_screen#game_end", "game_won")
+			sound.stop("/sound")
+			msg.post("/end_screen#game_end", "game_won", {triangle_score = triangle_score, village_score = village_score, 
+			heal_cell_score = heal_cell_score, village2_score = village2_score, village3_score = village3_score})
 		end
 	elseif message_id == hash("new_tile") then
 		message.position.z = 1
@@ -934,6 +946,11 @@ function on_message(self, message_id, message, sender)
 		bonus = 0
 		turn_counter = 0
 		stats_visibility = false
+		triangle_score = 0
+		village_score = 0
+		heal_cell_score = 0
+		village2_score = 0
+		village3_score = 0
 		self.board = new_board()
 		for village_num = 1, #self.villages do
 			if self.villages[village_num].id then
@@ -946,6 +963,7 @@ function on_message(self, message_id, message, sender)
 		make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
 		make_possible_moves_around(self, start_hex_pos.x + 1, start_hex_pos.y)
 		score_calculation(self, hash("none"), hash("none"))
+		sound.play("/sound#begining_of_game", { delay = 1, gain = theme_sound_gain, pan = -1.0, speed = 1.0} )
 	elseif message_id == hash("clear_corruption") then
 		clear_corruption(self, true)
 	elseif message_id == hash("village_grow") then
@@ -1171,6 +1189,7 @@ function make_upgrade_structure(self, x, y)
 					upgrade_cell(self, x + neig_even_x[i], y + neig_even_y[i], directions[(i + 1) % 3], inverted) 
 					upgrade_cell(self, x + neig_even_x[j], y + neig_even_y[j], directions[(i) % 3], inverted) 
 					msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#triangle_" .. unhash[self.board[x][y].tile_type] .. "_build",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
+					triangle_score = triangle_score + 1
 					do return end
 				end
 			end
@@ -1190,6 +1209,7 @@ function make_upgrade_structure(self, x, y)
 					upgrade_cell(self, x + neig_odd_x[i], y + neig_odd_y[i], directions[(i+1)%3], inverted) 
 					upgrade_cell(self, x + neig_odd_x[j], y + neig_odd_y[j], directions[i % 3], inverted)
 					msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#triangle_" .. unhash[self.board[x][y].tile_type] .. "_build",  gain = 0.02, dealy = 0.5, pan = -1.0, speed = 0.7})
+					triangle_score = triangle_score + 1
 					do return end
 				end
 			end
