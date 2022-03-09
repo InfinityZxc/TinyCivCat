@@ -60,6 +60,13 @@ local village_should_be_created = true
 local camera_x_bound = 320
 local camera_y_bound = 180
 
+local neig_even_x = {-1, -1,  0, 1, 0, -1}
+local neig_even_y = { 0, -1, -1, 0, 1,  1}
+local neig_odd_x = {-1,  0,  1, 1, 1, 0}
+local neig_odd_y = { 0, -1, -1, 0, 1, 1}
+
+local neighbour_sdvig_x = {{1, -1, 0,  0, -1, -1}, {1, -1, 0,  0, 1,  1}} -- use like neighbour_sdvig_x[y%2+1][i]  i = 1 .. 6
+local neighbour_sdvig_y = {{0,  0, 1, -1,  1, -1}, {0,  0, 1, -1, 1, -1}} -- use like neighbour_sdvig_y[y%2+1][i]
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
@@ -208,11 +215,6 @@ end
 -- 		end
 -- 	end
 -- end - подсвекта (пока не нужно возможно надо удалить)
-
-local neig_even_x = {-1, -1, 0, 1, 0, -1}
-local neig_even_y = {0, -1, -1, 0, 1, 1}
-local neig_odd_x = {-1, 0, 1, 1, 1, 0}
-local neig_odd_y = {0, -1, -1, 0, 1, 1}
 
 --[[function is_hex_valid_bridges(self, x, y, type)
 	return check_coord(x, y) and self.board[x][y].id and self.board[x][y].tile_type == type and not self.board[x][y].corrupted
@@ -533,7 +535,17 @@ function bfs_handle_hex(self, hex_number, next, depth, village_x, village_y, vis
 			self.board[x][y].village_center_y = village_y
 			self.board[x][y].village_num = village_num
 		end
-		
+
+		local tmp_x, tmp_y
+		for i = 1, 6 do
+			tmp_x = x + neighbour_sdvig_x[y%2+1][i]
+			tmp_y = y + neighbour_sdvig_y[y%2+1][i]
+			if check_coord(tmp_x, tmp_y) and visited[tmp_x][tmp_y] == 0 then
+				visited[tmp_x][tmp_y] = 1
+				table.insert(next[(depth+1)%2], {next_x = tmp_x, next_y = tmp_y})
+			end
+		end
+		--[[
 		local sdvig = -1 + (y%2)*2
 		if check_coord(x+1, y) and visited[x+1][y] == 0 then
 			visited[x+1][y] = 1
@@ -558,7 +570,8 @@ function bfs_handle_hex(self, hex_number, next, depth, village_x, village_y, vis
 		if check_coord(x+sdvig, y-1) and visited[x+sdvig][y-1] == 0 then
 			visited[x+sdvig][y-1] = 1
 			table.insert(next[(depth+1)%2], {next_x = x+sdvig, next_y = y-1})
-		end
+		end 
+		]]
 	end
 end
 
@@ -614,7 +627,17 @@ function grow_bfs_handle_hex(self, hex_number, next, depth, village_x, village_y
 			end
 			add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
 		end
-		
+
+		local tmp_x, tmp_y
+		for i = 1, 6 do
+			tmp_x = x + neighbour_sdvig_x[y%2+1][i]
+			tmp_y = y + neighbour_sdvig_y[y%2+1][i]
+			if check_coord(tmp_x, tmp_y) and visited[tmp_x][tmp_y] == 0 then
+				visited[tmp_x][tmp_y] = 1
+				table.insert(next[(depth+1)%2], {next_x = tmp_x, next_y = tmp_y})
+			end
+		end
+		--[[
 		local sdvig = -1 + (y%2)*2
 		if check_coord(x+1, y) and visited[x+1][y] == 0 then
 			visited[x+1][y] = 1
@@ -639,7 +662,8 @@ function grow_bfs_handle_hex(self, hex_number, next, depth, village_x, village_y
 		if check_coord(x+sdvig, y-1) and visited[x+sdvig][y-1] == 0 then
 			visited[x+sdvig][y-1] = 1
 			table.insert(next[(depth+1)%2], {next_x = x+sdvig, next_y = y-1})
-		end
+		end  
+		]]
 	end
 end
 
@@ -755,6 +779,17 @@ function corruption_iteration(self)
 					if check_coord(x, y) and self.board[x][y].id and not self.board[x][y].corrupted and 
 					self.board[x][y].tile_type ~= hash("water") then
 						local around_corrupted_count = 0
+
+						local tmp_x, tmp_y
+						for i = 1, 6 do
+							tmp_x = x + neighbour_sdvig_x[y%2+1][i]
+							tmp_y = y + neighbour_sdvig_y[y%2+1][i]
+							if check_coord(tmp_x, tmp_y) and self.board[tmp_x][tmp_y].corrupted then
+								around_corrupted_count = around_corrupted_count + 1
+							end
+						end
+						
+						--[[
 						if check_coord(x+1, y) and self.board[x+1][y].corrupted then
 							around_corrupted_count = around_corrupted_count+1
 						end
@@ -773,7 +808,9 @@ function corruption_iteration(self)
 						end
 						if check_coord(x+sdvig, y-1) and self.board[x+sdvig][y-1].corrupted then
 							around_corrupted_count = around_corrupted_count+1
-						end
+						end 
+						--]]
+						
 						if self.board[x][y].distance_to_village == 1 then
 							around_corrupted_count = around_corrupted_count-1
 						elseif self.board[x][y].distance_to_village == 0 then
@@ -952,7 +989,6 @@ function on_message(self, message_id, message, sender)
 			grow_bfs(self, message["id"], message["x"], message["y"])
 		end
 		self.villages[message["id"]].level = message["level"]
-		print(self.villages[message["id"]].level)
 	elseif message_id == hash("resource_collected") then
 		spawn_resource(self, message["x"], message["y"])
 	elseif message_id == hash("income_update") then
@@ -999,6 +1035,16 @@ end
 
 function close_hex_number(self, x, y)
 	local close_hex = 0
+
+	local tmp_x, tmp_y
+	for i = 1, 6 do
+		tmp_x = x + neighbour_sdvig_x[y%2+1][i]
+		tmp_y = y + neighbour_sdvig_y[y%2+1][i]
+		if check_coord(tmp_x, tmp_y) and self.board[tmp_x][tmp_y].id then
+			close_hex = close_hex + 1
+		end
+	end
+	--[[
 	if check_coord(x+1, y) and self.board[x+1][y].id then
 		close_hex = close_hex + 1
 	end
@@ -1018,6 +1064,7 @@ function close_hex_number(self, x, y)
 	if check_coord(x+sdvig, y-1) and self.board[x+sdvig][y-1].id then
 		close_hex = close_hex + 1
 	end
+	]]
 	return close_hex
 end
 
@@ -1054,6 +1101,15 @@ function show_hide_moves(self)
 end
 
 function make_possible_moves_around(self, x, y)
+	local tmp_x, tmp_y
+	for i = 1, 6 do
+		tmp_x = x + neighbour_sdvig_x[y%2+1][i]
+		tmp_y = y + neighbour_sdvig_y[y%2+1][i]
+		if check_coord(tmp_x, tmp_y) then
+			self.board[tmp_x][tmp_y].possible_move = true
+		end
+	end
+	--[[
 	if check_coord(x+1, y) then
 		self.board[x+1][y].possible_move = true
 	end
@@ -1073,6 +1129,7 @@ function make_possible_moves_around(self, x, y)
 	if check_coord(x+sdvig, y-1) then
 		self.board[x+sdvig][y-1].possible_move = true
 	end
+	]]
 end
 
 function is_for_upgrade(self, x, y, type)
@@ -1219,7 +1276,7 @@ function on_input(self, action_id, action)
 			local moving_tile_url = msg.url(moving_tile_id)
 			moving_tile_url.fragment = "tile"
 			local tile_type = go.get(moving_tile_url, "tile_type")
-			if check_coord(tile_x, tile_y) and not self.board[tile_x][tile_y].id and close_hex_number(self, tile_x, tile_y)>0 then
+			if check_coord(tile_x, tile_y) and not self.board[tile_x][tile_y].id and close_hex_number(self, tile_x, tile_y) > 0 then
 				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
 				go.animate(moving_tile_id, "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.4)
 				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false, possible_move = true,
