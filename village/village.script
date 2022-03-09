@@ -83,7 +83,7 @@ function grow(self)
 		self.control_radius = self.control_radius + 1
 		self.resource_equal_max = self.resource_equal_max + 2 * self.control_radius + (self.control_radius - 1) * 2
 		msg.post("#", "create_human")
-		msg.post("/game#board", "village_grow", {id = self.id, x = self.x, y = self.y})
+		msg.post("/game#board", "village_grow", {id = self.id, x = self.x, y = self.y, level = self.control_radius + self.max_upgrade, radius_grow = true})
 		sprite.play_flipbook("#sprite", hash("village2"))
 		msg.post(msg.url(nil, self.stats_labels["coin"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
 		msg.post(msg.url(nil, self.stats_labels["wood"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
@@ -92,6 +92,7 @@ function grow(self)
 	elseif self.max_upgrade == 0 then
 		msg.post("#", "create_human")
 		self.max_upgrade = 1
+		msg.post("/game#board", "village_grow", {id = self.id, x = self.x, y = self.y, level = self.control_radius + self.max_upgrade, radius_grow = false})
 		sprite.play_flipbook("#sprite", hash("village3"))
 	end
 end
