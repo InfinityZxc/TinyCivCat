@@ -93,6 +93,7 @@ function grow(self)
 		msg.post(msg.url(nil, self.stats_labels["wood"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
 		msg.post(msg.url(nil, self.stats_labels["rock"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
 		msg.post(msg.url(nil, self.stats_labels["water"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
+		msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#village2_appears",  gain = 0.02, delay = 0.2, pan = -1.0, speed = 0.7})
 	elseif self.max_upgrade == 0 then
 		msg.post("#", "create_human")
 		self.max_upgrade = 1
@@ -100,6 +101,7 @@ function grow(self)
 		timer.delay(SHOW_HIDE_TIME, false, function ()
 			sprite.play_flipbook("#sprite", hash("village3"))
 		end)
+		msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#village3_appears",  gain = 0.02, delay = 0.2, pan = -1.0, speed = 0.7})
 	end
 	timer.delay(SHOW_HIDE_TIME, false, function ()
 		show_slowly(self, SHOW_HIDE_TIME)
