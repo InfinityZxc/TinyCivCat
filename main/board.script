@@ -692,11 +692,8 @@ function village_creation(self, x, y)
 		end
 	end
 	local pos = return_coords_from_hex_index(self, x, y)
-	timer.delay(0.5, false, function ()
-		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash('empty_hex')})
-	end)
+	msg.post(msg.url(nil, self.board[x][y].id, "tile"), "hide_slowly")
 	id_village = factory.create("#village_factory", pos, null, {id = village_next_id, x = x, y = y})
-	go.set(msg.url(nil, id_village, "sprite"), "scale", vmath.vector3(0.5 , 0.5, 1))
 	self.villages[village_next_id] = {id = id_village, x = x, y = y, radius = 1, village_order = village_next_id, income = 0, level = 1}
 	self.board[x][y].village_center_x = x
 	self.board[x][y].village_center_y = y
@@ -729,6 +726,7 @@ function village_destruction(self, village_num, x, y)
 		x = self.villages[village_num].x
 		y = self.villages[village_num].y
 	end
+	msg.post(msg.url(nil, self.board[x][y].id, "tile"), "show_slowly")
 	for i = 0, boardwidth-1 do
 		for j = 0, boardheight-1 do
 			if check_coord(i, j) and self.board[i][j].village_num == village_num then
@@ -739,7 +737,7 @@ function village_destruction(self, village_num, x, y)
 			end
 		end
 	end
-	go.delete(self.villages[village_num].id)
+	msg.post(msg.url(nil, self.villages[village_num].id, "village"), "delete_slowly")
 	self.villages[village_num].id = nil
 	village_count = village_count - 1
 	for other_village_num = 1, (#self.villages) do

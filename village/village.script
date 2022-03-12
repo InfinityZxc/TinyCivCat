@@ -12,20 +12,22 @@ go.property("max_upgrade", 0)
 go.property("id", 0)
 go.property("show_hide_possible", true)
 SHOW_HIDE_TIME = 1
+APPEAR_TIME = 2
 local hex_size = 128
 
 function init(self)
 	sprite.play_flipbook("#sprite", hash("village1"))
 	msg.post("#sprite" , "disable")
+	go.set("#sprite", "scale", vmath.vector3(0.01 , 0.01, 1))
 	timer.delay(0.5, false, function ()
-		msg.post("#sprite" , "enable")
+		show_slowly(self, APPEAR_TIME)
 	end)
 	
 	self.stats_labels = {}
 	create_labels(self)
 	
 	self.humans = {}
-	timer.delay(0.5, false, function ()
+	timer.delay(APPEAR_TIME + 0.5, false, function ()
 		msg.post("#", "create_human")
 	end)
 end
@@ -79,12 +81,15 @@ function update(self, dt)
 end
 
 function grow(self)
+	hide_slowly(self, SHOW_HIDE_TIME)
 	if self.control_radius < 2 then
 		self.control_radius = self.control_radius + 1
 		self.resource_equal_max = self.resource_equal_max + 2 * self.control_radius + (self.control_radius - 1) * 2
 		msg.post("#", "create_human")
 		msg.post("/game#board", "village_grow", {id = self.id, x = self.x, y = self.y, level = self.control_radius + self.max_upgrade, radius_grow = true})
-		sprite.play_flipbook("#sprite", hash("village2"))
+		timer.delay(SHOW_HIDE_TIME, false, function ()
+			sprite.play_flipbook("#sprite", hash("village2"))
+		end)
 		msg.post(msg.url(nil, self.stats_labels["wood"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
 		msg.post(msg.url(nil, self.stats_labels["rock"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
 		msg.post(msg.url(nil, self.stats_labels["water"].id, "stats_label"), "update_needed", {info = self.resource_equal_max})
@@ -92,8 +97,13 @@ function grow(self)
 		msg.post("#", "create_human")
 		self.max_upgrade = 1
 		msg.post("/game#board", "village_grow", {id = self.id, x = self.x, y = self.y, level = self.control_radius + self.max_upgrade, radius_grow = false})
-		sprite.play_flipbook("#sprite", hash("village3"))
+		timer.delay(SHOW_HIDE_TIME, false, function ()
+			sprite.play_flipbook("#sprite", hash("village3"))
+		end)
 	end
+	timer.delay(SHOW_HIDE_TIME, false, function ()
+		show_slowly(self, SHOW_HIDE_TIME)
+	end)
 end
 
 function update_labels_and_income(self)
@@ -105,6 +115,18 @@ function update_labels_and_income(self)
 	msg.post(msg.url(nil, self.stats_labels["water"].id, "stats_label"), "update_count", {info = self.water})
 	
 	msg.post("/game#board", "income_update", {id = self.id, income = self.income})
+end
+
+function hide_slowly(self, time)
+	go.animate("#sprite", "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(0.01 , 0.01, 1), go.EASING_LINEAR, time)
+	timer.delay(time, false, function ()
+		msg.post("#sprite" , "disable")
+	end)
+end
+
+function show_slowly(self, time)
+	msg.post("#sprite" , "enable")
+	go.animate("#sprite", "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(0.5, 0.5, 1), go.EASING_OUTBACK, time)
 end
 
 function on_message(self, message_id, message, sender)
@@ -164,7 +186,7 @@ function on_message(self, message_id, message, sender)
 		end
 		
 		if (self.rock >= self.resource_equal_max and self.water >= self.resource_equal_max 
-		and self.wood >= self.resource_equal_max) then
+		and self.wood >= self.resource_equal_max) and self.max_upgrade == 0 then
 			grow(self)
 		end
 		update_labels_and_income(self)
@@ -179,6 +201,11 @@ function on_message(self, message_id, message, sender)
 			end
 		end
 		update_labels_and_income(self)
+	elseif message_id == hash("delete_slowly") then
+		hide_slowly(self, APPEAR_TIME/2)
+		timer.delay(APPEAR_TIME/2, false, function ()
+			go.delete(".")
+		end)
 	end
 end
 
