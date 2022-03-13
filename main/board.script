@@ -68,6 +68,8 @@ local neig_odd_y = { 0, -1, -1, 0, 1, 1}
 local neighbour_sdvig_x = {{1, -1, 0,  0, -1, -1}, {1, -1, 0,  0, 1,  1}} -- use like neighbour_sdvig_x[y%2+1][i]  i = 1 .. 6
 local neighbour_sdvig_y = {{0,  0, 1, -1,  1, -1}, {0,  0, 1, -1, 1, -1}} -- use like neighbour_sdvig_y[y%2+1][i]
 
+SNOW_ANIM_TIME = 2
+
 function init(self)
 	msg.post(".", "acquire_input_focus")
 	defos.disable_window_resize()
@@ -361,7 +363,9 @@ function heal_cell(self, x, y)
 	end
 end
 
-function delay_corrupt(self)
+function delay_corrupt(self, middle_pos)
+	local middle_hex_x, middle_hex_y
+	middle_hex_x, middle_hex_y = return_hex_index_from_coords(self, middle_pos.x, middle_pos.y)
 	if coins >= delay_cost then
 		snow = true
 		corruption_delay = 1
@@ -378,7 +382,10 @@ function delay_corrupt(self)
 					if type == "rock" then
 						type = "broken_rock"
 					end
-					msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type .. "-" .. math.random(1, 5))})
+					local distance = math.floor((abs(middle_hex_x - x)^2 + abs(middle_hex_y - y)^2)^(1/2))
+					timer.delay(SNOW_ANIM_TIME * distance/(math.floor((boardwidth)^2 + (boardheight)^2)^(1/2)), false, function ()
+						msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type .. "-" .. math.random(1, 5))})
+					end)
 				end
 			end
 		end
@@ -869,7 +876,10 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("ability") then
 		if not snow and message["ability"] == hash("snow") then
-			delay_corrupt(self)
+			local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(message["action_x"], message["action_y"], 0))
+			world_pos.z = 0.8
+			factory.create("#event_effect_factory", world_pos, null, {effect_type = hash("snow_donut")})
+			delay_corrupt(self, world_pos)
 		elseif not thunder and message["ability"] == hash("thunder") and coins >= uncorrupt_cost then
 			thunder_active = true
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
@@ -1015,7 +1025,7 @@ function return_hex_index_from_coords(self, x, y)
 			end
 		end
 	end
-	return -1, -1
+	return tmp_x, tmp_y
 end
 
 local score = 0

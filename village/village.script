@@ -101,7 +101,7 @@ function grow(self)
 			sprite.play_flipbook("#sprite", hash("village3"))
 		end)
 	end
-	timer.delay(SHOW_HIDE_TIME, false, function ()
+	timer.delay(SHOW_HIDE_TIME + 0.1, false, function ()
 		show_slowly(self, SHOW_HIDE_TIME)
 	end)
 end

@@ -243,7 +243,7 @@ function on_input(self, action_id, action)
 			active_node = node
 			return true
 		elseif ability then
-			msg.post("/game#board", "ability", { ability = ability })
+			msg.post("/game#board", "ability", { ability = ability, action_x = action.x, action_y = action.y})
 			return true
 		end
 	end
