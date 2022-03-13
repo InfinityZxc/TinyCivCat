@@ -56,6 +56,7 @@ local village_next_id = 1
 local big_constant = 420
 local max_turn = 232
 local village_should_be_created = true
+local just_created_village = false
 
 local camera_x_bound = 320
 local camera_y_bound = 180
@@ -69,6 +70,7 @@ local neighbour_sdvig_x = {{1, -1, 0,  0, -1, -1}, {1, -1, 0,  0, 1,  1}} -- use
 local neighbour_sdvig_y = {{0,  0, 1, -1,  1, -1}, {0,  0, 1, -1, 1, -1}} -- use like neighbour_sdvig_y[y%2+1][i]
 
 SNOW_ANIM_TIME = 2
+TILE_SHOW_HIDE_TIME = 1
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
@@ -382,9 +384,18 @@ function delay_corrupt(self, middle_pos)
 					if type == "rock" then
 						type = "broken_rock"
 					end
+					
 					local distance = math.floor((abs(middle_hex_x - x)^2 + abs(middle_hex_y - y)^2)^(1/2))
-					timer.delay(SNOW_ANIM_TIME * distance/(math.floor((boardwidth)^2 + (boardheight)^2)^(1/2)), false, function ()
+					timer.delay(SNOW_ANIM_TIME * distance/((math.floor((boardwidth)^2 + (boardheight)^2)^(1/2))+1), false, function ()
+						msg.post(msg.url(nil, self.grid[x][y].id, "boundaries"), "make_blue")
+						local low_pos = go.get_position(self.grid[x][y].id)
+						local high_pos = vmath.vector3(low_pos.x, low_pos.y, 0.9)
+						go.set_position(high_pos, self.grid[x][y].id)
 						msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("bugged_" .. type .. "-" .. math.random(1, 5))})
+						timer.delay(0.3, false, function ()
+							go.set_position(low_pos, self.grid[x][y].id)
+							msg.post(msg.url(nil, self.grid[x][y].id, "boundaries"), "make_light")
+						end)
 					end)
 				end
 			end
@@ -694,8 +705,10 @@ end
 
 function village_creation(self, x, y)
 	for village_num = 1, village_count do
-		if bool_hex2_arond_hex1_in_radius2(self.villages[village_num].x, self.villages[village_num].y, x, y) then
-			return false
+		if self.villages[village_num].id then
+			if bool_hex2_arond_hex1_in_radius2(self.villages[village_num].x, self.villages[village_num].y, x, y) then
+				return false
+			end
 		end
 	end
 	local pos = return_coords_from_hex_index(self, x, y)
@@ -723,6 +736,7 @@ function village_creation(self, x, y)
 	end
 	village_next_id = village_next_id + 1
 	village_should_be_created = false
+	just_created_village = true
 	msg.post("/gui#main", "next_turn_is_not_village")
 end
 
@@ -733,23 +747,25 @@ function village_destruction(self, village_num, x, y)
 		x = self.villages[village_num].x
 		y = self.villages[village_num].y
 	end
-	msg.post(msg.url(nil, self.board[x][y].id, "tile"), "show_slowly")
-	for i = 0, boardwidth-1 do
-		for j = 0, boardheight-1 do
-			if check_coord(i, j) and self.board[i][j].village_num == village_num then
-				self.board[i][j].distance_to_village = big_constant
-				self.board[i][j].village_center_x = nil
-				self.board[i][j].village_center_y = nil
-				self.board[i][j].village_num = nil
+	if self.villages[village_num].id then
+		msg.post(msg.url(nil, self.board[x][y].id, "tile"), "show_slowly")
+		for i = 0, boardwidth-1 do
+			for j = 0, boardheight-1 do
+				if check_coord(i, j) and self.board[i][j].village_num == village_num then
+					self.board[i][j].distance_to_village = big_constant
+					self.board[i][j].village_center_x = nil
+					self.board[i][j].village_center_y = nil
+					self.board[i][j].village_num = nil
+				end
 			end
 		end
-	end
-	msg.post(msg.url(nil, self.villages[village_num].id, "village"), "delete_slowly")
-	self.villages[village_num].id = nil
-	village_count = village_count - 1
-	for other_village_num = 1, (#self.villages) do
-		if self.villages[other_village_num].id then
-			global_bfs(self, self.villages[other_village_num].x, self.villages[other_village_num].y, other_village_num)
+		msg.post(msg.url(nil, self.villages[village_num].id, "village"), "delete_slowly")
+		self.villages[village_num].id = nil
+		village_count = village_count - 1
+		for other_village_num = 1, (#self.villages) do
+			if self.villages[other_village_num].id then
+				global_bfs(self, self.villages[other_village_num].x, self.villages[other_village_num].y, other_village_num)
+			end
 		end
 	end
 end
@@ -834,20 +850,28 @@ function corruption_iteration(self)
 			if (#candidates ~= 0) then
 				local coords_to_corrupt = candidates[math.random(#candidates)]
 				if self.board[coords_to_corrupt.x][coords_to_corrupt.y].distance_to_village == 0 then
-					village_destruction(self, 0, coords_to_corrupt.x, coords_to_corrupt.y)
-					corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, true)
-				end
-				if self.board[coords_to_corrupt.x][coords_to_corrupt.y].structure_name ~= nil then
-					destroy_structure(self, coords_to_corrupt.x, coords_to_corrupt.y)
-				end
-				corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, false)
-				if (coords_to_corrupt.y % 2 == 0) then
-					for i = 1, 6 do
-						make_upgrade_structure(self, coords_to_corrupt.x + neig_even_x[i], coords_to_corrupt.y + neig_even_y[i])
+					local delay = 0
+					if just_created_village then
+						delay = TILE_SHOW_HIDE_TIME + 0.1
 					end
-				elseif (coords_to_corrupt.y % 2 == 1) then
-					for i = 1, 6 do
-						make_upgrade_structure(self, coords_to_corrupt.x + neig_odd_x[i], coords_to_corrupt.y + neig_odd_y[i])
+					timer.delay(delay, false, function ()
+						village_destruction(self, 0, coords_to_corrupt.x, coords_to_corrupt.y)
+						corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, true)
+					end)
+					return
+				else
+					if self.board[coords_to_corrupt.x][coords_to_corrupt.y].structure_name ~= nil then
+						destroy_structure(self, coords_to_corrupt.x, coords_to_corrupt.y)
+					end
+					corrupt_tile(self, coords_to_corrupt.x, coords_to_corrupt.y, false)
+					if (coords_to_corrupt.y % 2 == 0) then
+						for i = 1, 6 do
+							make_upgrade_structure(self, coords_to_corrupt.x + neig_even_x[i], coords_to_corrupt.y + neig_even_y[i])
+						end
+					elseif (coords_to_corrupt.y % 2 == 1) then
+						for i = 1, 6 do
+							make_upgrade_structure(self, coords_to_corrupt.x + neig_odd_x[i], coords_to_corrupt.y + neig_odd_y[i])
+						end
 					end
 				end
 			else
@@ -877,8 +901,6 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("ability") then
 		if not snow and message["ability"] == hash("snow") then
 			local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(message["action_x"], message["action_y"], 0))
-			world_pos.z = 0.8
-			factory.create("#event_effect_factory", world_pos, null, {effect_type = hash("snow_donut")})
 			delay_corrupt(self, world_pos)
 		elseif not thunder and message["ability"] == hash("thunder") and coins >= uncorrupt_cost then
 			thunder_active = true
@@ -936,6 +958,7 @@ function on_message(self, message_id, message, sender)
 		if turn_counter == max_turn then
 			msg.post("/end_screen#game_end", "game_won")
 		end
+		just_created_village = false
 		if turn_counter/spawn_village_every_x_turn >= (village_next_id-1) and not village_should_be_created then
 			village_should_be_created = true
 			msg.post("/gui#main", "next_turn_is_village")
@@ -987,6 +1010,8 @@ function on_message(self, message_id, message, sender)
 		self.villages = {}
 		village_count = 0
 		village_next_id = 1
+		just_created_village = false
+		village_should_be_created = false
 		make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
 		make_possible_moves_around(self, start_hex_pos.x + 1, start_hex_pos.y)
 		score_calculation(self, hash("none"), hash("none"))
