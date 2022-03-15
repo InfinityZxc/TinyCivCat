@@ -44,6 +44,9 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("reset_camera") then
 		go.set_position(center, '/camera')
 		camera.set_zoom(nil, 1)
+	elseif message_id == hash('tutorial_corruption') then
+		go.set_position(go.get_position('/camera') + message['offset'], '/camera')
+		camera.set_zoom(nil, 1)
 	end
 end
 

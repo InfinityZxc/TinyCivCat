@@ -212,6 +212,7 @@ function on_message(self, message_id, message, sender)
 			msg.post("/gui#main", "show_abilities")
 		else
 			msg.post(".", "acquire_input_focus")
+			msg.post('/camera_body', 'tutorial_corruption', message)
 			show_tutorial()
 			tutorial_corruption()
 		end
