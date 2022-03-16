@@ -807,7 +807,7 @@ end
 function corruption_iteration(self)
 	if turn_counter > corruption_beginning and corruption_delay == 0 then
 		for i = 0, (math.max(0, math.floor((turn_counter-(delay_cost-initial_delay_cost)/ability_cost_increase-corruption_beginning)/corruption_acceleration))) - 1 + (turn_counter%2) do
-			local max_corrupted_around = 0
+			local max_corrupted_around = -10
 			local max_cor_ar_pos = first_corruption_hex_pos
 			local candidates = {}
 			for x = 0, boardwidth-1 do
@@ -974,8 +974,8 @@ function on_message(self, message_id, message, sender)
 		end
 		
 		turn_counter = turn_counter + 1
-		make_upgrade_structure(self, message["x"], message["y"])
 		corruption_iteration(self)
+		make_upgrade_structure(self, message["x"], message["y"])
 		if turn_counter == corruption_beginning then
 			msg.post("/tutorial#tutorial", "corruption", {offset=return_coords_from_hex_index(self, first_corruption_hex_pos.x - 1, first_corruption_hex_pos.y) - return_coords_from_hex_index(self, start_hex_pos.x, start_hex_pos.y)})
 		end
@@ -1172,18 +1172,8 @@ function show_hide_moves(self)
 		for x = 0,boardwidth-1 do
 			for y = 0,boardheight-1 do
 				if check_coord(x, y) and not self.board[x][y].id then
-					if village_should_be_created then
-						if self.board[x][y].distance_to_village <= 2 and not self.board[x][y].possible_move then
-							msg.post(msg.url(nil, self.grid[x][y].id, "boundaries"), "make_dark_red")
-						elseif self.board[x][y].distance_to_village <= 2 then
-							msg.post(msg.url(nil, self.grid[x][y].id, "boundaries"), "make_orange")
-						elseif not self.board[x][y].possible_move then
-							msg.post(msg.url(nil, self.grid[x][y].id, "boundaries"), "make_grey")
-						end
-					else
-						if not self.board[x][y].possible_move then
-							msg.post(msg.url(nil, self.grid[x][y].id, "boundaries"), "make_grey")
-						end
+					if not self.board[x][y].possible_move then
+						msg.post(msg.url(nil, self.grid[x][y].id, "boundaries"), "make_grey")
 					end
 				end
 			end
@@ -1373,21 +1363,13 @@ function on_input(self, action_id, action)
 			if (pointed_to_tile_x ~= tile_x or pointed_to_tile_y ~= tile_y) and check_coord(tile_x, tile_y) then
 				if self.board[tile_x][tile_y].possible_move and not self.board[tile_x][tile_y].id then
 					if self.board[pointed_to_tile_x][pointed_to_tile_y].possible_move then
-						if not (village_should_be_created and self.board[pointed_to_tile_x][pointed_to_tile_y].distance_to_village <= 2) then
-							msg.post(msg.url(nil, self.grid[pointed_to_tile_x][pointed_to_tile_y].id, "boundaries"), "make_light")
-						else
-							msg.post(msg.url(nil, self.grid[pointed_to_tile_x][pointed_to_tile_y].id, "boundaries"), "make_orange")
-						end
+						msg.post(msg.url(nil, self.grid[pointed_to_tile_x][pointed_to_tile_y].id, "boundaries"), "make_light")
 					end
 					pointed_to_tile_x = tile_x
 					pointed_to_tile_y = tile_y
 					msg.post(msg.url(nil, self.grid[tile_x][tile_y].id, "boundaries"), "make_blue")
 				elseif self.board[pointed_to_tile_x][pointed_to_tile_y].possible_move then
-					if not (village_should_be_created and self.board[pointed_to_tile_x][pointed_to_tile_y].distance_to_village <= 2) then
-						msg.post(msg.url(nil, self.grid[pointed_to_tile_x][pointed_to_tile_y].id, "boundaries"), "make_light")
-					else
-						msg.post(msg.url(nil, self.grid[pointed_to_tile_x][pointed_to_tile_y].id, "boundaries"), "make_orange")
-					end
+					msg.post(msg.url(nil, self.grid[pointed_to_tile_x][pointed_to_tile_y].id, "boundaries"), "make_light")
 					pointed_to_tile_x = tile_x
 					pointed_to_tile_y = tile_y
 				end
