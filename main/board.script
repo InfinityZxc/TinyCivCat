@@ -1000,6 +1000,18 @@ function on_message(self, message_id, message, sender)
 		spawn_resource(self, message["x"], message["y"])
 	elseif message_id == hash("income_update") then
 		self.villages[message["id"]].income = message["income"]
+	elseif message_id == hash("switch_volume") then
+		if volume == 1 then 
+			volume = 0
+			sound.stop("/sound")
+		else
+			volume = 1
+			if turn_counter < corruption_beginning then 
+				sound.play("/sound#begining_of_game", { delay = 1, gain = theme_sound_gain * volume, pan = -1.0, speed = 1.0} )
+			else
+				sound.play("/sound#corruption_appears_theme", { delay = 1, gain = 0.08*volume, pan = -1.0, speed = 1.0} )
+			end
+		end
 	end
 end
 
