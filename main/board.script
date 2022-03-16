@@ -47,7 +47,7 @@ local unhash = {
 	[hash("water")] = "water"
 }
 local thunder = false
-local thunder_active = false
+thunder_active = false
 local snow = false
 local stats_visibility = false
 local possible_moves_shown = false
@@ -902,9 +902,13 @@ function on_message(self, message_id, message, sender)
 		if not snow and message["ability"] == hash("snow") then
 			local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(message["action_x"], message["action_y"], 0))
 			delay_corrupt(self, world_pos)
-		elseif not thunder and message["ability"] == hash("thunder") and coins >= uncorrupt_cost then
-			thunder_active = true
-			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
+		elseif not thunder and message["ability"] == hash("thunder") then
+			if coins >= uncorrupt_cost then
+				thunder_active = true
+				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
+			else
+				msg.post("/gui#main", "thunder_not_used", {action = "open"})
+			end
 		elseif message["ability"] == hash("buy_tile") then
 			coins = coins - BUY_TILE_COST
 		end
@@ -945,6 +949,7 @@ function on_message(self, message_id, message, sender)
 		end
 		thunder = false
 		thunder_active = false
+		msg.post("/gui#main", "thunder_not_used", {action = "open"})
 		if coins >= delay_cost then
 			msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
 		else
@@ -1379,9 +1384,9 @@ function on_input(self, action_id, action)
 			heal_cell(self, tile_x, tile_y)
 			thunder = true
 			make_upgrade_structure(self, tile_x, tile_y)
-			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
+			msg.post("/gui#main", "thunder_been_used")
 		else
-			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
+			msg.post("/gui#main", "thunder_not_used", {action = "grab"})
 		end
 		return true
 	end
