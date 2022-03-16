@@ -236,6 +236,7 @@ function on_input(self, action_id, action)
 				msg.post(".", "release_input_focus")
 				msg.post("/camera_body", "acquire_input_focus")
 				msg.post("/gui#main", "acquire_input_focus")
+				msg.post("/cursor#cursor", "acquire_input_focus")
 				skip = true
 				gui.delete_node(gui.get_node("play_without_tutorial"))
 				gui.delete_node(gui.get_node("play_with_tutorial"))
@@ -257,7 +258,7 @@ function on_input(self, action_id, action)
 			hide_tutorial()
 			msg.post(".", "release_input_focus")
 			msg.post("/camera_body", "acquire_input_focus")
-			msg.post("/gui#main", "acquire_input_focus")
+			msg.post("/cursor#cursor", "acquire_input_focus")
 			skip = true
 		end
 	end
