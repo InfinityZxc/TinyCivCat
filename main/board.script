@@ -108,12 +108,9 @@ function init(self)
 	self.villages = {}
 	
 	score_calculation(self, hash("none"), hash("none"))
-	timer.delay(0.1, false, function ()
-		msg.post("/gui#main", "acquire_input_focus")
-	end)
-	timer.delay(0.1, false, function ()
-		msg.post("/tutorial#tutorial", "acquire_input_focus")
-	end)
+	msg.post("/gui#main", "acquire_input_focus")
+	msg.post("/tutorial#tutorial", "acquire_input_focus")
+	msg.post("/cursor#cursor", "acquire_input_focus")
 	msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
 	msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
 	sound.play("/sound#begining_of_game", { delay = 1, gain = theme_sound_gain * volume, pan = -1.0, speed = 1.0} )
@@ -937,6 +934,7 @@ function on_message(self, message_id, message, sender)
 					msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
 				else
 					msg.post("/gui#main", "thunder_not_used", {action = "open"})
+					msg.post("/cursor#cursor", "thunder_not_used", {action = "open"})
 				end
 			else
 				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
@@ -1004,6 +1002,7 @@ function on_message(self, message_id, message, sender)
 		thunder = false
 		thunder_active = false
 		msg.post("/gui#main", "thunder_not_used", {action = "open"})
+		msg.post("/cursor#cursor", "thunder_not_used", {action = "open"})
 		if coins >= delay_cost then
 			msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
 		else
@@ -1410,9 +1409,11 @@ function on_input(self, action_id, action)
 			thunder = true
 			make_upgrade_structure(self, tile_x, tile_y)
 			msg.post("/gui#main", "thunder_been_used")
+			msg.post("/cursor#cursor", "thunder_been_used")
 			msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#thunder",  gain = 0.01*volume, delay = 0.2, pan = -1.0, speed = 0.7})
 		else
 			msg.post("/gui#main", "thunder_not_used", {action = "grab"})
+			msg.post("/cursor#cursor", "thunder_not_used", {action = "grab"})
 		end
 		return true
 	end
