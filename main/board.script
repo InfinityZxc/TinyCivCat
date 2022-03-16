@@ -85,6 +85,13 @@ TILE_SHOW_HIDE_TIME = 1
 function init(self)
 	msg.post(".", "acquire_input_focus")
 	defos.disable_window_resize()
+	defos.on_mouse_enter(function ()
+		defos.set_cursor_visible(false)
+	end)
+	defos.on_mouse_leave(function ()
+		defos.set_cursor_visible(true)
+	end)
+	defos.set_cursor_visible(not defos.is_mouse_in_view())
 	-- -- in case here are some settings that affect properties
 	init_locals_from_properties("#")
 
