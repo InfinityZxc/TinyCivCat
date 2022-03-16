@@ -1,9 +1,9 @@
 local step = hash("start")
 local skip = false;
-local TILES_TEXT = "The objective is to fill the whole map.\nTheese are your tiles to build the world with.\nEvery turn you can drag one of the available tiles\nto place it adjacent with any other tile on the map.\nRight click on the tile to change it for 50 coins.\nClick anywhere to continue..."
-local COINS_TEXT = "Every 15 turns a village will spawn on the newly placed tile.\nYou can increase your per turn income\nby surrounding them with diverse resources.\nVillages grow in efficiency and resource pool area\nif provided with enough resources.\nClick anywhere to continue..."
-local CORRUPTION_TEXT = "Oh no! Your tile became corrupted.\nCurruption blocks village supply and can destroy them directly.\nCorruption will spread to one adjacent tile every turn.\nEvery 10 turns the number of tiles taken\nby corruption per turn will increase by 1.\nKeep an eye on it! Click anywhere to continue..."
-local ABILITIES_TEXT = "To fight back against corruption you have two abilities.\nLightning will clear corruption from the tile of your choice.\nTo use it, click on the lightning and once again on the selected tile.\nFreeze will stop corruption spread for 1 turn.\nDrag the map around to see the rest of the world.\nGood luck! Click anywhere to continue..."
+local TILES_TEXT = "The objective is to fill the whole map.\nTheese are your tiles to build the world with.\nEvery turn you can drag one of the available tiles\nto place it adjacent with any other tile on the map.\nRight click on the tile to change it for 40 coins.\nClick anywhere to continue..."
+local COINS_TEXT = "Every 15 turns a village will spawn on one tile.\nYou can increase your per turn income\nby surrounding them with diverse resources.\nVillages grow in efficiency and resource pool area\nif provided with enough resources.\nClick anywhere to continue..."
+local CORRUPTION_TEXT = "Oh no! Your tile has been corrupted.\nCurruption blocks village supply and can destroy them completely.\nCorruption will spread on adjacent tiles every turn.\nEvery 10 turns the number of tiles taken\nby corruption per turn will increase by 1.\nKeep an eye on it! Click anywhere to continue..."
+local ABILITIES_TEXT = "To fight back against corruption you have two abilities.\nLightning will clear corruption from the tile of your choice.\nTo use it, click once on the lightning and again on the tile you wish to restore.\nFreeze will stop corruption spread for 1 turn.\nDrag the map around to see the rest of the world.\nGood luck! Click anywhere to continue..."
 
 -- function init(self)
 -- end
