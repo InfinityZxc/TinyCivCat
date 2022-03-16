@@ -35,7 +35,7 @@ function on_message(self, message_id, message, sender)
 			sound.play(message.soundcomponent, { gain = message.gain, delay = message.delay, pan = message.pan, speed = message.speed })
 		else
 			-- An attempt to play a sound was gated
-			print("gated " .. message.soundcomponent)
+			--print("gated " .. message.soundcomponent)
 		end
 	end
 end
