@@ -103,7 +103,7 @@ function grow(self)
 		end)
 		msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#village3_appears",  gain = 0.02, delay = 0.2, pan = -1.0, speed = 0.7})
 	end
-	timer.delay(SHOW_HIDE_TIME, false, function ()
+	timer.delay(SHOW_HIDE_TIME + 0.1, false, function ()
 		show_slowly(self, SHOW_HIDE_TIME)
 	end)
 end
