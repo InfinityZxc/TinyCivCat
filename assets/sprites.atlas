@@ -262,202 +262,6 @@ images {
   image: "/assets/hand_grab_256.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
-images {
-  image: "/assets/hand_lightning/hand_lightning-0.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-1.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-10.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-11.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-12.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-13.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-14.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-15.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-16.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-17.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-18.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-19.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-2.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-20.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-21.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-22.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-23.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-24.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-25.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-26.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-27.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-28.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-29.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-3.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-30.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-31.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-32.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-33.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-34.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-35.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-36.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-37.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-38.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-39.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-4.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-40.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-41.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-42.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-43.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-44.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-45.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-46.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-47.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-48.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-5.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-6.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-7.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-8.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/hand_lightning/hand_lightning-9.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
 animations {
   id: "bugged_wood"
   images {
@@ -612,199 +416,199 @@ animations {
 animations {
   id: "cursor_lightning"
   images {
-    image: "/assets/hand_lightning/hand_lightning-0.png"
+    image: "/assets/hand_lightning/hand_lightning_000.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-1.png"
+    image: "/assets/hand_lightning/hand_lightning_001.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-10.png"
+    image: "/assets/hand_lightning/hand_lightning_002.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-11.png"
+    image: "/assets/hand_lightning/hand_lightning_003.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-12.png"
+    image: "/assets/hand_lightning/hand_lightning_004.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-13.png"
+    image: "/assets/hand_lightning/hand_lightning_005.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-14.png"
+    image: "/assets/hand_lightning/hand_lightning_006.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-15.png"
+    image: "/assets/hand_lightning/hand_lightning_007.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-16.png"
+    image: "/assets/hand_lightning/hand_lightning_008.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-17.png"
+    image: "/assets/hand_lightning/hand_lightning_009.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-18.png"
+    image: "/assets/hand_lightning/hand_lightning_010.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-19.png"
+    image: "/assets/hand_lightning/hand_lightning_011.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-2.png"
+    image: "/assets/hand_lightning/hand_lightning_012.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-20.png"
+    image: "/assets/hand_lightning/hand_lightning_013.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-21.png"
+    image: "/assets/hand_lightning/hand_lightning_014.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-22.png"
+    image: "/assets/hand_lightning/hand_lightning_015.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-23.png"
+    image: "/assets/hand_lightning/hand_lightning_016.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-24.png"
+    image: "/assets/hand_lightning/hand_lightning_017.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-25.png"
+    image: "/assets/hand_lightning/hand_lightning_018.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-26.png"
+    image: "/assets/hand_lightning/hand_lightning_019.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-27.png"
+    image: "/assets/hand_lightning/hand_lightning_020.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-28.png"
+    image: "/assets/hand_lightning/hand_lightning_021.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-29.png"
+    image: "/assets/hand_lightning/hand_lightning_022.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-3.png"
+    image: "/assets/hand_lightning/hand_lightning_023.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-30.png"
+    image: "/assets/hand_lightning/hand_lightning_024.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-31.png"
+    image: "/assets/hand_lightning/hand_lightning_025.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-32.png"
+    image: "/assets/hand_lightning/hand_lightning_026.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-33.png"
+    image: "/assets/hand_lightning/hand_lightning_027.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-34.png"
+    image: "/assets/hand_lightning/hand_lightning_028.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-35.png"
+    image: "/assets/hand_lightning/hand_lightning_029.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-36.png"
+    image: "/assets/hand_lightning/hand_lightning_030.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-37.png"
+    image: "/assets/hand_lightning/hand_lightning_031.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-38.png"
+    image: "/assets/hand_lightning/hand_lightning_032.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-39.png"
+    image: "/assets/hand_lightning/hand_lightning_033.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-4.png"
+    image: "/assets/hand_lightning/hand_lightning_034.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-40.png"
+    image: "/assets/hand_lightning/hand_lightning_035.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-41.png"
+    image: "/assets/hand_lightning/hand_lightning_036.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-42.png"
+    image: "/assets/hand_lightning/hand_lightning_037.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-43.png"
+    image: "/assets/hand_lightning/hand_lightning_038.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-44.png"
+    image: "/assets/hand_lightning/hand_lightning_039.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-45.png"
+    image: "/assets/hand_lightning/hand_lightning_040.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-46.png"
+    image: "/assets/hand_lightning/hand_lightning_041.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-47.png"
+    image: "/assets/hand_lightning/hand_lightning_042.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-48.png"
+    image: "/assets/hand_lightning/hand_lightning_043.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-5.png"
+    image: "/assets/hand_lightning/hand_lightning_044.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-6.png"
+    image: "/assets/hand_lightning/hand_lightning_045.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-7.png"
+    image: "/assets/hand_lightning/hand_lightning_046.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-8.png"
+    image: "/assets/hand_lightning/hand_lightning_047.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
-    image: "/assets/hand_lightning/hand_lightning-9.png"
+    image: "/assets/hand_lightning/hand_lightning_048.png"
     sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   playback: PLAYBACK_LOOP_FORWARD
