@@ -126,20 +126,25 @@ function on_message(self, message_id, message, sender)
 	-- 	top_bar = gui.get_node("top_bar")
 	-- 	gui.set_text(top_bar, "YOU LOST :(")
 	-- 	gui.set_size(top_bar, vmath.vector3(100, 100, 0))
-	elseif message_id == hash("next_turn_is_village") then
-		local node = gui.get_node("village")
-		local pos = gui.get_position(node)
-		if pos.x ~= 1600 then
-			pos.x = pos.x - 450
+	elseif message_id == hash("next_village") then
+		local node = gui.get_node("in")
+		if message['turns'] == 1 then
+			gui.set_text(node, 'in 1 turn')
+		else
+			gui.set_text(node, string.format('in %d turns', message['turns']))
 		end
-		gui.animate(node, "position", pos, go.EASING_OUTSINE, 1)
-	elseif message_id == hash("next_turn_is_not_village") then
-		local node = gui.get_node("village")
-		local pos = gui.get_position(node)
-		if pos.x ~= 2050 then
-			pos.x = pos.x + 450
-		end
-		gui.animate(node, "position", pos, go.EASING_OUTSINE, 1)
+	elseif message_id == hash("thunder_been_used") then
+		thunder_active = false
+		gui.set_scale(gui.get_node("cursor"), vmath.vector3(0.2, 0.2, 1))
+		gui.set_blend_mode(gui.get_node("cursor"), gui.BLEND_ALPHA)
+		gui.play_flipbook(gui.get_node("cursor"), hash("hand_grab_256"))
+		msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
+	elseif message_id == hash("thunder_not_used") then
+		thunder_active = false
+		gui.set_scale(gui.get_node("cursor"), vmath.vector3(0.2, 0.2, 1))
+		gui.set_blend_mode(gui.get_node("cursor"), gui.BLEND_ALPHA)
+		gui.play_flipbook(gui.get_node("cursor"), hash("hand_" .. message["action"] .. "_256"))
+		msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
 	end
 end
 
@@ -203,6 +208,20 @@ function on_input(self, action_id, action)
 	-- msg.post(".", "acquire_input_focus")
 	-- print("gui input")
 	local node, ability
+	if action.x and action.y then 
+		gui.set_position(gui.get_node("cursor"), vmath.vector3(action.x, action.y, 1))
+		if not thunder_active then
+			if action.pressed then
+				gui.set_scale(gui.get_node("cursor"), vmath.vector3(0.2, 0.2, 1))
+				gui.set_blend_mode(gui.get_node("cursor"), gui.BLEND_ALPHA)
+				gui.play_flipbook(gui.get_node("cursor"), hash("hand_grab_256"))
+			elseif action.released then
+				gui.set_scale(gui.get_node("cursor"), vmath.vector3(0.2, 0.2, 1))
+				gui.set_blend_mode(gui.get_node("cursor"), gui.BLEND_ALPHA)
+				gui.play_flipbook(gui.get_node("cursor"), hash("hand_open_256"))
+			end
+		end
+	end
 	if action_id == hash("touch_left") and action.pressed then
 		if shop_tile then
 			local buy;
@@ -232,6 +251,9 @@ function on_input(self, action_id, action)
 			node = node2
 		elseif gui.pick_node(gui.get_node("thunder"), action.x, action.y) then
 			ability = hash("thunder")
+			gui.set_blend_mode(gui.get_node("cursor"), gui.BLEND_ADD)
+			gui.set_scale(gui.get_node("cursor"), vmath.vector3(0.85, 0.85, 1))
+			gui.play_flipbook(gui.get_node("cursor"), hash("cursor_lightning"))
 		elseif gui.pick_node(gui.get_node("snow"), action.x, action.y) then
 			ability = hash("snow")
 		elseif gui.pick_node(gui.get_node("volume_switch"), action.x, action.y) then
@@ -253,7 +275,7 @@ function on_input(self, action_id, action)
 			active_node = node
 			return true
 		elseif ability then
-			msg.post("/game#board", "ability", { ability = ability })
+			msg.post("/game#board", "ability", { ability = ability, action_x = action.x, action_y = action.y})
 			return true
 		end
 	end
