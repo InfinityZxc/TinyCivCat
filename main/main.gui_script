@@ -125,20 +125,13 @@ function on_message(self, message_id, message, sender)
 	-- 	top_bar = gui.get_node("top_bar")
 	-- 	gui.set_text(top_bar, "YOU LOST :(")
 	-- 	gui.set_size(top_bar, vmath.vector3(100, 100, 0))
-	elseif message_id == hash("next_turn_is_village") then
-		local node = gui.get_node("village")
-		local pos = gui.get_position(node)
-		if pos.x ~= 1600 then
-			pos.x = pos.x - 450
+	elseif message_id == hash("next_village") then
+		local node = gui.get_node("in")
+		if message['turns'] == 1 then
+			gui.set_text(node, 'in 1 turn')
+		else
+			gui.set_text(node, string.format('in %d turns', message['turns']))
 		end
-		gui.animate(node, "position", pos, go.EASING_OUTSINE, 1)
-	elseif message_id == hash("next_turn_is_not_village") then
-		local node = gui.get_node("village")
-		local pos = gui.get_position(node)
-		if pos.x ~= 2050 then
-			pos.x = pos.x + 450
-		end
-		gui.animate(node, "position", pos, go.EASING_OUTSINE, 1)
 	elseif message_id == hash("thunder_been_used") then
 		thunder_active = false
 		gui.set_scale(gui.get_node("cursor"), vmath.vector3(0.2, 0.2, 1))
