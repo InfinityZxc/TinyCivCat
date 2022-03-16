@@ -34,6 +34,14 @@ function on_message(self, message_id, message, sender)
 			msg.post("#sprite", "play_animation", { id = hash("rock") })
 			change_tile(self, hash("rock"))
 		end
+	elseif message_id == hash("hide_slowly") then
+		go.animate("#sprite", "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(0.01, 0.01, 1), go.EASING_LINEAR, TILE_SHOW_HIDE_TIME)
+		timer.delay(TILE_SHOW_HIDE_TIME, false, function ()
+			msg.post("#sprite" , "disable")
+		end)
+	elseif message_id == hash("show_slowly") then
+		msg.post("#sprite" , "enable")
+		go.animate("#sprite", "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(0.5, 0.5, 1), go.EASING_LINEAR, TILE_SHOW_HIDE_TIME)
 	end
 end
 

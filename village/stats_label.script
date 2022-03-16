@@ -1,0 +1,96 @@
+go.property("type", hash("coin"))
+go.property("count", 0)
+go.property("needed_count", 2)
+go.property("offset_x", 0)
+go.property("offset_y", 0)
+
+function init(self)
+	msg.post("#sprite", "play_animation", {id = self.type})
+	go.set("#sprite", "scale", vmath.vector3(0.05, 0.05, 1))
+	go.set("#background", "scale", vmath.vector3(0.25, 0.25, 1))
+	label.set_text("#label", self.count)
+	msg.post("#label" , "disable")
+	msg.post("#sprite" , "disable")
+	msg.post("#background" , "disable")
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	-- Add update code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then 
+		msg.post("#label" , "enable")
+		msg.post("#sprite" , "enable")
+		msg.post("#background" , "enable")
+		local pos = go.get_position(".")
+		pos.x = pos.x + self.offset_x
+		pos.y = pos.y + self.offset_y
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_OUTBACK, SHOW_HIDE_TIME)
+
+		local scale_vec = vmath.vector3(0.20, 0.20, 1)
+		go.animate("#sprite", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_OUTBACK, SHOW_HIDE_TIME)
+		scale_vec = vmath.vector3(0.6, 0.6, 1)
+		go.animate("#label", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_OUTBACK, SHOW_HIDE_TIME)
+		scale_vec = vmath.vector3(0.25, 0.25, 1)
+		go.animate("#background", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_OUTBACK, SHOW_HIDE_TIME)
+	elseif message_id == hash("hide") then 
+		local pos = go.get_position(".")
+		pos.x = pos.x - self.offset_x
+		pos.y = pos.y - self.offset_y
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, SHOW_HIDE_TIME/1.6)
+
+		local scale_vec = vmath.vector3(0.05 , 0.05, 1)
+		go.animate("#sprite", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_LINEAR, SHOW_HIDE_TIME/1.6)
+		scale_vec = vmath.vector3(0.15 , 0.15, 1)
+		go.animate("#label", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_LINEAR, SHOW_HIDE_TIME)
+		scale_vec = vmath.vector3(0.03, 0.03, 1)
+		go.animate("#background", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_LINEAR, SHOW_HIDE_TIME)
+		
+		timer.delay(SHOW_HIDE_TIME/1.6, false, function ()
+			msg.post("#label" , "disable")
+			msg.post("#sprite" , "disable")
+			msg.post("#background" , "disable")
+		end)
+	elseif message_id == hash("update_count") then
+		self.count = message["info"]
+		update_label(self)
+	elseif message_id == hash("update_needed") then
+		self.needed_count = message["info"]
+		update_label(self)
+	end
+end
+
+function update_label(self)
+	if self.type ~= hash("coin") then
+		label.set_text("#label", self.count.."/"..self.needed_count)
+	else
+		label.set_text("#label", self.count)
+	end
+end
+
+function on_input(self, action_id, action)
+	-- Add input-handling code here. The game object this script is attached to
+	-- must have acquired input focus:
+	--
+	--    msg.post(".", "acquire_input_focus")
+	--
+	-- All mapped input bindings will be received. Mouse and touch input will
+	-- be received regardless of where on the screen it happened.
+	-- Learn more: https://defold.com/manuals/input/
+	-- Remove this function if not needed
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end

@@ -13,15 +13,21 @@ function init(self)
 	msg.post("#sprite", "play_animation", { id = anim_id })
 	local pos = vmath.vector3(go.get(".", "position").x , go.get(".", "position").y + 100, 1)
 	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 1)
+	
+	timer.delay(0.5, false, function ()
+		scale_vec = vmath.vector3(0.05, 0.05, 1)
+		go.animate("#sprite", "scale", go.PLAYBACK_ONCE_FORWARD, scale_vec, go.EASING_LINEAR, 0.45)
+	end)
+	timer.delay(0.95, false, function ()
+		msg.post("#sprite", "disable")
+	end)
 	timer.delay(1, false, function ()
 		go.delete(".")
 	end)
 end
 
 function final(self)
-	-- Add finalization code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
+	
 end
 
 function update(self, dt)

@@ -1,0 +1,59 @@
+local gate_time = 0.3
+
+function init(self)
+	-- Add initialization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+	self.sounds = {}
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	-- Add update code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+	for k,_ in pairs(self.sounds) do
+		self.sounds[k] = self.sounds[k] - dt
+		if self.sounds[k] < 0 then
+			self.sounds[k] = nil
+		end
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("play_gated_sound") then
+		-- Only play sounds that are not currently in the gating table.
+		if self.sounds[message.soundcomponent] == nil then
+			-- Store sound timer in table
+			self.sounds[message.soundcomponent] = gate_time
+			-- Play the sound
+			sound.play(message.soundcomponent, { gain = message.gain, delay = message.delay, pan = message.pan, speed = message.speed })
+		else
+			-- An attempt to play a sound was gated
+			print("gated " .. message.soundcomponent)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	-- Add input-handling code here. The game object this script is attached to
+	-- must have acquired input focus:
+	--
+	--    msg.post(".", "acquire_input_focus")
+	--
+	-- All mapped input bindings will be received. Mouse and touch input will
+	-- be received regardless of where on the screen it happened.
+	-- Learn more: https://defold.com/manuals/input/
+	-- Remove this function if not needed
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end
