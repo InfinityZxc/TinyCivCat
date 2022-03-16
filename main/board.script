@@ -902,12 +902,16 @@ function on_message(self, message_id, message, sender)
 		if not snow and message["ability"] == hash("snow") then
 			local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(message["action_x"], message["action_y"], 0))
 			delay_corrupt(self, world_pos)
-		elseif not thunder and message["ability"] == hash("thunder") then
-			if coins >= uncorrupt_cost then
-				thunder_active = true
-				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
+		elseif message["ability"] == hash("thunder") then
+			if not thunder then
+				if coins >= uncorrupt_cost then
+					thunder_active = true
+					msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
+				else
+					msg.post("/gui#main", "thunder_not_used", {action = "open"})
+				end
 			else
-				msg.post("/gui#main", "thunder_not_used", {action = "open"})
+				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 			end
 		elseif message["ability"] == hash("buy_tile") then
 			coins = coins - BUY_TILE_COST
