@@ -56,9 +56,9 @@ function on_message(self, message_id, message, sender)
 		village2_score = message.village2_score
 		village3_score = message.village3_score
 		gui.set_text(gui.get_node("turn_counter"), "You have survived")
-		gui.set_text(gui.get_node("triangle_score"), triangle_score .. " structure created")
-		gui.set_text(gui.get_node("village_score"), village_score .. " village created")
-		gui.set_text(gui.get_node("heal_cell_score"), heal_cell_score .. " healed cells")
+		gui.set_text(gui.get_node("triangle_score"), triangle_score .. " structures created")
+		gui.set_text(gui.get_node("village_score"), village_score .. " villages created")
+		gui.set_text(gui.get_node("heal_cell_score"), heal_cell_score .. " healed tiles")
 	elseif message_id == hash("game_lost") then
 		gui.play_flipbook(gui.get_node("anim"), hash("you_lost"))
 		won = false
@@ -70,9 +70,9 @@ function on_message(self, message_id, message, sender)
 		village3_score = message.village3_score
 		turn_counter = message.turn_counter
 		gui.set_text(gui.get_node("turn_counter"), "You survived " .. turn_counter .. " turn")
-		gui.set_text(gui.get_node("triangle_score"), triangle_score .. " structure created")
-		gui.set_text(gui.get_node("village_score"), village_score .. " village created")
-		gui.set_text(gui.get_node("heal_cell_score"), heal_cell_score .. " healed cells")
+		gui.set_text(gui.get_node("triangle_score"), triangle_score .. " structures created")
+		gui.set_text(gui.get_node("village_score"), village_score .. " villages created")
+		gui.set_text(gui.get_node("heal_cell_score"), heal_cell_score .. " healed tiles")
 	end
 end
 
