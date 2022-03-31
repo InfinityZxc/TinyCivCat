@@ -1,0 +1,236 @@
+local inner_ring = {"#sprite_1_1_top_left", "#sprite_1_1_top_right", "#sprite_2_1_left",
+"#sprite_1_0_top_right", "#sprite_2_0_left", "#sprite_2_-1_top_left", "#sprite_2_-1_left",
+"#sprite_1_-2_top_left", "#sprite_0_-2_top_right", "#sprite_0_-2_top_left",
+"#sprite_-1_-2_top_right", "#sprite_-1_-1_left", "#sprite_-2_-1_top_right", 
+"#sprite_-1_0_left", "#sprite_-1_0_top_left", "#sprite_-1_1_left", "#sprite_-1_1_top_left",
+"#sprite_-1_1_top_right"}
+local outer_ring = {"#sprite_0_2_top_left", "#sprite_0_2_top_right", "#sprite_1_2_top_left",
+"#sprite_1_2_top_right", "#sprite_1_2_right", "#sprite_2_1_top_right",
+"#sprite_2_1_right", "#sprite_2_0_top_right", "#sprite_2_0_right",
+"#sprite_2_0_bot_right", "#sprite_2_-1_right", "#sprite_2_-1_bot_right",
+"#sprite_1_-2_right", "#sprite_1_-2_bot_right", "#sprite_1_-2_bot_left",
+"#sprite_0_-2_bot_right", "#sprite_0_-2_bot_left", "#sprite_-1_-2_bot_right",
+"#sprite_-1_-2_bot_left", "#sprite_-1_-2_left", "#sprite_-2_-1_bot_left",
+"#sprite_-2_-1_left", "#sprite_-2_0_bot_left", "#sprite_-2_0_left",
+"#sprite_-2_0_top_left", "#sprite_-2_1_left", "#sprite_-2_1_top_left",
+"#sprite_-1_2_left", "#sprite_-1_2_top_left", "#sprite_-1_2_top_right",}
+local between_rings = {"#sprite_0_2_left", "#sprite_1_2_left", "#sprite_2_1_top_left", 
+"#sprite_2_0_top_left", "#sprite_2_-1_top_right", "#sprite_1_-2_top_right", "#sprite_1_-2_left",
+"#sprite_0_-2_left", "#sprite_-1_-2_top_left", "#sprite_-2_-1_top_left", "#sprite_-2_0_top_right",
+"#sprite_-2_1_top_right"}
+
+function init(self)
+	go.set(".", "scale", vmath.vector3(0.5, 0.5, 1))
+	
+	for i = 1, #between_rings do
+		msg.post(between_rings[i], "disable")
+	end
+	for i = 1, #outer_ring do
+		msg.post(outer_ring[i], "disable")
+	end
+	for i = 1, #inner_ring do
+		msg.post(inner_ring[i], "disable")
+	end
+	self.controled_tiles = {}
+	self.controled_tiles[-2] = {}
+	self.controled_tiles[-1] = {}
+	self.controled_tiles[0] = {}
+	self.controled_tiles[1] = {}
+	self.controled_tiles[2] = {}
+
+	self.controled_tiles[-2][-1] = false
+	self.controled_tiles[-2][0] = false
+	self.controled_tiles[-2][1] = false
+
+	self.controled_tiles[-1][-2] = false
+	self.controled_tiles[-1][2] = false
+
+	self.controled_tiles[0][-2] = false
+	self.controled_tiles[0][2] = false
+
+	self.controled_tiles[1][-2] = false
+	self.controled_tiles[1][2] = false
+
+	self.controled_tiles[-1][-2] = false
+	self.controled_tiles[-1][2] = false
+
+	self.controled_tiles[2][-1] = false
+	self.controled_tiles[2][0] = false
+	self.controled_tiles[2][1] = false
+
+	self.expanded = false
+	self.visible = false
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	-- Add update code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("expand") then 
+		self.expanded = true
+	elseif message_id == hash("lose_tile") or message_id == hash("obtain_tile") then
+		local x, y
+		y = message["tile_y"] - message["village_y"]
+		if y % 2 == 0 then
+			x = message["tile_x"] - message["village_x"]
+		else
+			if  message["tile_x"] - message["village_x"] > 0 then
+				x = 2
+			else
+				x = -2
+			end
+		end
+		if message_id == hash("lose_tile") then
+			self.controled_tiles[x][y] = false
+		else
+			self.controled_tiles[x][y] = true
+		end
+	elseif message_id == hash("show_hide") then
+		self.visible = not self.visible
+		if self.visible then
+			if not self.expanded then
+				for i = 1, #inner_ring do
+					msg.post(inner_ring[i], "enable")
+				end
+			else
+				if self.controled_tiles[0][2] then
+					msg.post("#sprite_0_2_top_left", "enable")
+					msg.post("#sprite_0_2_top_right", "enable")
+				else
+					msg.post("#sprite_-1_1_top_right", "enable")
+					msg.post("#sprite_1_1_top_left", "enable")
+				end
+				
+				if (self.controled_tiles[0][2] or self.controled_tiles[1][2]) and 
+				not (self.controled_tiles[0][2] and self.controled_tiles[1][2]) then
+					msg.post("#sprite_1_2_left", "enable")
+				end
+				
+				if self.controled_tiles[1][2] then
+					msg.post("#sprite_1_2_top_left", "enable")
+					msg.post("#sprite_1_2_top_right", "enable")
+					msg.post("#sprite_1_2_right", "enable")
+				else
+					msg.post("#sprite_1_1_top_right", "enable")
+				end
+				
+				if (self.controled_tiles[2][1] or self.controled_tiles[1][2]) and 
+				not (self.controled_tiles[2][1] and self.controled_tiles[1][2]) then
+					msg.post("#sprite_2_1_top_left", "enable")
+				end
+				
+				if self.controled_tiles[2][1] then
+					msg.post("#sprite_2_1_top_right", "enable")
+					msg.post("#sprite_2_1_right", "enable")
+				else
+					msg.post("#sprite_2_1_left", "enable")
+					msg.post("#sprite_1_0_top_right", "enable")
+				end
+				
+				if (self.controled_tiles[2][1] or self.controled_tiles[2][0]) and 
+				not (self.controled_tiles[2][1] and self.controled_tiles[2][0]) then
+					msg.post("#sprite_2_0_top_left", "enable")
+				end
+				
+				if self.controled_tiles[2][0] then
+					msg.post("#sprite_2_0_top_right", "enable")
+					msg.post("#sprite_2_0_bot_right", "enable")
+					msg.post("#sprite_2_0_right", "enable")
+				else
+					msg.post("#sprite_2_0_left", "enable")
+				end
+
+				if self.controled_tiles[2][-1] then
+					msg.post("#sprite_2_-1_bot_right", "enable")
+					msg.post("#sprite_2_-1_right", "enable")
+				else
+					msg.post("#sprite_2_-1_top_left", "enable")
+					msg.post("#sprite_2_-1_left", "enable")
+				end
+
+				if self.controled_tiles[1][-2] then
+					msg.post("#sprite_1_-2_bot_left", "enable")
+					msg.post("#sprite_1_-2_bot_right", "enable")
+					msg.post("#sprite_1_-2_right", "enable")
+				else
+					msg.post("#sprite_1_-2_top_left", "enable")
+				end
+
+				if self.controled_tiles[0][-2] then
+					msg.post("#sprite_0_-2_bot_left", "enable")
+					msg.post("#sprite_0_-2_bot_right", "enable")
+				else
+					msg.post("#sprite_0_-2_top_left", "enable")
+					msg.post("#sprite_0_-2_top_right", "enable")
+				end
+				
+				if self.controled_tiles[-1][-2] then
+					msg.post("#sprite_-1_-2_bot_left", "enable")
+					msg.post("#sprite_-1_-2_bot_right", "enable")
+					msg.post("#sprite_-1_-2_left", "enable")
+				else
+					msg.post("#sprite_-1_-2_top_right", "enable")
+				end
+				
+				if self.controled_tiles[-2][-1] then
+					msg.post("#sprite_-2_-1_bot_left", "enable")
+					msg.post("#sprite_-2_-1_left", "enable")
+				else
+					msg.post("#sprite_-2_-1_top_right", "enable")
+					msg.post("#sprite_0_-2_right", "enable")
+				end
+				
+				if self.controled_tiles[-2][0] then
+					msg.post("#sprite_-2_0_top_left", "enable")
+					msg.post("#sprite_-2_0_bot_left", "enable")
+					msg.post("#sprite_-2_0_left", "enable")
+				else
+					msg.post("#sprite_-1_0_left", "enable")
+				end
+				
+				if self.controled_tiles[-2][1] then
+					msg.post("#sprite_-2_1_top_left", "enable")
+					msg.post("#sprite_-2_1_left", "enable")
+				else
+					msg.post("#sprite_-1_0_top_left", "enable")
+					msg.post("#sprite_-1_1_left", "enable")
+				end
+				
+				if self.controled_tiles[-1][2] then
+					msg.post("#sprite_-1_2_top_left", "enable")
+					msg.post("#sprite_-1_2_top_right", "enable")
+					msg.post("#sprite_-1_2_left", "enable")
+				else
+					msg.post("#sprite_-1_1_top_left", "enable")
+				end
+			end
+		else
+			for i = 1, #between_rings do
+				msg.post(between_rings[i], "disable")
+			end
+			for i = 1, #outer_ring do
+				msg.post(outer_ring[i], "disable")
+			end
+			for i = 1, #inner_ring do
+				msg.post(inner_ring[i], "disable")
+			end
+		end
+	end
+end
+
+
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end

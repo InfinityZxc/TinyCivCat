@@ -57,6 +57,7 @@ local big_constant = 420
 local max_turn = 232
 local village_should_be_created = true
 local just_created_village = false
+local possible_area_show = true
 
 local camera_x_bound = 320
 local camera_y_bound = 180
@@ -78,6 +79,8 @@ local village_score = 0
 local heal_cell_score = 0
 local village2_score = 0
 local village3_score = 0
+
+local score = 0
 
 SNOW_ANIM_TIME = 2
 TILE_SHOW_HIDE_TIME = 1
@@ -120,21 +123,13 @@ function create_grid(self)
 	self.grid = {}
 	local pos = vmath.vector3()
 	for x = 0,boardwidth-1 do
-		pos.x = 64+hex_size*x +extrawidth
 		self.grid[x] = {}
 		for y = 0,boardheight-1 do
 			if check_coord(x, y) then
-				pos.y = 64+3*hex_size*y/4+extraheight
-				if y%2==1 then
-					pos.x = pos.x + hex_size/2
-				end
-				pos.z = 1 / (y + 3)
+				pos = return_coords_from_hex_index(self, x, y)
 				pos.z = pos.z / 2
 				local grid_id = factory.create("/game#boundaries_factory", pos, null)
 				self.grid[x][y] = {id = grid_id}
-				if y%2==1 then
-					pos.x = pos.x - hex_size/2
-				end
 			end
 		end
 	end
@@ -546,7 +541,7 @@ function bfs_handle_hex(self, hex_number, next, depth, village_x, village_y, vis
 	visited[x][y] = 1
 	if check_coord(x, y) and depth <= self.board[x][y].distance_to_village then
 		if depth < self.board[x][y].distance_to_village then
-			if self.board[x][y].village_num ~= nil and self.board[x][y].id and self.board[x][y].village_num ~= village_num then
+			if self.board[x][y].village_num ~= village_num and self.board[x][y].id then
 				if self.board[x][y].structure_name ~= nil then
 					subtract_resource_from_villages(self, self.board[x][y].tile_type, x, y)
 				end
@@ -629,25 +624,27 @@ function grow_bfs_handle_hex(self, hex_number, next, depth, village_x, village_y
 		(depth == self.board[x][y].distance_to_village) and depth == 2 and
 		self.villages[self.board[x][y].village_num].radius == 1 and
 		self.board[x][y].village_num ~= village_num then
-		self.board[x][y].distance_to_village = depth
-		self.board[x][y].village_center_x = village_x
-		self.board[x][y].village_center_y = village_y
-		self.board[x][y].village_num = village_num
-		if self.board[x][y].id and depth == 2 then 
-			if self.board[x][y].structure_name ~= nil then
-				timer.delay(0.5, false, function ()
-					add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
-				end)
+			self.board[x][y].distance_to_village = depth
+			self.board[x][y].village_center_x = village_x
+			self.board[x][y].village_center_y = village_y
+			self.board[x][y].village_num = village_num
+			if self.board[x][y].id and depth == 2 then 
+				if self.board[x][y].structure_name ~= nil then
+					timer.delay(0.5, false, function ()
+						add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
+					end)
+				end
+				add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
 			end
-			add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
-		end
-		elseif village_num == self.board[x][y].village_num and self.board[x][y].id and depth == 2 then
-			if self.board[x][y].structure_name ~= nil then
-				timer.delay(0.5, false, function ()
-					add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
-				end)
+		elseif village_num == self.board[x][y].village_num and depth == 2 then
+			if self.board[x][y].id then
+				if self.board[x][y].structure_name ~= nil then
+					timer.delay(0.5, false, function ()
+						add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
+					end)
+				end
+				add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
 			end
-			add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
 		end
 
 		local tmp_x, tmp_y
@@ -800,6 +797,34 @@ function subtract_resource_from_villages(self, tile_type, x, y)
 	end
 end
 
+function village_border_and_stats(self, village_num)
+	msg.post(msg.url(nil, self.villages[village_num].id , "village"), "change_stats_visibility")
+end
+
+function village_area(self, village_num)
+	if possible_area_show then
+		possible_area_show = false
+		for x = self.villages[village_num].x-2, self.villages[village_num].x+2 do
+			for y = self.villages[village_num].y-2, self.villages[village_num].y+2 do
+				if check_coord(x, y) and self.board[x][y].village_num == village_num and self.board[x][y].distance_to_village <= self.villages[village_num].radius then
+					local low_pos = go.get_position(self.grid[x][y].id)
+					local high_pos = vmath.vector3(low_pos.x, low_pos.y, 0.9)
+					timer.delay(self.board[x][y].distance_to_village * 0.1, false, function ()
+						msg.post(msg.url(nil, self.grid[x][y].id, "boundaries"), "make_orange")
+						go.set_position(high_pos, self.grid[x][y].id)
+						timer.delay(0.5, false, function ()
+							go.set_position(low_pos, self.grid[x][y].id)
+							msg.post(msg.url(nil, self.grid[x][y].id, "boundaries"), "make_light")
+						end)
+					end)
+				end
+			end
+		end
+		timer.delay(0.71, false, function ()
+			possible_area_show = true
+		end)
+	end
+end
 
 function corruption_iteration(self)
 	if turn_counter > corruption_beginning and corruption_delay == 0 then
@@ -1130,8 +1155,6 @@ function return_hex_index_from_coords(self, x, y)
 	return tmp_x, tmp_y
 end
 
-local score = 0
-
 function return_coords_from_hex_index(self, x, y)
 	local pos = vmath.vector3(0, 0, 0)
 	pos.x = 64 + hex_size * x + extrawidth
@@ -1397,7 +1420,15 @@ function on_input(self, action_id, action)
 		local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.x, action.y, 0))
 		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
 		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].distance_to_village == 0 then
-			msg.post(msg.url(nil, self.villages[self.board[tile_x][tile_y].village_num].id , "village"), "change_stats_visibility")
+			village_border_and_stats(self, self.board[tile_x][tile_y].village_num)
+		end
+	end
+
+	if action_id == hash("touch_right") and action.released then
+		local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.x, action.y, 0))
+		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
+		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].distance_to_village == 0 then
+			village_area(self, self.board[tile_x][tile_y].village_num)
 		end
 	end
 	

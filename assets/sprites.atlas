@@ -270,6 +270,14 @@ images {
   image: "/assets/hand_grab_256.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
+images {
+  image: "/assets/border_city_red_straight.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/assets/border_city_red_tilted.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
 animations {
   id: "bugged_wood"
   images {
