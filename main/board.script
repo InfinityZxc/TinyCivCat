@@ -37,7 +37,7 @@ local moving_tile_id = nil
 local moving_tile_offset = nil
 local map_type = hash("hex")
 go.property("map_type", hash("hex"))
-local corruption_beginning = 16
+local corruption_beginning = 4  --16
 local spawn_village_every_x_turn = 15
 local corruption_acceleration = 10
 local unhash = {
@@ -78,6 +78,8 @@ local village_score = 0
 local heal_cell_score = 0
 local village2_score = 0
 local village3_score = 0
+
+thunder_level = 1
 
 SNOW_ANIM_TIME = 2
 TILE_SHOW_HIDE_TIME = 1
@@ -411,6 +413,18 @@ function delay_corrupt(self, middle_pos)
 				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 			end
 		end
+	end
+end
+
+function thunder_usage(self, tile_x, tile_y)
+	if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].id and self.board[tile_x][tile_y].corrupted then
+		heal_cell(self, tile_x, tile_y)
+		thunder = true
+		make_upgrade_structure(self, tile_x, tile_y)
+		msg.post("/thunder_area", "disable")
+		return true
+	else
+		return false
 	end
 end
 
@@ -800,7 +814,6 @@ function subtract_resource_from_villages(self, tile_type, x, y)
 	end
 end
 
-
 function corruption_iteration(self)
 	if turn_counter > corruption_beginning and corruption_delay == 0 then
 		for i = 0, (math.max(0, math.floor((turn_counter-(delay_cost-initial_delay_cost)/ability_cost_increase-corruption_beginning)/corruption_acceleration))) - 1 + (turn_counter%2) do
@@ -931,6 +944,7 @@ function on_message(self, message_id, message, sender)
 			if not thunder then
 				if coins >= uncorrupt_cost then
 					thunder_active = true
+					msg.post("/thunder_area", "show")
 					msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
 				else
 					msg.post("/gui#main", "thunder_not_used", {action = "open"})
@@ -1074,6 +1088,7 @@ function on_message(self, message_id, message, sender)
 		self.villages = {}
 		village_count = 0
 		village_next_id = 1
+		thunder_level = 1
 		just_created_village = false
 		village_should_be_created = false
 		make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
@@ -1394,20 +1409,23 @@ function on_input(self, action_id, action)
 	end
 	
 	if action_id == hash("touch_left") and action.released then
-		local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.x, action.y, 0))
 		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
 		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].distance_to_village == 0 then
 			msg.post(msg.url(nil, self.villages[self.board[tile_x][tile_y].village_num].id , "village"), "change_stats_visibility")
 		end
 	end
-	
+
+	if thunder_active then
+		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
+		local pos = return_coords_from_hex_index(self, tile_x, tile_y)
+		pos.z = 0.9
+		go.set("/thunder_area", "position", pos)
+	end
 	if thunder_active and action_id == hash("touch_left") and action.pressed then
 		thunder_active = false
 		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
-		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].id and self.board[tile_x][tile_y].corrupted then
-			heal_cell(self, tile_x, tile_y)
-			thunder = true
-			make_upgrade_structure(self, tile_x, tile_y)
+		local successful_use = thunder_usage(self, tile_x, tile_y)
+		if successful_use then
 			msg.post("/gui#main", "thunder_been_used")
 			msg.post("/cursor#cursor", "thunder_been_used")
 			msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#thunder",  gain = 0.01*volume, delay = 0.2, pan = -1.0, speed = 0.7})
