@@ -80,6 +80,8 @@ local village2_score = 0
 local village3_score = 0
 
 thunder_level = 1
+local stored_thunder = 0
+local stored_snow = 0
 
 SNOW_ANIM_TIME = 2
 TILE_SHOW_HIDE_TIME = 1
@@ -421,9 +423,12 @@ function thunder_usage(self, tile_x, tile_y)
 		heal_cell(self, tile_x, tile_y)
 		thunder = true
 		make_upgrade_structure(self, tile_x, tile_y)
-		msg.post("/thunder_area", "disable")
+		
+		msg.post("/thunder_area", "hide")
 		return true
 	else
+
+		msg.post("/thunder_area", "hide")
 		return false
 	end
 end
@@ -814,6 +819,10 @@ function subtract_resource_from_villages(self, tile_type, x, y)
 	end
 end
 
+function spawn_ability(self)
+
+end
+
 function corruption_iteration(self)
 	if turn_counter > corruption_beginning and corruption_delay == 0 then
 		for i = 0, (math.max(0, math.floor((turn_counter-(delay_cost-initial_delay_cost)/ability_cost_increase-corruption_beginning)/corruption_acceleration))) - 1 + (turn_counter%2) do
@@ -1015,6 +1024,7 @@ function on_message(self, message_id, message, sender)
 		end
 		thunder = false
 		thunder_active = false
+		print("turn reset")
 		msg.post("/gui#main", "thunder_not_used", {action = "open"})
 		msg.post("/cursor#cursor", "thunder_not_used", {action = "open"})
 		if coins >= delay_cost then
@@ -1079,6 +1089,8 @@ function on_message(self, message_id, message, sender)
 		heal_cell_score = 0
 		village2_score = 0
 		village3_score = 0
+		stored_thunder = 0
+		stored_snow = 0
 		self.board = new_board()
 		for village_num = 1, #self.villages do
 			if self.villages[village_num].id then
@@ -1405,6 +1417,12 @@ function on_input(self, action_id, action)
 				show_hide_moves(self)
 			end
 		end
+		if thunder_active then
+			print("moved with thunder")
+			thunder_active = false
+			msg.post("/gui#main", "thunder_not_used", {action = "open"})
+			msg.post("/cursor#cursor", "thunder_not_used", {action = "grab"})
+		end
 		return true
 	end
 	
@@ -1426,10 +1444,12 @@ function on_input(self, action_id, action)
 		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
 		local successful_use = thunder_usage(self, tile_x, tile_y)
 		if successful_use then
+			print("used ok")
 			msg.post("/gui#main", "thunder_been_used")
 			msg.post("/cursor#cursor", "thunder_been_used")
 			msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#thunder",  gain = 0.01*volume, delay = 0.2, pan = -1.0, speed = 0.7})
 		else
+			print("used not ok")
 			msg.post("/gui#main", "thunder_not_used", {action = "grab"})
 			msg.post("/cursor#cursor", "thunder_not_used", {action = "grab"})
 		end

@@ -105,7 +105,8 @@ function on_message(self, message_id, message, sender)
 			gui.play_flipbook(active_node, message['tile_type'])
 			active_node = nil;
 		end
-	elseif message_id == hash("set_asset") then
+	end
+	if message_id == hash("set_asset") then
 		gui.play_flipbook(gui.get_node(message.node_id), message.anim_id)
 	elseif message_id == hash("gui_set_coins") then
 		gui.set_text(gui.get_node("coins"), string.format("%d", message.coins))
@@ -137,8 +138,10 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("end_screen") then
 		end_screen = message['end_screen']
 	elseif message_id == hash("thunder_been_used") then
+		print("been")
 		msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 	elseif message_id == hash("thunder_not_used") then
+		print("no")
 		msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
 	end
 end
