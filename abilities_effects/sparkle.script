@@ -1,6 +1,7 @@
+go.property("ability_type", nil)
+
 function init(self)
-	go.set(".", "scale", vmath.vector3(0.5,0.5,1))
-	msg.post("." , "disable")
+	go.set("#sprite", "scale", vmath.vector3(0.5, 0.5, 1))
 end
 
 function final(self)
@@ -15,31 +16,12 @@ function update(self, dt)
 	-- Remove this function if not needed
 end
 
-function fixed_update(self, dt)
-	-- Add update code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
-end
-
 function on_message(self, message_id, message, sender)
-	if message_id == hash("upgrade") then
-
-	elseif message_id == hash("show") then
-		msg.post("#sprite_mid" , "enable")
-		if thunder_level >= 2 then
-			msg.post("#sprite_mid_right" , "enable")
-		end
-		if thunder_level >= 3 then
-			msg.post("#sprite_top_right" , "enable")
-			msg.post("#sprite_bot_right" , "enable")
-		end
-		if thunder_level >= 4 then
-			msg.post("#sprite_top_left" , "enable")
-			msg.post("#sprite_mid_left" , "enable")
-			msg.post("#sprite_bot_left" , "enable")
-		end
-	elseif message_id == hash("hide") then
-		msg.post(".", disable)
+	if message_id == hash("activated") then 
+		msg.post("/game#board", "get_ability", {ability_type = self.ability_type})
+		timer.delay(1, false, function ()
+			go.delete(".")
+		end)
 	end
 end
 

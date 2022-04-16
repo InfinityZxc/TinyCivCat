@@ -37,7 +37,7 @@ local moving_tile_id = nil
 local moving_tile_offset = nil
 local map_type = hash("hex")
 go.property("map_type", hash("hex"))
-local corruption_beginning = 4  --16
+local corruption_beginning = 16
 local spawn_village_every_x_turn = 15
 local corruption_acceleration = 10
 local unhash = {
@@ -80,8 +80,8 @@ local village2_score = 0
 local village3_score = 0
 
 thunder_level = 1
-local stored_thunder = 0
-local stored_snow = 0
+local stored_delay = 0
+local stored_uncorrupt = 0
 
 SNOW_ANIM_TIME = 2
 TILE_SHOW_HIDE_TIME = 1
@@ -108,7 +108,7 @@ function init(self)
 	make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
 	make_possible_moves_around(self, start_hex_pos.x + 1, start_hex_pos.y)
 	create_grid(self)
-	
+	spawn_ability(self)
 	self.villages = {}
 	
 	score_calculation(self, hash("none"), hash("none"))
@@ -820,7 +820,22 @@ function subtract_resource_from_villages(self, tile_type, x, y)
 end
 
 function spawn_ability(self)
+	
+	--bla bla bla   -- delay / uncorrupt   choose x y
+	local x = 5
+	local y = 5
+	
+	local pos = return_coords_from_hex_index(self, x, y)
+	pos.z = 1
+	pos.y = pos.y + 10
+	id_sparkle = factory.create("#sparkle_factory", pos, null, {ability_type = hash("delay")})
+	self.board[x][y].tile_type = id_sparkle
+end
 
+function placed_on_tile(self, tile_x, tile_y)
+	if self.board[tile_x][tile_y].tile_type then
+		msg.post(msg.url(nil, self.board[tile_x][tile_y].tile_type, "sparkle"), "activated")
+	end 
 end
 
 function corruption_iteration(self)
@@ -1130,6 +1145,14 @@ function on_message(self, message_id, message, sender)
 				sound.play("/sound#corruption_appears_theme", { delay = 1, gain = 0.08*volume, pan = -1.0, speed = 1.0} )
 			end
 		end
+	elseif message_id == hash("get_ability") then
+		if message["ability_type"] == hash("delay") then
+			stored_delay = stored_delay + 1
+		elseif message["ability_type"] == hash("uncorrupt") then
+			stored_uncorrupt = stored_uncorrupt + 1
+		else
+
+		end
 	end
 end
 
@@ -1374,6 +1397,7 @@ function on_input(self, action_id, action)
 			moving_tile_url.fragment = "tile"
 			local tile_type = go.get(moving_tile_url, "tile_type")
 			if check_coord(tile_x, tile_y) and not self.board[tile_x][tile_y].id and close_hex_number(self, tile_x, tile_y) > 0 then
+				placed_on_tile(self, tile_x, tile_y)
 				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
 				go.animate(moving_tile_id, "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.4)
 				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false, possible_move = true,
