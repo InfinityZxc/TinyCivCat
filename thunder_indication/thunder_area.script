@@ -39,7 +39,7 @@ function on_message(self, message_id, message, sender)
 			msg.post("#sprite_bot_left" , "enable")
 		end
 	elseif message_id == hash("hide") then
-		msg.post(".", disable)
+		msg.post(".", "disable")
 	end
 end
 

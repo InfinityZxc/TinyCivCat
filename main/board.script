@@ -37,7 +37,7 @@ local moving_tile_id = nil
 local moving_tile_offset = nil
 local map_type = hash("hex")
 go.property("map_type", hash("hex"))
-local corruption_beginning = 16
+local corruption_beginning = 4
 local spawn_village_every_x_turn = 15
 local corruption_acceleration = 10
 local unhash = {
@@ -79,9 +79,9 @@ local heal_cell_score = 0
 local village2_score = 0
 local village3_score = 0
 
-thunder_level = 1
-local stored_delay = 0
-local stored_uncorrupt = 0
+thunder_level = 3
+local stored_delay = 1
+local stored_uncorrupt = 1
 
 SNOW_ANIM_TIME = 2
 TILE_SHOW_HIDE_TIME = 1
@@ -348,22 +348,10 @@ function update_income (type)
 end
 
 function heal_cell(self, x, y)
-	if (coins >= uncorrupt_cost) and self.board[x][y].corrupted then
+	if self.board[x][y].corrupted then
 		self.board[x][y].corrupted = false;
 		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = self.board[x][y].tile_type})
-		coins = coins - uncorrupt_cost
-		uncorrupt_cost = uncorrupt_cost + ability_cost_increase
-		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
-		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
-		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		heal_cell_score = heal_cell_score + 1
-		if not snow then
-			if coins >= delay_cost then
-				msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
-			else
-				msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_used")})
-			end
-		end
 		if village_count >= 0 then
 			if self.board[x][y].distance_to_village ~= big_constant then
 				msg.post(msg.url(nil, self.villages[self.board[x][y].village_num].id, "village"), "get_resource", 
@@ -376,13 +364,12 @@ end
 function delay_corrupt(self, middle_pos)
 	local middle_hex_x, middle_hex_y
 	middle_hex_x, middle_hex_y = return_hex_index_from_coords(self, middle_pos.x, middle_pos.y)
-	if coins >= delay_cost then
+	if stored_uncorrupt >= 1 then
 		snow = true
 		corruption_delay = 1
-		coins = coins - delay_cost
-		delay_cost = delay_cost + ability_cost_increase
-		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
-		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
+		stored_delay = stored_delay - 1
+		msg.post("/gui#main", "gui_set_thunder_cost", {cost = stored_uncorrupt})
+		msg.post("/gui#main", "gui_set_snow_cost", {cost = stored_delay})
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_active")})
 		for x = 0,boardwidth-1 do
@@ -408,27 +395,58 @@ function delay_corrupt(self, middle_pos)
 				end
 			end
 		end
-		if not thunder then
-			if coins >= uncorrupt_cost then
-				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
-			else
-				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
-			end
-		end
 	end
 end
 
 function thunder_usage(self, tile_x, tile_y)
+	local actually_healed = 0
 	if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].id and self.board[tile_x][tile_y].corrupted then
 		heal_cell(self, tile_x, tile_y)
-		thunder = true
 		make_upgrade_structure(self, tile_x, tile_y)
-		
-		msg.post("/thunder_area", "hide")
+		actually_healed = actually_healed + 1
+	end
+	if thunder_level >= 2 then
+		if check_coord(tile_x + 1, tile_y) and self.board[tile_x + 1][tile_y].id and self.board[tile_x + 1][tile_y].corrupted then
+			heal_cell(self, tile_x + 1, tile_y)
+			make_upgrade_structure(self, tile_x + 1, tile_y)
+			actually_healed = actually_healed + 1
+		end
+	end
+	if thunder_level >= 3 then
+		local sdvig = tile_y%2
+		if check_coord(tile_x + sdvig, tile_y + 1) and self.board[tile_x + sdvig][tile_y + 1].id and self.board[tile_x + sdvig][tile_y + 1].corrupted then
+			heal_cell(self, tile_x + sdvig, tile_y + 1)
+			make_upgrade_structure(self, tile_x + sdvig, tile_y + 1)
+			actually_healed = actually_healed + 1
+		end
+		if check_coord(tile_x + sdvig, tile_y - 1) and self.board[tile_x + sdvig][tile_y - 1].id and self.board[tile_x + sdvig][tile_y - 1].corrupted then
+			heal_cell(self, tile_x + sdvig, tile_y - 1)
+			make_upgrade_structure(self, tile_x + sdvig, tile_y - 1)
+			actually_healed = actually_healed + 1
+		end
+	end
+	if thunder_level >= 4 then
+		local tmp_x, tmp_y
+		for i = 1, 6 do
+			tmp_x = tile_x + neighbour_sdvig_x[y%2+1][i]
+			tmp_y = tile_y + neighbour_sdvig_y[y%2+1][i]
+			if check_coord(tmp_x, tmp_y) and self.board[tmp_x][tmp_y].id and self.board[tmp_x][tmp_y].corrupted then
+				heal_cell(self, tmp_x, tmp_y)
+				make_upgrade_structure(self, tmp_x, tmp_y)
+				actually_healed = actually_healed + 1
+			end
+		end
+	end
+	
+	msg.post("/thunder_area", "hide")
+	if actually_healed > 0 then
+		thunder = true
+		stored_uncorrupt = stored_uncorrupt - 1
+		msg.post("/gui#main", "gui_set_thunder_cost", {cost = stored_uncorrupt})
+		msg.post("/gui#main", "gui_set_snow_cost", {cost = stored_delay})
+		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		return true
 	else
-
-		msg.post("/thunder_area", "hide")
 		return false
 	end
 end
@@ -824,11 +842,12 @@ function spawn_ability(self)
 	--bla bla bla   -- delay / uncorrupt   choose x y
 	local x = 5
 	local y = 5
+	local new_ability_type = hash("delay")
 	
 	local pos = return_coords_from_hex_index(self, x, y)
 	pos.z = 1
 	pos.y = pos.y + 10
-	id_sparkle = factory.create("#sparkle_factory", pos, null, {ability_type = hash("delay")})
+	id_sparkle = factory.create("#sparkle_factory", pos, null, {ability_type = new_ability_type})
 	self.board[x][y].tile_type = id_sparkle
 end
 
@@ -966,7 +985,7 @@ function on_message(self, message_id, message, sender)
 			msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#snow",  gain = 0.02*volume, delay = 0.2, pan = -1.0, speed = 0.7})
 		elseif message["ability"] == hash("thunder") then
 			if not thunder then
-				if coins >= uncorrupt_cost then
+				if stored_uncorrupt >= 1 then
 					thunder_active = true
 					msg.post("/thunder_area", "show")
 					msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
@@ -1040,14 +1059,12 @@ function on_message(self, message_id, message, sender)
 		thunder = false
 		thunder_active = false
 		print("turn reset")
-		msg.post("/gui#main", "thunder_not_used", {action = "open"})
-		msg.post("/cursor#cursor", "thunder_not_used", {action = "open"})
-		if coins >= delay_cost then
+		if stored_delay >= 1 then
 			msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
 		else
 			msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_used")})
 		end
-		if coins >= uncorrupt_cost then
+		if stored_uncorrupt >= 1 then
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
 		else
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})

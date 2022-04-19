@@ -138,10 +138,8 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("end_screen") then
 		end_screen = message['end_screen']
 	elseif message_id == hash("thunder_been_used") then
-		print("been")
 		msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 	elseif message_id == hash("thunder_not_used") then
-		print("no")
 		msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
 	end
 end
