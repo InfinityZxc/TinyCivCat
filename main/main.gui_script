@@ -140,7 +140,11 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("thunder_been_used") then
 		msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 	elseif message_id == hash("thunder_not_used") then
-		msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
+		if message["still_can_do"] then 
+			msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
+		else
+			msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
+		end
 	end
 end
 
