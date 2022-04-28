@@ -1,6 +1,12 @@
 local camera = require "orthographic.camera"
 
 local hex_size
+
+-- local original_width = render.get_width()
+-- local original_height = render.get_height()
+-- local current_width = render.get_window_width()
+-- local current_height = render.get_window_height()
+
 go.property("hex_size", 128)
 local boardwidth
 go.property("boardwidth", 18) -- always even
@@ -84,7 +90,7 @@ TILE_SHOW_HIDE_TIME = 1
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
-	defos.disable_window_resize()
+	--defos.disable_window_resize()
 	defos.on_mouse_enter(function ()
 		defos.set_cursor_visible(false)
 	end)
@@ -1079,6 +1085,7 @@ function on_message(self, message_id, message, sender)
 		make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
 		make_possible_moves_around(self, start_hex_pos.x + 1, start_hex_pos.y)
 		score_calculation(self, hash("none"), hash("none"))
+		sound.stop("/sound")
 		sound.play("/sound#begining_of_game", { delay = 1, gain = theme_sound_gain * volume, pan = -1.0, speed = 1.0} )
 	elseif message_id == hash("clear_corruption") then
 		clear_corruption(self, true)
