@@ -39,12 +39,12 @@ function show_abilities()
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("snow_coins")
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
 	gui.set_position(node, pos)
-
+--]]
 	local node = gui.get_node("thunder")
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
@@ -56,6 +56,16 @@ function show_abilities()
 	gui.set_position(node, pos)
 
 	local node = gui.get_node("thunder_coins")
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder_upgrade")
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("upgrade_thunder_cost")
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
 	gui.set_position(node, pos)
@@ -86,8 +96,18 @@ function hide_abilities()
 	local pos = gui.get_position(node)
 	pos.y = pos.y - 1080
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("thunder_coins")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+--]]
+	local node = gui.get_node("thunder_upgrade")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("upgrade_thunder_cost")
 	local pos = gui.get_position(node)
 	pos.y = pos.y - 1080
 	gui.set_position(node, pos)
