@@ -1293,8 +1293,8 @@ nodes {
 }
 nodes {
   position {
-    x: 1795.0
-    y: -450.0
+    x: 1600.0
+    y: -350.0
     z: 0.0
     w: 1.0
   }
@@ -1639,8 +1639,8 @@ nodes {
 }
 nodes {
   position {
-    x: 1715.0
-    y: -450.0
+    x: 1670.0
+    y: -280.0
     z: 0.0
     w: 1.0
   }
@@ -1670,7 +1670,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "sprites/upgrade_button"
+  texture: "sprites/upgrade_grey_128"
   id: "thunder_upgrade"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -1694,8 +1694,8 @@ nodes {
 }
 nodes {
   position {
-    x: 1825.0
-    y: -450.0
+    x: 1640.0
+    y: -350.0
     z: 0.0
     w: 1.0
   }

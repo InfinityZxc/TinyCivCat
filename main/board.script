@@ -80,9 +80,10 @@ local village2_score = 0
 local village3_score = 0
 
 local abilities_list = {hash("delay"), hash("uncorrupt")}
-thunder_level = 3
+thunder_level = 1
 local stored_delay = 1
 local stored_uncorrupt = 1
+local thunder_upgrade_cost = 200
 
 SNOW_ANIM_TIME = 2
 TILE_SHOW_HIDE_TIME = 1
@@ -117,6 +118,7 @@ function init(self)
 	msg.post("/cursor#cursor", "acquire_input_focus")
 	msg.post("/gui#main", "gui_set_thunder_cost", {cost = stored_uncorrupt})
 	msg.post("/gui#main", "gui_set_snow_cost", {cost = stored_delay})
+	msg.post("/gui#main", "gui_set_thunder_upgrade_cost", {cost = thunder_upgrade_cost})
 	sound.play("/sound#begining_of_game", { delay = 1, gain = theme_sound_gain * volume, pan = -1.0, speed = 1.0} )
 end
 
@@ -1084,6 +1086,9 @@ function on_message(self, message_id, message, sender)
 			end
 		end
 		score_calculation(self, hash("none"), hash("none"))
+		if coins >= thunder_upgrade_cost then
+			msg.post("/gui#main", "thunder_can_upgrade")
+		end
 		if snow then
 			snow = false
 			for x = 0,boardwidth-1 do
@@ -1213,9 +1218,10 @@ function on_message(self, message_id, message, sender)
 			stored_uncorrupt = stored_uncorrupt + 1
 			msg.post("/gui#main", "gui_set_thunder_cost", {cost = stored_uncorrupt})
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
-		else
-
 		end
+	elseif message_id == hash("upgrade_thunder") then
+		thunder_upgrade_cost = thunder_upgrade_cost * 2
+		msg.post("/gui#main", "gui_set_thunder_upgrade_cost", {cost = thunder_upgrade_cost})
 	end
 end
 

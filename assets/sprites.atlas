@@ -271,7 +271,11 @@ images {
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
-  image: "/assets/upgrade_button.png"
+  image: "/assets/upgrade_grey_128.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/assets/upgrade_yellow_128.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 animations {
