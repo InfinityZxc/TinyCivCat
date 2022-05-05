@@ -1,5 +1,7 @@
 local camera = require "orthographic.camera"
 
+local screen = require('libs.screen')
+
 local hex_size
 
 -- local original_width = render.get_width()
@@ -88,7 +90,14 @@ local village3_score = 0
 SNOW_ANIM_TIME = 2
 TILE_SHOW_HIDE_TIME = 1
 
+local function relayout(self)
+	
+-- action when resolution changes	
+end
+
 function init(self)
+	--print(screen.width, screen.height)
+	
 	msg.post(".", "acquire_input_focus")
 	--defos.disable_window_resize()
 	defos.on_mouse_enter(function ()
@@ -120,6 +129,10 @@ function init(self)
 	msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
 	msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
 	sound.play("/sound#begining_of_game", { delay = 1, gain = theme_sound_gain * volume, pan = -1.0, speed = 1.0} )
+
+	table.insert(screen.resize_listeners, msg.url())
+
+	relayout(self)
 end
 
 function create_grid(self)
@@ -1110,7 +1123,11 @@ function on_message(self, message_id, message, sender)
 				sound.play("/sound#corruption_appears_theme", { delay = 1, gain = 0.08*volume, pan = -1.0, speed = 1.0} )
 			end
 		end
+	elseif message_id == hash("on_resize") then
+		relayout(self)
+		--print(screen.width, screen.height)
 	end
+	
 end
 
 function pick_hex(hex_x, hex_y, x, y)
@@ -1346,7 +1363,7 @@ function make_upgrade_structure(self, x, y)
 end
 
 function on_input(self, action_id, action)
-	local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.x, action.y, 0))
+	local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.screen_x, action.screen_y, 0))
 	if action_id == hash("touch_left") and moving_tile_id then
 		if action.released then
 			local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
@@ -1401,7 +1418,7 @@ function on_input(self, action_id, action)
 	end
 	
 	if action_id == hash("touch_left") and action.released then
-		local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.x, action.y, 0))
+		local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.screen_x, action.screen_y, 0))
 		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
 		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].distance_to_village == 0 then
 			msg.post(msg.url(nil, self.villages[self.board[tile_x][tile_y].village_num].id , "village"), "change_stats_visibility")
