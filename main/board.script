@@ -16,7 +16,7 @@ local delay_cost = 35
 local uncorrupt_cost = 35
 BUY_TILE_COST = 40
 local ability_cost_increase = 3
-local coins = 0
+coins = 0
 local coin_income = 0
 local corruption_delay = 0
 local start_hex_pos =  nil
@@ -37,7 +37,7 @@ local moving_tile_id = nil
 local moving_tile_offset = nil
 local map_type = hash("hex")
 go.property("map_type", hash("hex"))
-local corruption_beginning = 4  -- 16
+local corruption_beginning = 16
 local spawn_village_every_x_turn = 15
 local corruption_acceleration = 10
 local unhash = {
@@ -81,9 +81,10 @@ local village3_score = 0
 
 local abilities_list = {hash("delay"), hash("uncorrupt")}
 thunder_level = 1
-local stored_delay = 1
-local stored_uncorrupt = 1
-local thunder_upgrade_cost = 200
+thunder_max_level = 4
+local stored_delay = 0
+local stored_uncorrupt = 0
+thunder_upgrade_cost = 200
 
 SNOW_ANIM_TIME = 2
 TILE_SHOW_HIDE_TIME = 1
@@ -428,8 +429,8 @@ function thunder_usage(self, tile_x, tile_y)
 	if thunder_level >= 4 then
 		local tmp_x, tmp_y
 		for i = 1, 6 do
-			tmp_x = tile_x + neighbour_sdvig_x[y%2+1][i]
-			tmp_y = tile_y + neighbour_sdvig_y[y%2+1][i]
+			tmp_x = tile_x + neighbour_sdvig_x[tile_y%2+1][i]
+			tmp_y = tile_y + neighbour_sdvig_y[tile_y%2+1][i]
 			if check_coord(tmp_x, tmp_y) and self.board[tmp_x][tmp_y].id and self.board[tmp_x][tmp_y].corrupted then
 				heal_cell(self, tmp_x, tmp_y)
 				make_upgrade_structure(self, tmp_x, tmp_y)
@@ -443,7 +444,6 @@ function thunder_usage(self, tile_x, tile_y)
 		thunder = true
 		stored_uncorrupt = stored_uncorrupt - 1
 		msg.post("/gui#main", "gui_set_thunder_cost", {cost = stored_uncorrupt})
-		msg.post("/gui#main", "gui_set_snow_cost", {cost = stored_delay})
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		return true
 	else
@@ -1087,7 +1087,9 @@ function on_message(self, message_id, message, sender)
 		end
 		score_calculation(self, hash("none"), hash("none"))
 		if coins >= thunder_upgrade_cost then
-			msg.post("/gui#main", "thunder_can_upgrade")
+			msg.post("/gui#main", "is_thunder_upgrade_possible", {possible = true})
+		else
+			msg.post("/gui#main", "is_thunder_upgrade_possible", {possible = false})
 		end
 		if snow then
 			snow = false
@@ -1137,6 +1139,8 @@ function on_message(self, message_id, message, sender)
 					if self.board[x][y] then
 						if self.board[x][y].id then
 							go.delete(self.board[x][y].id)
+						elseif self.board[x][y].tile_type then
+							go.delete(self.board[x][y].tile_type)
 						end
 					end
 				end
@@ -1144,8 +1148,12 @@ function on_message(self, message_id, message, sender)
 		end
 		delay_cost = initial_delay_cost
 		uncorrupt_cost = initial_uncorrupt_cost
-		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
-		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
+		stored_thunder = 0
+		stored_snow = 0
+		thunder_upgrade_cost = 200
+		msg.post("/gui#main", "gui_set_thunder_cost", {cost = stored_thunder})
+		msg.post("/gui#main", "gui_set_snow_cost", {cost = stored_snow})
+		msg.post("/gui#main", "gui_set_thunder_upgrade_cost", {cost = thunder_upgrade_cost})
 		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_used")})
 		msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 		coins = 0
@@ -1167,8 +1175,6 @@ function on_message(self, message_id, message, sender)
 		heal_cell_score = 0
 		village2_score = 0
 		village3_score = 0
-		stored_thunder = 0
-		stored_snow = 0
 		self.board = new_board()
 		for village_num = 1, #self.villages do
 			if self.villages[village_num].id then
@@ -1180,7 +1186,7 @@ function on_message(self, message_id, message, sender)
 		village_next_id = 1
 		thunder_level = 1
 		just_created_village = false
-		village_should_be_created = false
+		village_should_be_created = true
 		make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
 		make_possible_moves_around(self, start_hex_pos.x + 1, start_hex_pos.y)
 		score_calculation(self, hash("none"), hash("none"))
@@ -1220,6 +1226,9 @@ function on_message(self, message_id, message, sender)
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
 		end
 	elseif message_id == hash("upgrade_thunder") then
+		thunder_level = thunder_level + 1
+		coins = coins - thunder_upgrade_cost
+		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		thunder_upgrade_cost = thunder_upgrade_cost * 2
 		msg.post("/gui#main", "gui_set_thunder_upgrade_cost", {cost = thunder_upgrade_cost})
 	end
