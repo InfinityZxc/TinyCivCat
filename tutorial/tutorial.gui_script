@@ -11,27 +11,27 @@ local ABILITIES_TEXT = "To fight back against corruption you have two abilities.
 function hide_tutorial()
 	local node = gui.get_node("shadow1")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - 10800
 	gui.set_position(node, pos)
 
 	local node = gui.get_node("shadow2")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - 10800
 	gui.set_position(node, pos)
 
 	local node = gui.get_node("shadow3")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - 10800
 	gui.set_position(node, pos)
 
 	local node = gui.get_node("shadow4")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - 10800
 	gui.set_position(node, pos)
 
 	local node = gui.get_node("text")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - 10800
 	gui.set_position(node, pos)
 end
 
@@ -134,13 +134,13 @@ function tutorial_corruption()
 
 	local node = gui.get_node("shadow2")
 	local size = gui.get_size(node)
-	size.x = 1080
+	size.x = 10800
 	size.y = 484
 	gui.set_size(node, size)
 
 	local node = gui.get_node("shadow3")
 	local size = gui.get_size(node)
-	size.x = 1080
+	size.x = 10800
 	size.y = 455
 	gui.set_size(node, size)
 
@@ -150,7 +150,7 @@ function tutorial_corruption()
 	size.y = 141
 	gui.set_size(node, size)
 	local pos = gui.get_position(node)
-	pos.y = 1080 - 455
+	pos.y = 10800 - 455
 	gui.set_position(node, pos)
 
 	local t = gui.get_node("text")
