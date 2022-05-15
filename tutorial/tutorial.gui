@@ -303,8 +303,8 @@ nodes {
 }
 nodes {
   position {
-    x: 960.0
-    y: 460.0
+    x: 990.0
+    y: 540.0
     z: 0.0
     w: 1.0
   }
@@ -321,7 +321,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 400.0
+    x: 200.0
     y: 100.0
     z: 0.0
     w: 1.0
@@ -334,9 +334,9 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Play with tutorial"
+  text: "Click anywhere to start game"
   font: "main"
-  id: "play_with_tutorial"
+  id: "to_begin_text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -366,8 +366,8 @@ nodes {
 }
 nodes {
   position {
-    x: 960.0
-    y: 540.0
+    x: 686.0
+    y: 140.0
     z: 0.0
     w: 1.0
   }
@@ -378,14 +378,124 @@ nodes {
     w: 1.0
   }
   scale {
+    x: 3.0
+    y: 3.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 67.0
+    y: 84.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
     x: 1.0
     y: 1.0
     z: 1.0
     w: 1.0
   }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "sprites/evil_mage_beginning"
+  id: "evil_mage"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  layer: "text"
+  inherit_alpha: true
+  slice9 {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 0.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  template_node_child: false
+  size_mode: SIZE_MODE_AUTO
+  custom_type: 0
+}
+nodes {
+  position {
+    x: 980.0
+    y: 340.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 0.5
+    y: 0.2
+    z: 1.0
+    w: 1.0
+  }
   size {
-    x: 400.0
-    y: 100.0
+    x: 1200.0
+    y: 1200.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "sprites/dialogue_window"
+  id: "dialogue_window"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  layer: "text"
+  inherit_alpha: true
+  slice9 {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 0.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  template_node_child: false
+  size_mode: SIZE_MODE_AUTO
+  custom_type: 0
+}
+nodes {
+  position {
+    x: 4.0
+    y: 95.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 0.3
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 800.0
+    y: 400.0
     z: 0.0
     w: 1.0
   }
@@ -397,9 +507,10 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Play without tutorial"
-  font: "main"
-  id: "play_without_tutorial"
+  text: "Welcome to my world.  Can you help me \n"
+  "decorate it? I\'ll tell you how"
+  font: "main_huge"
+  id: "mage_words"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -417,7 +528,8 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  layer: "text"
+  parent: "dialogue_window"
+  layer: ""
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0

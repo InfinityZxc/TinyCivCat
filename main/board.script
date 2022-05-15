@@ -993,7 +993,9 @@ function on_message(self, message_id, message, sender)
 		turn_counter = turn_counter + 1
 		corruption_iteration(self)
 		make_upgrade_structure(self, message["x"], message["y"])
-		if turn_counter == corruption_beginning then
+		if turn_counter == 1 then
+			msg.post("/tutorial#tutorial", "village",  {offset=return_coords_from_hex_index(self, village_coords[1] - 1, village_coords[2]) - return_coords_from_hex_index(self, start_hex_pos.x, start_hex_pos.y)})
+		elseif turn_counter == corruption_beginning then
 			msg.post("/tutorial#tutorial", "corruption", {offset=return_coords_from_hex_index(self, first_corruption_hex_pos.x - 1, first_corruption_hex_pos.y) - return_coords_from_hex_index(self, start_hex_pos.x, start_hex_pos.y)})
 		end
 		for x = 0, boardwidth-1 do

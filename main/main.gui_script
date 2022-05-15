@@ -52,8 +52,6 @@ function init(self)
 	
 	
 	table.insert(gui_elements, gui.get_node("volume_switch"))
-	table.insert(gui_elements, node1)
-	table.insert(gui_elements, node2)
 
 	table.insert(screen.resize_listeners, msg.url())
 
