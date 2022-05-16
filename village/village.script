@@ -185,7 +185,7 @@ function on_message(self, message_id, message, sender)
 			elseif message["tile_type"] == hash("rock") then
 				self.rock = self.rock + 1
 			end
-			msg.post("/game#board", "resource_collected", { x = message["x"], y = message["y"]})
+			msg.post("/game#board", "resource_collected", {x = message["x"], y = message["y"], delay = message["delay"]})
 		end
 		volume = message.volume
 		if (self.rock >= self.resource_equal_max and self.water >= self.resource_equal_max 

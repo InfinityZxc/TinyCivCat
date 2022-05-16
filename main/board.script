@@ -85,6 +85,7 @@ thunder_max_level = 4
 local stored_delay = 0
 local stored_uncorrupt = 0
 thunder_upgrade_cost = 200
+local spawn_ability_every_x_turns = 3
 
 SNOW_ANIM_TIME = 2
 TILE_SHOW_HIDE_TIME = 1
@@ -198,11 +199,11 @@ function is_hex_valid_dfs(self, used, x, y, type)
 	return check_coord(x, y) and self.board[x][y].id and used[x][y] == 0 and self.board[x][y].tile_type == type and not self.board[x][y].corrupted
 end
 
-function spawn_resource(self, x, y)
+function spawn_resource(self, x, y, delay)
 	if self.board[x][y].id and not self.board[x][y].corrupted then
 		local pos = vmath.vector3(self.board[x][y].tile_pos_x, self.board[x][y].tile_pos_y, 1)
 		pos.z = pos.z - 0.1
-		timer.delay(0.5, false, function ()
+		timer.delay(delay + 0.5, false, function ()
 			factory.create("#coin_factory", pos, null, {type = self.board[x][y].tile_type})
 		end)
 	end
@@ -666,25 +667,21 @@ function grow_bfs_handle_hex(self, hex_number, next, depth, village_x, village_y
 		(depth == self.board[x][y].distance_to_village) and depth == 2 and
 		self.villages[self.board[x][y].village_num].radius == 1 and
 		self.board[x][y].village_num ~= village_num then
-		self.board[x][y].distance_to_village = depth
-		self.board[x][y].village_center_x = village_x
-		self.board[x][y].village_center_y = village_y
-		self.board[x][y].village_num = village_num
-		if self.board[x][y].id and depth == 2 then 
-			if self.board[x][y].structure_name ~= nil then
-				timer.delay(0.5, false, function ()
-					add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
-				end)
+			self.board[x][y].distance_to_village = depth
+			self.board[x][y].village_center_x = village_x
+			self.board[x][y].village_center_y = village_y
+			self.board[x][y].village_num = village_num
+			if self.board[x][y].id and depth == 2 then 
+				if self.board[x][y].structure_name ~= nil then
+					add_resource_to_villages(self, self.board[x][y].tile_type, x, y, 0.5)
+				end
+				add_resource_to_villages(self, self.board[x][y].tile_type, x, y, 0)
 			end
-			add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
-		end
 		elseif village_num == self.board[x][y].village_num and self.board[x][y].id and depth == 2 then
 			if self.board[x][y].structure_name ~= nil then
-				timer.delay(0.5, false, function ()
-					add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
-				end)
+				add_resource_to_villages(self, self.board[x][y].tile_type, x, y, 0.5)
 			end
-			add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
+			add_resource_to_villages(self, self.board[x][y].tile_type, x, y, 0)
 		end
 
 		local tmp_x, tmp_y
@@ -770,11 +767,9 @@ function village_creation(self, x, y)
 			if check_coord(i, j) and self.board[i][j].id and self.board[i][j].village_num == village_next_id 
 			and self.board[i][j].distance_to_village == 1 and not self.board[i][j].corrupted then
 				if self.board[i][j].structure_name ~= nil then
-					timer.delay(0.5, false, function ()
-						add_resource_to_villages(self, self.board[i][j].tile_type, i, j)
-					end)
+					add_resource_to_villages(self, self.board[i][j].tile_type, i, j, 0.5)
 				end
-				add_resource_to_villages(self, self.board[i][j].tile_type, i, j)
+				add_resource_to_villages(self, self.board[i][j].tile_type, i, j, 0)
 			end
 		end
 	end
@@ -819,11 +814,12 @@ function village_destruction(self, village_num, x, y)
 	msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#village_destruction",  gain = 0.02*volume, delay = 0.2, pan = -1.0, speed = 0.7})
 end
 
-function add_resource_to_villages(self, tile_type, x, y)
+function add_resource_to_villages(self, tile_type, x, y, animation_delay)
 	if village_count >= 0 then
-		if self.board[x][y].distance_to_village ~= big_constant then
+		if self.board[x][y].distance_to_village ~= big_constant and 
+		self.board[x][y].distance_to_village <= self.villages[self.board[x][y].village_num].radius then
 			msg.post(msg.url(nil, self.villages[self.board[x][y].village_num].id, "village"), "get_resource", 
-			{tile_type = tile_type, radius = self.board[x][y].distance_to_village, x = x , y = y, volume = volume})
+			{tile_type = tile_type, radius = self.board[x][y].distance_to_village, x = x , y = y, volume = volume, delay = animation_delay})
 		end
 	end
 end
@@ -868,24 +864,19 @@ function spawn_ability(self)
 		coords_to_spawn_close = candidates_close[math.random(#candidates_close)]
 		coords_to_spawn_far = candidates_far[math.random(#candidates_far)]
 		if math.random(0, 1) == 0 then -- choose from close
-			print("close", 1)
 			coords_to_spawn = coords_to_spawn_close
 		else -- choose from far
-			print("far", 1)
 			coords_to_spawn = coords_to_spawn_far
 		end
 	elseif (#candidates_close ~= 0) then 
-		print("close", 2)
 		coords_to_spawn = candidates_close[math.random(#candidates_close)]
 	elseif (#candidates_far ~= 0) then
-		print("far", 2)
 		coords_to_spawn = candidates_far[math.random(#candidates_far)]
 	else 
 		return false
 	end
 	local x = coords_to_spawn.x
 	local y = coords_to_spawn.y
-	print(x,y)
 	local new_ability_type = abilities_list[math.random(#abilities_list)]
 	local pos = return_coords_from_hex_index(self, x, y)
 	pos.z = 1
@@ -1043,7 +1034,7 @@ function on_message(self, message_id, message, sender)
 			coins = coins - BUY_TILE_COST
 		end
 	elseif message_id == hash("next_turn") then
-		add_resource_to_villages(self, message["tile_type"], message["x"], message["y"])
+		add_resource_to_villages(self, message["tile_type"], message["x"], message["y"], 0)
 		if village_should_be_created == true then
 			local candidates = {}
 			local board_max = -1
@@ -1069,7 +1060,7 @@ function on_message(self, message_id, message, sender)
 		else
 			msg.post("/gui#main", "next_village", {turns = spawn_village_every_x_turn - math.fmod(turn_counter, spawn_village_every_x_turn)})
 		end
-		if turn_counter > corruption_beginning and turn_counter % 1 == 0 then
+		if turn_counter >= corruption_beginning and (turn_counter - corruption_beginning) % spawn_ability_every_x_turns == 0 then
 			spawn_ability(self)
 		end
 		turn_counter = turn_counter + 1
@@ -1199,7 +1190,7 @@ function on_message(self, message_id, message, sender)
 		end
 		self.villages[message["id"]].level = message["level"]
 	elseif message_id == hash("resource_collected") then
-		spawn_resource(self, message["x"], message["y"])
+		spawn_resource(self, message["x"], message["y"], message["delay"])
 	elseif message_id == hash("income_update") then
 		self.villages[message["id"]].income = message["income"]
 	elseif message_id == hash("switch_volume") then
@@ -1215,7 +1206,6 @@ function on_message(self, message_id, message, sender)
 			end
 		end
 	elseif message_id == hash("get_ability") then
-		print(message["ability_type"])
 		if message["ability_type"] == hash("delay") then
 			stored_delay = stored_delay + 1
 			msg.post("/gui#main", "gui_set_snow_cost", {cost = stored_delay})
@@ -1226,7 +1216,6 @@ function on_message(self, message_id, message, sender)
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
 		end
 	elseif message_id == hash("upgrade_thunder") then
-		thunder_level = thunder_level + 1
 		coins = coins - thunder_upgrade_cost
 		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		thunder_upgrade_cost = thunder_upgrade_cost * 2
@@ -1376,25 +1365,22 @@ end
 function upgrade_cell(self, x, y, direction, inverted)
 	self.board[x][y].structure_direction = direction
 	self.board[x][y].structure_name = "triangle"
+	add_resource_to_villages(self, self.board[x][y].tile_type, x, y, 0.5)
 	timer.delay(0.5, false, function ()
 		if not inverted then
 			msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("upgraded_" .. unhash[self.board[x][y].tile_type] .. "_" .. direction)})
 		else 
 			msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("upgraded_" .. unhash[self.board[x][y].tile_type] .. "_" .. direction .. "_inverted")})
 		end
-		add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
 	end)
-	--msg.post(self.board[x][y].id, "upgrade_triangle")
 end
 
 function downgrade_cell(self, x, y)
 	self.board[x][y].structure_direction = nil
 	self.board[x][y].structure_name = nil
 	msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash(self.board[x][y].tile_type)})
-	--msg.post(self.board[x][y].id, "downgrade_cell")
 	subtract_resource_from_villages(self, self.board[x][y].tile_type, x, y)
 end
-
 
 function is_for_downgrade(self, x, y, type)
 	return check_coord(x, y) and self.board[x][y].id and self.board[x][y].tile_type == type 
