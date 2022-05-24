@@ -1,3 +1,7 @@
+local screen = require('libs.screen')
+
+local gui_elements = {}
+
 local tile_types = {hash("wood"), hash("rock"), hash("water")}
 local active_node = nil
 local node1, node2, node1_pos, node2_pos, shop_tile
@@ -5,16 +9,54 @@ local SHOP_ANIM_DURATION = 0.7
 local end_screen = false
 local volume = 1
 
+local default_screen_size = {height = 1080, width = 1920}
+
+local function relayout(self) 
+	for i = 1, #gui_elements do 
+		local p = gui_elements[i]
+		local tile_scale = vmath.vector3(1, 1, 1)
+		if (p == node1 or p == node2) then
+			tile_scale.x =  0.5 * default_screen_size.width / screen.width * tile_scale.x
+			tile_scale.y =  0.5 * default_screen_size.height / screen.height * tile_scale.y
+			if tile_scale.x > 0.9 then
+				tile_scale.x = 0.9
+			end
+			if tile_scale.y > 0.9 then
+				tile_scale.y = 0.9
+			end
+		else
+			tile_scale.x =  default_screen_size.width / screen.width * tile_scale.x
+			tile_scale.y =  default_screen_size.height / screen.height * tile_scale.y
+			if tile_scale.x > 1.2 then
+				tile_scale.x = 1.2
+			end
+			if tile_scale.y > 1.2 then
+				tile_scale.y = 1.2
+			end
+		end
+		gui.set_scale(p, tile_scale)
+	end
+end
+
 function init(self)
 	-- Add initialization code here
 	-- Learn more: https://defold.com/manuals/script/
 	-- Remove this function if not needed
+	
 	node1 = gui.get_node("gui_tile1")
 	node1_pos = gui.get_position(node1)
 	node2 = gui.get_node("gui_tile2")
 	node2_pos = gui.get_position(node2)
 	gui.play_flipbook(node1, tile_types[math.random(#tile_types)])
 	gui.play_flipbook(node2, tile_types[math.random(#tile_types)])
+	
+	
+	table.insert(gui_elements, gui.get_node("volume_switch"))
+
+	table.insert(screen.resize_listeners, msg.url())
+
+	relayout(self)
+	
 end
 
 function final(self)
@@ -32,24 +74,25 @@ end
 function show_abilities()
 	local node = gui.get_node("snow")
 	local pos = gui.get_position(node)
-	pos.y = pos.y + 1080
+	pos.y = pos.y + default_screen_size.height
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("snow_cost")
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("snow_coins")
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
+	pos.y = pos.y + default_screen_size.height
 	gui.set_position(node, pos)
-
+--]]
 	local node = gui.get_node("thunder")
 	local pos = gui.get_position(node)
-	pos.y = pos.y + 1080
+	pos.y = pos.y + default_screen_size.height
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("thunder_cost")
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
@@ -59,29 +102,41 @@ function show_abilities()
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
 	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder_upgrade")
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("upgrade_thunder_cost")
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 1080
+	gui.set_position(node, pos)
+--]]
 end
 
 function hide_abilities()
 	local node = gui.get_node("snow")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - default_screen_size.height
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("snow_cost")
 	local pos = gui.get_position(node)
 	pos.y = pos.y - 1080
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("snow_coins")
 	local pos = gui.get_position(node)
 	pos.y = pos.y - 1080
+	pos.y = pos.y - 10800
 	gui.set_position(node, pos)
-
+--]]
 	local node = gui.get_node("thunder")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - default_screen_size.height
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("thunder_cost")
 	local pos = gui.get_position(node)
 	pos.y = pos.y - 1080
@@ -91,6 +146,40 @@ function hide_abilities()
 	local pos = gui.get_position(node)
 	pos.y = pos.y - 1080
 	gui.set_position(node, pos)
+
+	local node = gui.get_node("thunder_upgrade")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("upgrade_thunder_cost")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 1080
+	gui.set_position(node, pos)
+--]]
+end
+
+function hide_thunder_upgrade()
+	local node = gui.get_node("thunder_coins")
+	local pos = gui.get_position(node)
+	if pos.y > 0 then
+		pos.y = pos.y - 1080
+		gui.set_position(node, pos)
+	end
+
+	local node = gui.get_node("thunder_upgrade")
+	local pos = gui.get_position(node)
+	if pos.y > 0 then
+		pos.y = pos.y - 1080
+		gui.set_position(node, pos)
+	end
+
+	local node = gui.get_node("upgrade_thunder_cost")
+	local pos = gui.get_position(node)
+	if pos.y > 0 then
+		pos.y = pos.y - 1080
+		gui.set_position(node, pos)
+	end
 end
 
 function on_message(self, message_id, message, sender)
@@ -105,7 +194,8 @@ function on_message(self, message_id, message, sender)
 			gui.play_flipbook(active_node, message['tile_type'])
 			active_node = nil;
 		end
-	elseif message_id == hash("set_asset") then
+	end
+	if message_id == hash("set_asset") then
 		gui.play_flipbook(gui.get_node(message.node_id), message.anim_id)
 	elseif message_id == hash("gui_set_coins") then
 		gui.set_text(gui.get_node("coins"), string.format("%d", message.coins))
@@ -115,6 +205,8 @@ function on_message(self, message_id, message, sender)
 		gui.set_text(gui.get_node("thunder_cost"), string.format("%d", message.cost))
 	elseif message_id == hash("gui_set_snow_cost") then
 		gui.set_text(gui.get_node("snow_cost"), string.format("%d", message.cost))
+	elseif message_id == hash("gui_set_thunder_upgrade_cost") then
+		gui.set_text(gui.get_node("upgrade_thunder_cost"), string.format("%d", message.cost))
 	elseif message_id == hash("show_abilities") then
 		show_abilities()
 	elseif message_id == hash("hide_abilities") then
@@ -139,7 +231,19 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("thunder_been_used") then
 		msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 	elseif message_id == hash("thunder_not_used") then
-		msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
+		if message["still_can_do"] then 
+			msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
+		else
+			msg.post(".", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
+		end
+	elseif message_id == hash("is_thunder_upgrade_possible") then
+		if message["possible"] then
+			gui.play_flipbook(gui.get_node("thunder_upgrade"), "upgrade_yellow_128")
+		else
+			gui.play_flipbook(gui.get_node("thunder_upgrade"), "upgrade_grey_128")
+		end
+	elseif message_id == hash("on_resize") then
+		relayout(self)
 	end
 end
 
@@ -182,11 +286,11 @@ function close_shop(tile)
 	gui.animate(rock, gui.PROP_POSITION, vmath.vector3(0), gui.EASING_LINEAR, SHOP_ANIM_DURATION)
 	gui.animate(water, gui.PROP_POSITION, vmath.vector3(0), gui.EASING_LINEAR, SHOP_ANIM_DURATION)
 	gui.animate(node, gui.PROP_SIZE, vmath.vector3(0, 320, 0), gui.EASING_LINEAR, SHOP_ANIM_DURATION, 0, function ()
-		gui.set_position(gui.get_node(string.format("coins_tile%d", tile)), vmath.vector3(500, 0, 0))
-		gui.set_position(gui.get_node(string.format("cost_tile%d", tile)), vmath.vector3(500, 0, 0))
-		gui.set_position(wood, vmath.vector3(500, 0, 0))
-		gui.set_position(rock, vmath.vector3(500, 0, 0))
-		gui.set_position(water, vmath.vector3(500, 0, 0))
+		gui.set_position(gui.get_node(string.format("coins_tile%d", tile)), vmath.vector3(2000, 0, 0))
+		gui.set_position(gui.get_node(string.format("cost_tile%d", tile)), vmath.vector3(2000, 0, 0))
+		gui.set_position(wood, vmath.vector3(2000, 0, 0))
+		gui.set_position(rock, vmath.vector3(2000, 0, 0))
+		gui.set_position(water, vmath.vector3(2000, 0, 0))
 	end)
 end
 
@@ -207,11 +311,11 @@ function on_input(self, action_id, action)
 		if shop_tile then
 			local buy;
 			node = gui.get_node(string.format("gui_tile%d", shop_tile))
-			if pick_hex(1320, 128 + 160 * (shop_tile - 1), action.x, action.y) then
+			if pick_hex(1320, (128 + 160 * (shop_tile - 1)), action.x, action.y) then
 				buy = hash("wood")
-			elseif pick_hex(1480, 128 + 160 * (shop_tile - 1), action.x, action.y) then
+			elseif pick_hex(1480 , (128 + 160 * (shop_tile - 1)), action.x, action.y) then
 				buy = hash("rock")
-			elseif pick_hex(1640, 128 + 160 * (shop_tile - 1), action.x, action.y) then
+			elseif pick_hex(1640, (128 + 160 * (shop_tile - 1)), action.x, action.y) then
 				buy = hash("water")
 			end
 			if buy ~= nil and buy ~= gui.get_flipbook(node) then
@@ -235,6 +339,15 @@ function on_input(self, action_id, action)
 			msg.post("/cursor#cursor", "lightning")
 		elseif gui.pick_node(gui.get_node("snow"), action.x, action.y) then
 			ability = hash("snow")
+		elseif gui.pick_node(gui.get_node("thunder_upgrade"), action.x, action.y) then
+			if coins >= thunder_upgrade_cost then
+				thunder_level = thunder_level + 1
+				msg.post("/game#board", "upgrade_thunder")
+				gui.play_flipbook(gui.get_node("thunder_upgrade"), "upgrade_grey_128")
+				if thunder_level >= thunder_max_level then
+					hide_thunder_upgrade()
+				end
+			end
 		elseif gui.pick_node(gui.get_node("volume_switch"), action.x, action.y) then
 			msg.post("/game", "switch_volume")
 			if volume == 1 then
@@ -248,7 +361,7 @@ function on_input(self, action_id, action)
 		if node then
 			local type = gui.get_flipbook(node)
 			local pos = vmath.vector3(action.x, action.y, 0)
-			local offset = pos - gui.get_position(node)
+			local offset = (pos - gui.get_position(node))
 			msg.post("/game#board", "new_tile", { position = pos, type = type, offset = offset })
 			gui.play_flipbook(node, hash("empty_hex"))
 			active_node = node

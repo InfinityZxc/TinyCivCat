@@ -213,7 +213,7 @@ function on_message(self, message_id, message, sender)
 			self.steps_count = 0
 			delay_time = 3.5
 			timer.delay(2.5, false, function ()
-				msg.post("/game#board", "resource_collected", { x = x, y = y})
+				msg.post("/game#board", "resource_collected", { x = x, y = y, delay = 0})
 			end)
 		end
 		timer.delay(delay_time, false, function ()

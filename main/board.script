@@ -1,6 +1,14 @@
 local camera = require "orthographic.camera"
 
+local screen = require('libs.screen')
+
 local hex_size
+
+-- local original_width = render.get_width()
+-- local original_height = render.get_height()
+-- local current_width = render.get_window_width()
+-- local current_height = render.get_window_height()
+
 go.property("hex_size", 128)
 local boardwidth
 go.property("boardwidth", 18) -- always even
@@ -16,7 +24,7 @@ local delay_cost = 35
 local uncorrupt_cost = 35
 BUY_TILE_COST = 40
 local ability_cost_increase = 3
-local coins = 0
+coins = 0
 local coin_income = 0
 local corruption_delay = 0
 local start_hex_pos =  nil
@@ -79,12 +87,27 @@ local heal_cell_score = 0
 local village2_score = 0
 local village3_score = 0
 
+local abilities_list = {hash("delay"), hash("uncorrupt")}
+thunder_level = 1
+thunder_max_level = 4
+local stored_delay = 0
+local stored_uncorrupt = 0
+thunder_upgrade_cost = 200
+local spawn_ability_every_x_turns = 3
+
 SNOW_ANIM_TIME = 2
 TILE_SHOW_HIDE_TIME = 1
 
+local function relayout(self)
+	
+-- action when resolution changes	
+end
+
 function init(self)
+	--print(screen.width, screen.height)
+	
 	msg.post(".", "acquire_input_focus")
-	defos.disable_window_resize()
+	--defos.disable_window_resize()
 	defos.on_mouse_enter(function ()
 		defos.set_cursor_visible(false)
 	end)
@@ -104,16 +127,20 @@ function init(self)
 	make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
 	make_possible_moves_around(self, start_hex_pos.x + 1, start_hex_pos.y)
 	create_grid(self)
-	
 	self.villages = {}
 	
 	score_calculation(self, hash("none"), hash("none"))
 	msg.post("/gui#main", "acquire_input_focus")
 	msg.post("/tutorial#tutorial", "acquire_input_focus")
 	msg.post("/cursor#cursor", "acquire_input_focus")
-	msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
-	msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
+	msg.post("/gui#main", "gui_set_thunder_cost", {cost = stored_uncorrupt})
+	msg.post("/gui#main", "gui_set_snow_cost", {cost = stored_delay})
+	msg.post("/gui#main", "gui_set_thunder_upgrade_cost", {cost = thunder_upgrade_cost})
 	sound.play("/sound#begining_of_game", { delay = 1, gain = theme_sound_gain * volume, pan = -1.0, speed = 1.0} )
+
+	table.insert(screen.resize_listeners, msg.url())
+
+	relayout(self)
 end
 
 function create_grid(self)
@@ -191,11 +218,14 @@ function is_hex_valid_dfs(self, used, x, y, type)
 	return check_coord(x, y) and self.board[x][y].id and used[x][y] == 0 and self.board[x][y].tile_type == type and not self.board[x][y].corrupted
 end
 
-function spawn_resource(self, x, y)
+function spawn_resource(self, x, y, delay)
 	if self.board[x][y].id and not self.board[x][y].corrupted then
 		local pos = vmath.vector3(self.board[x][y].tile_pos_x, self.board[x][y].tile_pos_y, 1)
 		pos.z = pos.z - 0.1
-		timer.delay(0.5, false, function ()
+		if delay == nil then
+			delay = 0
+		end
+		timer.delay(delay + 0.5, false, function ()
 			factory.create("#coin_factory", pos, null, {type = self.board[x][y].tile_type})
 		end)
 	end
@@ -344,22 +374,10 @@ function update_income (type)
 end
 
 function heal_cell(self, x, y)
-	if (coins >= uncorrupt_cost) and self.board[x][y].corrupted then
+	if self.board[x][y].corrupted then
 		self.board[x][y].corrupted = false;
 		msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = self.board[x][y].tile_type})
-		coins = coins - uncorrupt_cost
-		uncorrupt_cost = uncorrupt_cost + ability_cost_increase
-		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
-		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
-		msg.post("/gui#main", "gui_set_coins", {coins = coins})
 		heal_cell_score = heal_cell_score + 1
-		if not snow then
-			if coins >= delay_cost then
-				msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
-			else
-				msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_used")})
-			end
-		end
 		if village_count >= 0 then
 			if self.board[x][y].distance_to_village ~= big_constant then
 				msg.post(msg.url(nil, self.villages[self.board[x][y].village_num].id, "village"), "get_resource", 
@@ -372,14 +390,11 @@ end
 function delay_corrupt(self, middle_pos)
 	local middle_hex_x, middle_hex_y
 	middle_hex_x, middle_hex_y = return_hex_index_from_coords(self, middle_pos.x, middle_pos.y)
-	if coins >= delay_cost then
+	if stored_delay >= 1 then
 		snow = true
 		corruption_delay = 1
-		coins = coins - delay_cost
-		delay_cost = delay_cost + ability_cost_increase
-		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
-		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
-		msg.post("/gui#main", "gui_set_coins", {coins = coins})
+		stored_delay = stored_delay - 1
+		msg.post("/gui#main", "gui_set_snow_cost", {cost = stored_delay})
 		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_active")})
 		for x = 0,boardwidth-1 do
 			for y = 0,boardheight-1 do
@@ -404,13 +419,58 @@ function delay_corrupt(self, middle_pos)
 				end
 			end
 		end
-		if not thunder then
-			if coins >= uncorrupt_cost then
-				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
-			else
-				msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
+	end
+end
+
+function thunder_usage(self, tile_x, tile_y)
+	local actually_healed = 0
+	if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].id and self.board[tile_x][tile_y].corrupted then
+		heal_cell(self, tile_x, tile_y)
+		make_upgrade_structure(self, tile_x, tile_y)
+		actually_healed = actually_healed + 1
+	end
+	if thunder_level >= 2 then
+		if check_coord(tile_x + 1, tile_y) and self.board[tile_x + 1][tile_y].id and self.board[tile_x + 1][tile_y].corrupted then
+			heal_cell(self, tile_x + 1, tile_y)
+			make_upgrade_structure(self, tile_x + 1, tile_y)
+			actually_healed = actually_healed + 1
+		end
+	end
+	if thunder_level >= 3 then
+		local sdvig = tile_y%2
+		if check_coord(tile_x + sdvig, tile_y + 1) and self.board[tile_x + sdvig][tile_y + 1].id and self.board[tile_x + sdvig][tile_y + 1].corrupted then
+			heal_cell(self, tile_x + sdvig, tile_y + 1)
+			make_upgrade_structure(self, tile_x + sdvig, tile_y + 1)
+			actually_healed = actually_healed + 1
+		end
+		if check_coord(tile_x + sdvig, tile_y - 1) and self.board[tile_x + sdvig][tile_y - 1].id and self.board[tile_x + sdvig][tile_y - 1].corrupted then
+			heal_cell(self, tile_x + sdvig, tile_y - 1)
+			make_upgrade_structure(self, tile_x + sdvig, tile_y - 1)
+			actually_healed = actually_healed + 1
+		end
+	end
+	if thunder_level >= 4 then
+		local tmp_x, tmp_y
+		for i = 1, 6 do
+			tmp_x = tile_x + neighbour_sdvig_x[tile_y%2+1][i]
+			tmp_y = tile_y + neighbour_sdvig_y[tile_y%2+1][i]
+			if check_coord(tmp_x, tmp_y) and self.board[tmp_x][tmp_y].id and self.board[tmp_x][tmp_y].corrupted then
+				heal_cell(self, tmp_x, tmp_y)
+				make_upgrade_structure(self, tmp_x, tmp_y)
+				actually_healed = actually_healed + 1
 			end
 		end
+	end
+	
+	msg.post("/thunder_area", "hide")
+	if actually_healed > 0 then
+		thunder = true
+		stored_uncorrupt = stored_uncorrupt - 1
+		msg.post("/gui#main", "gui_set_thunder_cost", {cost = stored_uncorrupt})
+		msg.post("/gui#main", "gui_set_coins", {coins = coins})
+		return true
+	else
+		return false
 	end
 end
 
@@ -629,25 +689,21 @@ function grow_bfs_handle_hex(self, hex_number, next, depth, village_x, village_y
 		(depth == self.board[x][y].distance_to_village) and depth == 2 and
 		self.villages[self.board[x][y].village_num].radius == 1 and
 		self.board[x][y].village_num ~= village_num then
-		self.board[x][y].distance_to_village = depth
-		self.board[x][y].village_center_x = village_x
-		self.board[x][y].village_center_y = village_y
-		self.board[x][y].village_num = village_num
-		if self.board[x][y].id and depth == 2 then 
-			if self.board[x][y].structure_name ~= nil then
-				timer.delay(0.5, false, function ()
-					add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
-				end)
+			self.board[x][y].distance_to_village = depth
+			self.board[x][y].village_center_x = village_x
+			self.board[x][y].village_center_y = village_y
+			self.board[x][y].village_num = village_num
+			if self.board[x][y].id and depth == 2 then 
+				if self.board[x][y].structure_name ~= nil then
+					add_resource_to_villages(self, self.board[x][y].tile_type, x, y, 0.5)
+				end
+				add_resource_to_villages(self, self.board[x][y].tile_type, x, y, 0)
 			end
-			add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
-		end
 		elseif village_num == self.board[x][y].village_num and self.board[x][y].id and depth == 2 then
 			if self.board[x][y].structure_name ~= nil then
-				timer.delay(0.5, false, function ()
-					add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
-				end)
+				add_resource_to_villages(self, self.board[x][y].tile_type, x, y, 0.5)
 			end
-			add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
+			add_resource_to_villages(self, self.board[x][y].tile_type, x, y, 0)
 		end
 
 		local tmp_x, tmp_y
@@ -733,11 +789,9 @@ function village_creation(self, x, y)
 			if check_coord(i, j) and self.board[i][j].id and self.board[i][j].village_num == village_next_id 
 			and self.board[i][j].distance_to_village == 1 and not self.board[i][j].corrupted then
 				if self.board[i][j].structure_name ~= nil then
-					timer.delay(0.5, false, function ()
-						add_resource_to_villages(self, self.board[i][j].tile_type, i, j)
-					end)
+					add_resource_to_villages(self, self.board[i][j].tile_type, i, j, 0.5)
 				end
-				add_resource_to_villages(self, self.board[i][j].tile_type, i, j)
+				add_resource_to_villages(self, self.board[i][j].tile_type, i, j, 0)
 			end
 		end
 	end
@@ -782,11 +836,12 @@ function village_destruction(self, village_num, x, y)
 	msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#village_destruction",  gain = 0.02*volume, delay = 0.2, pan = -1.0, speed = 0.7})
 end
 
-function add_resource_to_villages(self, tile_type, x, y)
+function add_resource_to_villages(self, tile_type, x, y, animation_delay)
 	if village_count >= 0 then
-		if self.board[x][y].distance_to_village ~= big_constant then
+		if self.board[x][y].distance_to_village ~= big_constant and 
+		self.board[x][y].distance_to_village <= self.villages[self.board[x][y].village_num].radius then
 			msg.post(msg.url(nil, self.villages[self.board[x][y].village_num].id, "village"), "get_resource", 
-			{tile_type = tile_type, radius = self.board[x][y].distance_to_village, x = x , y = y, volume = volume})
+			{tile_type = tile_type, radius = self.board[x][y].distance_to_village, x = x , y = y, volume = volume, delay = animation_delay})
 		end
 	end
 end
@@ -800,6 +855,63 @@ function subtract_resource_from_villages(self, tile_type, x, y)
 	end
 end
 
+function spawn_ability(self)
+	local candidates_close = {}
+	local candidates_far = {}
+	local min_distance = big_constant
+	for x = 0, boardwidth-1 do
+		for y = 0, boardheight-1 do
+			if check_coord(x, y) and not self.board[x][y].id and not self.board[x][y].tile_type 
+			and not self.board[x][y].possible_move then
+				if self.board[x][y].distance_to_village == min_distance then
+					table.insert(candidates_close, vmath.vector3(x,y,0))
+				elseif self.board[x][y].distance_to_village == min_distance + 1 then
+					table.insert(candidates_far, vmath.vector3(x,y,0))
+				elseif self.board[x][y].distance_to_village == min_distance - 1 then
+					min_distance = self.board[x][y].distance_to_village
+					candidates_far = candidates_close
+					candidates_close = {}
+					table.insert(candidates_close, vmath.vector3(x,y,0))
+				elseif self.board[x][y].distance_to_village < min_distance then
+					min_distance = self.board[x][y].distance_to_village
+					candidates_close = {}
+					candidates_far = {}
+					table.insert(candidates_close, vmath.vector3(x,y,0))
+				end
+			end
+		end
+	end
+	local coords_to_spawn, coords_to_spawn_close, coords_to_spawn_far
+	if (#candidates_close ~= 0) and (#candidates_far ~= 0) then
+		coords_to_spawn_close = candidates_close[math.random(#candidates_close)]
+		coords_to_spawn_far = candidates_far[math.random(#candidates_far)]
+		if math.random(0, 1) == 0 then -- choose from close
+			coords_to_spawn = coords_to_spawn_close
+		else -- choose from far
+			coords_to_spawn = coords_to_spawn_far
+		end
+	elseif (#candidates_close ~= 0) then 
+		coords_to_spawn = candidates_close[math.random(#candidates_close)]
+	elseif (#candidates_far ~= 0) then
+		coords_to_spawn = candidates_far[math.random(#candidates_far)]
+	else 
+		return false
+	end
+	local x = coords_to_spawn.x
+	local y = coords_to_spawn.y
+	local new_ability_type = abilities_list[math.random(#abilities_list)]
+	local pos = return_coords_from_hex_index(self, x, y)
+	pos.z = 1
+	pos.y = pos.y + 10
+	id_sparkle = factory.create("#sparkle_factory", pos, null, {ability_type = new_ability_type})
+	self.board[x][y].tile_type = id_sparkle
+end
+
+function placed_on_tile(self, tile_x, tile_y)
+	if self.board[tile_x][tile_y].tile_type then
+		msg.post(msg.url(nil, self.board[tile_x][tile_y].tile_type, "sparkle"), "activated")
+	end 
+end
 
 function corruption_iteration(self)
 	if turn_counter > corruption_beginning and corruption_delay == 0 then
@@ -929,11 +1041,12 @@ function on_message(self, message_id, message, sender)
 			msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#snow",  gain = 0.02*volume, delay = 0.2, pan = -1.0, speed = 0.7})
 		elseif message["ability"] == hash("thunder") then
 			if not thunder then
-				if coins >= uncorrupt_cost then
+				if stored_uncorrupt >= 1 then
 					thunder_active = true
+					msg.post("/thunder_area", "show")
 					msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_active")})
 				else
-					msg.post("/gui#main", "thunder_not_used", {action = "open"})
+					msg.post("/gui#main", "thunder_not_used", {action = "open", still_can_do = true})
 					msg.post("/cursor#cursor", "thunder_not_used", {action = "open"})
 				end
 			else
@@ -943,8 +1056,7 @@ function on_message(self, message_id, message, sender)
 			coins = coins - BUY_TILE_COST
 		end
 	elseif message_id == hash("next_turn") then
-		add_resource_to_villages(self, message["tile_type"], message["x"], message["y"])
-		
+		add_resource_to_villages(self, message["tile_type"], message["x"], message["y"], 0)
 		if village_should_be_created == true then
 			local candidates = {}
 			local board_max = -1
@@ -970,11 +1082,15 @@ function on_message(self, message_id, message, sender)
 		else
 			msg.post("/gui#main", "next_village", {turns = spawn_village_every_x_turn - math.fmod(turn_counter, spawn_village_every_x_turn)})
 		end
-		
+		if turn_counter >= corruption_beginning and (turn_counter - corruption_beginning) % spawn_ability_every_x_turns == 0 then
+			spawn_ability(self)
+		end
 		turn_counter = turn_counter + 1
 		corruption_iteration(self)
 		make_upgrade_structure(self, message["x"], message["y"])
-		if turn_counter == corruption_beginning then
+		if turn_counter == 1 then
+			msg.post("/tutorial#tutorial", "village",  {offset=return_coords_from_hex_index(self, village_coords[1] - 1, village_coords[2]) - return_coords_from_hex_index(self, start_hex_pos.x, start_hex_pos.y)})
+		elseif turn_counter == corruption_beginning then
 			msg.post("/tutorial#tutorial", "corruption", {offset=return_coords_from_hex_index(self, first_corruption_hex_pos.x - 1, first_corruption_hex_pos.y) - return_coords_from_hex_index(self, start_hex_pos.x, start_hex_pos.y)})
 		end
 		for x = 0, boardwidth-1 do
@@ -985,6 +1101,11 @@ function on_message(self, message_id, message, sender)
 			end
 		end
 		score_calculation(self, hash("none"), hash("none"))
+		if coins >= thunder_upgrade_cost then
+			msg.post("/gui#main", "is_thunder_upgrade_possible", {possible = true})
+		else
+			msg.post("/gui#main", "is_thunder_upgrade_possible", {possible = false})
+		end
 		if snow then
 			snow = false
 			for x = 0,boardwidth-1 do
@@ -1001,14 +1122,12 @@ function on_message(self, message_id, message, sender)
 		end
 		thunder = false
 		thunder_active = false
-		msg.post("/gui#main", "thunder_not_used", {action = "open"})
-		msg.post("/cursor#cursor", "thunder_not_used", {action = "open"})
-		if coins >= delay_cost then
+		if stored_delay >= 1 then
 			msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
 		else
 			msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_used")})
 		end
-		if coins >= uncorrupt_cost then
+		if stored_uncorrupt >= 1 then
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
 		else
 			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
@@ -1026,6 +1145,8 @@ function on_message(self, message_id, message, sender)
 		message.position.z = 1
 		moving_tile_id = factory.create("#hex_factory", camera.window_to_world(hash('/camera'), message["position"]), null, {tile_type = message["type"]})
 		moving_tile_offset = message["offset"]
+		msg.post("/cursor#cursor", "new_tile_grab", {tile_type = message["type"], offset = message["offset"]})
+		msg.post(msg.url(nil, moving_tile_id, ""), "disable")
 	elseif message_id == hash("update_tile") then
 		self.board[message.x][message.y].tile_type = message.new_type
 	elseif message_id == hash("reset_game") then
@@ -1035,6 +1156,8 @@ function on_message(self, message_id, message, sender)
 					if self.board[x][y] then
 						if self.board[x][y].id then
 							go.delete(self.board[x][y].id)
+						elseif self.board[x][y].tile_type then
+							go.delete(self.board[x][y].tile_type)
 						end
 					end
 				end
@@ -1042,8 +1165,12 @@ function on_message(self, message_id, message, sender)
 		end
 		delay_cost = initial_delay_cost
 		uncorrupt_cost = initial_uncorrupt_cost
-		msg.post("/gui#main", "gui_set_thunder_cost", {cost = uncorrupt_cost})
-		msg.post("/gui#main", "gui_set_snow_cost", {cost = delay_cost})
+		stored_thunder = 0
+		stored_snow = 0
+		thunder_upgrade_cost = 200
+		msg.post("/gui#main", "gui_set_thunder_cost", {cost = stored_thunder})
+		msg.post("/gui#main", "gui_set_snow_cost", {cost = stored_snow})
+		msg.post("/gui#main", "gui_set_thunder_upgrade_cost", {cost = thunder_upgrade_cost})
 		msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake_used")})
 		msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder_used")})
 		coins = 0
@@ -1074,11 +1201,15 @@ function on_message(self, message_id, message, sender)
 		self.villages = {}
 		village_count = 0
 		village_next_id = 1
+		thunder_level = 1
+		stored_delay = 0
+		stored_uncorrupt = 0
 		just_created_village = false
-		village_should_be_created = false
+		village_should_be_created = true
 		make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)
 		make_possible_moves_around(self, start_hex_pos.x + 1, start_hex_pos.y)
 		score_calculation(self, hash("none"), hash("none"))
+		sound.stop("/sound")
 		sound.play("/sound#begining_of_game", { delay = 1, gain = theme_sound_gain * volume, pan = -1.0, speed = 1.0} )
 	elseif message_id == hash("clear_corruption") then
 		clear_corruption(self, true)
@@ -1088,7 +1219,7 @@ function on_message(self, message_id, message, sender)
 		end
 		self.villages[message["id"]].level = message["level"]
 	elseif message_id == hash("resource_collected") then
-		spawn_resource(self, message["x"], message["y"])
+		spawn_resource(self, message["x"], message["y"], message["delay"])
 	elseif message_id == hash("income_update") then
 		self.villages[message["id"]].income = message["income"]
 	elseif message_id == hash("switch_volume") then
@@ -1103,6 +1234,24 @@ function on_message(self, message_id, message, sender)
 				sound.play("/sound#corruption_appears_theme", { delay = 1, gain = 0.08*volume, pan = -1.0, speed = 1.0} )
 			end
 		end
+	elseif message_id == hash("get_ability") then
+		if message["ability_type"] == hash("delay") then
+			stored_delay = stored_delay + 1
+			msg.post("/gui#main", "gui_set_snow_cost", {cost = stored_delay})
+			msg.post("/gui#main", "set_asset", {node_id = hash("snow"), anim_id = hash("snowflake")})
+		elseif message["ability_type"] == hash("uncorrupt") then
+			stored_uncorrupt = stored_uncorrupt + 1
+			msg.post("/gui#main", "gui_set_thunder_cost", {cost = stored_uncorrupt})
+			msg.post("/gui#main", "set_asset", {node_id = hash("thunder"), anim_id = hash("thunder")})
+		end
+	elseif message_id == hash("upgrade_thunder") then
+		coins = coins - thunder_upgrade_cost
+		msg.post("/gui#main", "gui_set_coins", {coins = coins})
+		thunder_upgrade_cost = thunder_upgrade_cost * 2
+		msg.post("/gui#main", "gui_set_thunder_upgrade_cost", {cost = thunder_upgrade_cost})
+	elseif message_id == hash("on_resize") then
+		relayout(self)
+		--print(screen.width, screen.height)
 	end
 end
 
@@ -1248,25 +1397,22 @@ end
 function upgrade_cell(self, x, y, direction, inverted)
 	self.board[x][y].structure_direction = direction
 	self.board[x][y].structure_name = "triangle"
+	add_resource_to_villages(self, self.board[x][y].tile_type, x, y, 0.5)
 	timer.delay(0.5, false, function ()
 		if not inverted then
 			msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("upgraded_" .. unhash[self.board[x][y].tile_type] .. "_" .. direction)})
 		else 
 			msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash("upgraded_" .. unhash[self.board[x][y].tile_type] .. "_" .. direction .. "_inverted")})
 		end
-		add_resource_to_villages(self, self.board[x][y].tile_type, x, y)
 	end)
-	--msg.post(self.board[x][y].id, "upgrade_triangle")
 end
 
 function downgrade_cell(self, x, y)
 	self.board[x][y].structure_direction = nil
 	self.board[x][y].structure_name = nil
 	msg.post(msg.url(nil, self.board[x][y].id, "sprite"), "play_animation", {id = hash(self.board[x][y].tile_type)})
-	--msg.post(self.board[x][y].id, "downgrade_cell")
 	subtract_resource_from_villages(self, self.board[x][y].tile_type, x, y)
 end
-
 
 function is_for_downgrade(self, x, y, type)
 	return check_coord(x, y) and self.board[x][y].id and self.board[x][y].tile_type == type 
@@ -1339,14 +1485,16 @@ function make_upgrade_structure(self, x, y)
 end
 
 function on_input(self, action_id, action)
-	local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.x, action.y, 0))
+	local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.screen_x, action.screen_y, 0))
 	if action_id == hash("touch_left") and moving_tile_id then
 		if action.released then
 			local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
 			local moving_tile_url = msg.url(moving_tile_id)
+			msg.post(moving_tile_url, "enable")
 			moving_tile_url.fragment = "tile"
 			local tile_type = go.get(moving_tile_url, "tile_type")
 			if check_coord(tile_x, tile_y) and not self.board[tile_x][tile_y].id and close_hex_number(self, tile_x, tile_y) > 0 then
+				placed_on_tile(self, tile_x, tile_y)
 				local pos = return_coords_from_hex_index(self, tile_x, tile_y)
 				go.animate(moving_tile_id, "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.4)
 				self.board[tile_x][tile_y] = {id = moving_tile_id, x = tile_x, y = tile_y, tile_pos_x = pos.x, tile_pos_y = pos.y, tile_type = tile_type, corrupted = false, possible_move = true,
@@ -1364,6 +1512,7 @@ function on_input(self, action_id, action)
 				go.delete(moving_tile_id)
 				msg.post("/gui#main", "gui_revert_tile", {tile_type=tile_type})
 			end
+			msg.post("/cursor#cursor", "lose_tile", {})
 			moving_tile_id = nil
 			possible_moves_shown = false
 			show_hide_moves(self)
@@ -1390,29 +1539,38 @@ function on_input(self, action_id, action)
 				show_hide_moves(self)
 			end
 		end
+		if thunder_active then
+			thunder_active = false
+			msg.post("/gui#main", "thunder_not_used", {still_can_do = true})
+			msg.post("/cursor#cursor", "thunder_not_used", {action = "grab"})
+		end
 		return true
 	end
 	
 	if action_id == hash("touch_left") and action.released then
-		local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.x, action.y, 0))
+		local world_pos = camera.window_to_world(hash('/camera'), vmath.vector3(action.screen_x, action.screen_y, 0))
 		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
 		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].distance_to_village == 0 then
 			msg.post(msg.url(nil, self.villages[self.board[tile_x][tile_y].village_num].id , "village"), "change_stats_visibility")
 		end
 	end
-	
+
+	if thunder_active then
+		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
+		local pos = return_coords_from_hex_index(self, tile_x, tile_y)
+		pos.z = 0.9
+		go.set("/thunder_area", "position", pos)
+	end
 	if thunder_active and action_id == hash("touch_left") and action.pressed then
 		thunder_active = false
 		local tile_x, tile_y = return_hex_index_from_coords(self, world_pos.x, world_pos.y)
-		if check_coord(tile_x, tile_y) and self.board[tile_x][tile_y].id and self.board[tile_x][tile_y].corrupted then
-			heal_cell(self, tile_x, tile_y)
-			thunder = true
-			make_upgrade_structure(self, tile_x, tile_y)
+		local successful_use = thunder_usage(self, tile_x, tile_y)
+		if successful_use then
 			msg.post("/gui#main", "thunder_been_used")
 			msg.post("/cursor#cursor", "thunder_been_used")
 			msg.post("/sound#sound_gate", "play_gated_sound", {soundcomponent = "/sound#thunder",  gain = 0.01*volume, delay = 0.2, pan = -1.0, speed = 0.7})
 		else
-			msg.post("/gui#main", "thunder_not_used", {action = "grab"})
+			msg.post("/gui#main", "thunder_not_used", {still_can_do = true})
 			msg.post("/cursor#cursor", "thunder_not_used", {action = "grab"})
 		end
 		return true

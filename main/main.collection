@@ -28,6 +28,26 @@ instances {
     z: 1.0
   }
 }
+instances {
+  id: "thunder_area"
+  prototype: "/thunder_indication/thunder_area.go"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 0.5
+    y: 0.5
+    z: 1.0
+  }
+}
 scale_along_z: 0
 embedded_instances {
   id: "game"
@@ -159,6 +179,24 @@ embedded_instances {
   "    w: 1.0\n"
   "  }\n"
   "}\n"
+  "embedded_components {\n"
+  "  id: \"sparkle_factory\"\n"
+  "  type: \"factory\"\n"
+  "  data: \"prototype: \\\"/abilities_effects/sparkle.go\\\"\\n"
+  "load_dynamically: false\\n"
+  "\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "}\n"
   ""
   position {
     x: 390.0
@@ -232,7 +270,7 @@ embedded_instances {
   ""
   position {
     x: 0.0
-    y: -0.0
+    y: -400.0
     z: 0.0
   }
   rotation {
@@ -311,26 +349,6 @@ embedded_instances {
   "    x: 0.0\n"
   "    y: 0.0\n"
   "    z: -1.0\n"
-  "  }\n"
-  "  rotation {\n"
-  "    x: 0.0\n"
-  "    y: 0.0\n"
-  "    z: 0.0\n"
-  "    w: 1.0\n"
-  "  }\n"
-  "}\n"
-  "embedded_components {\n"
-  "  id: \"clouds\"\n"
-  "  type: \"sprite\"\n"
-  "  data: \"tile_set: \\\"/assets/sprites.atlas\\\"\\n"
-  "default_animation: \\\"clouds\\\"\\n"
-  "material: \\\"/builtins/materials/sprite.material\\\"\\n"
-  "blend_mode: BLEND_MODE_ALPHA\\n"
-  "\"\n"
-  "  position {\n"
-  "    x: 0.0\n"
-  "    y: 0.0\n"
-  "    z: 1.0\n"
   "  }\n"
   "  rotation {\n"
   "    x: 0.0\n"
