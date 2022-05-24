@@ -63,7 +63,28 @@ function show_tutorial()
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 10800
 	gui.set_position(node, pos)
+end
 
+function hide_shadows()
+	local node = gui.get_node("shadow1")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 10800
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("shadow2")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 10800
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("shadow3")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 10800
+	gui.set_position(node, pos)
+
+	local node = gui.get_node("shadow4")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 10800
+	gui.set_position(node, pos)
 end
 
 function tutorial_tiles()
@@ -170,6 +191,7 @@ function tutorial_coins()
 end
 
 function tutorial_village()
+	--[[
 	local node = gui.get_node("shadow1")
 	local size = gui.get_size(node)
 	size.x = 860
@@ -209,6 +231,8 @@ function tutorial_village()
 	pos.y = 1080 - 385
 	pos.x = pos.x + 125
 	gui.set_position(node, pos)
+	--]]
+	hide_shadows(self)
 
 	local t = gui.get_node("dialogue_window")
 	local pos = gui.get_position(t)
@@ -234,7 +258,6 @@ function tutorial_village()
 	gui.set_position(t, pos)
 
 	step = hash("village")
-	
 end
 
 function villager_help()
@@ -313,6 +336,8 @@ function tutorial_corruption()
 end
 
 function tutorial_abilities()
+	show_tutorial(self)
+	
 	msg.post("/gui#main", "show_abilities")
 	local node = gui.get_node("shadow1")
 	local size = gui.get_size(node)
@@ -388,14 +413,16 @@ function on_message(self, message_id, message, sender)
 			msg.post("/gui#main", "show_abilities")
 		else
 			msg.post(".", "acquire_input_focus")
-			msg.post('/camera_body', 'tutorial_corruption', message)
+			msg.post("/cursor#cursor", "acquire_input_focus")
+			--msg.post('/camera_body', 'tutorial_corruption', message)
 			show_tutorial()
 			tutorial_corruption()
 		end
 	elseif message_id == hash("village") then
 		if not skip then
 			msg.post(".", "acquire_input_focus")
-			msg.post('/camera_body', 'tutorial_corruption', message)
+			msg.post("/cursor#cursor", "acquire_input_focus")
+			--msg.post('/camera_body', 'tutorial_corruption', message)
 			show_tutorial()
 			tutorial_village()
 		end
@@ -435,6 +462,8 @@ function on_input(self, action_id, action)
 			hide_tutorial()
 			msg.post(".", "release_input_focus")
 			msg.post("/camera_body", "acquire_input_focus")
+			msg.post("/game#board", "acquire_input_focus")
+			msg.post("/gui#main", "acquire_input_focus")
 			msg.post("/cursor#cursor", "acquire_input_focus")
 			skip = true
 		end

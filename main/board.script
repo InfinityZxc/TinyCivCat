@@ -45,7 +45,7 @@ local moving_tile_id = nil
 local moving_tile_offset = nil
 local map_type = hash("hex")
 go.property("map_type", hash("hex"))
-local corruption_beginning = 16
+local corruption_beginning = 3 -- 16
 local spawn_village_every_x_turn = 15
 local corruption_acceleration = 10
 local unhash = {
@@ -222,6 +222,9 @@ function spawn_resource(self, x, y, delay)
 	if self.board[x][y].id and not self.board[x][y].corrupted then
 		local pos = vmath.vector3(self.board[x][y].tile_pos_x, self.board[x][y].tile_pos_y, 1)
 		pos.z = pos.z - 0.1
+		if delay == nil then
+			delay = 0
+		end
 		timer.delay(delay + 0.5, false, function ()
 			factory.create("#coin_factory", pos, null, {type = self.board[x][y].tile_type})
 		end)
@@ -1197,6 +1200,8 @@ function on_message(self, message_id, message, sender)
 		village_count = 0
 		village_next_id = 1
 		thunder_level = 1
+		stored_delay = 0
+		stored_uncorrupt = 0
 		just_created_village = false
 		village_should_be_created = true
 		make_possible_moves_around(self, start_hex_pos.x, start_hex_pos.y)

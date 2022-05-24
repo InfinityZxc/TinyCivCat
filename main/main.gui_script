@@ -74,9 +74,9 @@ end
 function show_abilities()
 	local node = gui.get_node("snow")
 	local pos = gui.get_position(node)
-	pos.y = pos.y + 1080
+	pos.y = pos.y + default_screen_size.height
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("snow_cost")
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
@@ -92,7 +92,7 @@ function show_abilities()
 	local pos = gui.get_position(node)
 	pos.y = pos.y + default_screen_size.height
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("thunder_cost")
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
@@ -112,14 +112,15 @@ function show_abilities()
 	local pos = gui.get_position(node)
 	pos.y = pos.y + 1080
 	gui.set_position(node, pos)
+--]]
 end
 
 function hide_abilities()
 	local node = gui.get_node("snow")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - default_screen_size.height
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("snow_cost")
 	local pos = gui.get_position(node)
 	pos.y = pos.y - 1080
@@ -133,9 +134,9 @@ function hide_abilities()
 --]]
 	local node = gui.get_node("thunder")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 10800
+	pos.y = pos.y - default_screen_size.height
 	gui.set_position(node, pos)
-
+--[[
 	local node = gui.get_node("thunder_cost")
 	local pos = gui.get_position(node)
 	pos.y = pos.y - 1080
@@ -155,6 +156,7 @@ function hide_abilities()
 	local pos = gui.get_position(node)
 	pos.y = pos.y - 1080
 	gui.set_position(node, pos)
+--]]
 end
 
 function hide_thunder_upgrade()

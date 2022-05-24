@@ -315,8 +315,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.4
+    y: 0.4
     z: 1.0
     w: 1.0
   }
@@ -335,7 +335,7 @@ nodes {
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "Click anywhere to start game"
-  font: "main"
+  font: "main_huge"
   id: "to_begin_text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
