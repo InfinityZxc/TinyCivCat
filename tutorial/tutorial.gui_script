@@ -1,9 +1,11 @@
 local step = hash("start")
 local skip = false;
-local TILES_TEXT = "The objective is to fill the whole map.\nTheese are your tiles to build the world with.\nEvery turn you can drag one of the available tiles\nto place it adjacent with any other tile on the map.\nRight click on the tile to change it for 40 coins.\nClick anywhere to continue..."
-local COINS_TEXT = "Every 15 turns a village will spawn on one tile.\nYou can increase your per turn income\nby surrounding them with diverse resources.\nVillages grow in efficiency and resource pool area\nif provided with enough resources.\nClick anywhere to continue..."
-local CORRUPTION_TEXT = "Oh no! Your tile has been corrupted.\nCurruption blocks village supply and can destroy them completely.\nCorruption will spread on adjacent tiles every turn.\nEvery 10 turns the number of tiles taken\nby corruption per turn will increase by 1.\nKeep an eye on it! Click anywhere to continue..."
-local ABILITIES_TEXT = "To fight back against corruption you have two abilities.\nLightning will clear corruption from the tile of your choice.\nTo use it, click once on the lightning and again on the tile you wish to restore.\nFreeze will stop corruption spread for 1 turn.\nDrag the map around to see the rest of the world.\nGood luck! Click anywhere to continue..."
+local TILES_TEXT = "I want this world to be beautiful and peaceful.\nLet's ennoble it with water forests and mountains.\nTheese are your tiles to build the world with.\nEvery turn you can drag one of the available tiles\nto place it adjacent with any other tile on the map.\nRight click on the tile to change it for 40 coins.\n(Click anywhere to continue...)"
+local COINS_TEXT = "There used to be people and their villages here.\nThey gave coins to meet their needs, and they\ngrew if there were enough resources. But\nI got rid of them, I wanted peace and quiet.\nSo you don't need coins\n(Click anywhere to continue...)"
+local VILLAGE_TEXT = "It looks like they survived a few.\nYou can wait a bit and in a few turns\nI will destroy them\nSo for now, lay out a few tiles\n(Click anywhere to continue...)"
+local VILLAGE_ASK_FOR_HELP = "Look, we just want to survive.\nThis old man destroyed all the people on the planet.\nYou can help us, in return we will collect energy\nfor you in the form of coins. Good?\n(Click anywhere to continue...)"
+local CORRUPTION_TEXT = "DID YOU HELP THEM PROGRESS?\nI created an infection that will devour\nevery cell of this world so that there will definitely\nbe no people left. For the fact that\nyou helped them, you will remain in\n this world. See you no more\n(Click anywhere to continue...)"
+local ABILITIES_TEXT = "To fight back against corruption you have two\n abilities. Lightning will clear corruption from the tile\nof your choice. To use it, click once on the lightning\nand again on the tile you wish to restore.\nFreeze will stop corruption spread for 1 turn.\nDrag the map around to see the rest of the world.\nPlease save us (Click anywhere to continue...)"
 
 -- function init(self)
 -- end
@@ -11,55 +13,57 @@ local ABILITIES_TEXT = "To fight back against corruption you have two abilities.
 function hide_tutorial()
 	local node = gui.get_node("shadow1")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - 10800
 	gui.set_position(node, pos)
 
 	local node = gui.get_node("shadow2")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - 10800
 	gui.set_position(node, pos)
 
 	local node = gui.get_node("shadow3")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - 10800
 	gui.set_position(node, pos)
 
 	local node = gui.get_node("shadow4")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - 10800
 	gui.set_position(node, pos)
 
-	local node = gui.get_node("text")
+	local node = gui.get_node("dialogue_window")
 	local pos = gui.get_position(node)
-	pos.y = pos.y - 1080
+	pos.y = pos.y - 10800
 	gui.set_position(node, pos)
+
+	local node = gui.get_node("evil_mage")
+	local pos = gui.get_position(node)
+	pos.y = pos.y - 10800
+	gui.set_position(node, pos)
+	
 end
 
 function show_tutorial()
 	local node = gui.get_node("shadow1")
 	local pos = gui.get_position(node)
-	pos.y = pos.y + 1080
+	pos.y = pos.y + 10800
 	gui.set_position(node, pos)
 
 	local node = gui.get_node("shadow2")
 	local pos = gui.get_position(node)
-	pos.y = pos.y + 1080
+	pos.y = pos.y + 10800
 	gui.set_position(node, pos)
 
 	local node = gui.get_node("shadow3")
 	local pos = gui.get_position(node)
-	pos.y = pos.y + 1080
+	pos.y = pos.y + 10800
 	gui.set_position(node, pos)
 
 	local node = gui.get_node("shadow4")
 	local pos = gui.get_position(node)
-	pos.y = pos.y + 1080
+	pos.y = pos.y + 10800
 	gui.set_position(node, pos)
 
-	local node = gui.get_node("text")
-	local pos = gui.get_position(node)
-	pos.y = pos.y + 1080
-	gui.set_position(node, pos)
 end
 
 function tutorial_tiles()
@@ -89,8 +93,26 @@ function tutorial_tiles()
 	pos.y = 378
 	gui.set_position(node, pos)
 
-	local t = gui.get_node("text")
+	local t = gui.get_node("dialogue_window")
+	local pos = gui.get_position(t)
+	pos.y = 740
+	local scale = gui.get_scale(t)
+	scale.y = 0.6
+	gui.set_scale(t, scale)
+	gui.set_position(t, pos)
+
+	local t = gui.get_node("mage_words")
+	local scale = gui.get_scale(gui.get_node("dialogue_window"))
+	scale.y = 0.3
+	scale.x = 0.26
+	gui.set_scale(t, scale)
 	gui.set_text(t, TILES_TEXT)
+
+	local t = gui.get_node("evil_mage")
+	local pos = gui.get_position(t)
+	pos.y = 380
+	gui.set_position(t, pos)
+	
 	step = hash("tiles")
 end
 
@@ -121,40 +143,172 @@ function tutorial_coins()
 	pos.y = 1064
 	gui.set_position(node, pos)
 
-	local t = gui.get_node("text")
+	local t = gui.get_node("dialogue_window")
+	local pos = gui.get_position(t)
+	pos.y = 740
+	pos.x = 1440
+	gui.play_flipbook(t, hash("dialogue_window_reversed"))
+	local scale = gui.get_scale(t)
+	scale.y = 0.45
+	gui.set_scale(t, scale)
+	gui.set_position(t, pos)
+
+	local t = gui.get_node("mage_words")
+	local scale = gui.get_scale(gui.get_node("dialogue_window"))
+	scale.y = 0.3
+	scale.x = 0.26
+	gui.set_scale(t, scale)
 	gui.set_text(t, COINS_TEXT)
+
+	local t = gui.get_node("evil_mage")
+	local pos = gui.get_position(t)
+	pos.y = 380
+	pos.x = 1740
+	gui.set_position(t, pos)
+	
 	step = hash("coins")
 end
 
-function tutorial_corruption()
+function tutorial_village()
 	local node = gui.get_node("shadow1")
 	local size = gui.get_size(node)
-	size.x = 840
+	size.x = 860
 	gui.set_size(node, size)
+	local pos = gui.get_position(node)
+	pos.x = pos.x
+	pos.y = pos.y
+	gui.set_position(node, pos)
+	
 
 	local node = gui.get_node("shadow2")
 	local size = gui.get_size(node)
 	size.x = 1080
 	size.y = 484
 	gui.set_size(node, size)
+	local pos = gui.get_position(node)
+	pos.x = pos.x + 20
+	pos.y = pos.y + 50
+	gui.set_position(node, pos)
 
 	local node = gui.get_node("shadow3")
 	local size = gui.get_size(node)
 	size.x = 1080
 	size.y = 455
 	gui.set_size(node, size)
+	local pos = gui.get_position(node)
+	pos.x = pos.x + 20
+	pos.y = pos.y + 70
+	gui.set_position(node, pos)
 
 	local node = gui.get_node("shadow4")
 	local size = gui.get_size(node)
-	size.x = 1920 - 840 - 128
-	size.y = 141
+	size.x = 1920 - 800 - 124
+	size.y = 162
 	gui.set_size(node, size)
 	local pos = gui.get_position(node)
-	pos.y = 1080 - 455
+	pos.y = 1080 - 385
+	pos.x = pos.x + 125
 	gui.set_position(node, pos)
 
-	local t = gui.get_node("text")
+	local t = gui.get_node("dialogue_window")
+	local pos = gui.get_position(t)
+	pos.y = 740
+	pos.x = 1440
+	gui.play_flipbook(t, hash("dialogue_window_reversed"))
+	local scale = gui.get_scale(t)
+	scale.y = 0.45
+	gui.set_scale(t, scale)
+	gui.set_position(t, pos)
+
+	local t = gui.get_node("mage_words")
+	local scale = gui.get_scale(gui.get_node("dialogue_window"))
+	scale.y = 0.3
+	scale.x = 0.26
+	gui.set_scale(t, scale)
+	gui.set_text(t, VILLAGE_TEXT)
+
+	local t = gui.get_node("evil_mage")
+	local pos = gui.get_position(t)
+	pos.y = 380
+	pos.x = 1740
+	gui.set_position(t, pos)
+
+	step = hash("village")
+	
+end
+
+function villager_help()
+	local t = gui.get_node("dialogue_window")
+	local pos = gui.get_position(t)
+	pos.y = 740
+	pos.x = 400
+	gui.play_flipbook(t, hash("dialogue_window"))
+	local scale = gui.get_scale(t)
+	scale.y = 0.45
+	gui.set_scale(t, scale)
+	gui.set_position(t, pos)
+
+	local t = gui.get_node("mage_words")
+	local scale = gui.get_scale(gui.get_node("dialogue_window"))
+	scale.y = 0.3
+	scale.x = 0.26
+	gui.set_scale(t, scale)
+	gui.set_text(t, VILLAGE_ASK_FOR_HELP)
+
+	local t = gui.get_node("evil_mage")
+	local pos = gui.get_position(t)
+	gui.play_flipbook(t, hash("traveller"))
+	pos.y = 380
+	pos.x = 140
+	gui.set_position(t, pos)
+
+	step = hash("villager_help")
+end
+	
+
+function tutorial_corruption()
+	local node = gui.get_node("shadow1")
+	local size = gui.get_size(node)
+	gui.set_size(node, size)
+
+	local node = gui.get_node("shadow2")
+	local size = gui.get_size(node)
+	gui.set_size(node, size)
+
+	local node = gui.get_node("shadow3")
+	local size = gui.get_size(node)
+	gui.set_size(node, size)
+
+	local node = gui.get_node("shadow4")
+	local size = gui.get_size(node)
+	gui.set_size(node, size)
+	local pos = gui.get_position(node)
+	gui.set_position(node, pos)
+
+	local t = gui.get_node("dialogue_window")
+	local pos = gui.get_position(t)
+	pos.y = 740
+	pos.x = 1440
+	gui.play_flipbook(t, hash("dialogue_window_reversed"))
+	local scale = gui.get_scale(t)
+	scale.y = 0.45
+	gui.set_scale(t, scale)
+	gui.set_position(t, pos)
+
+	local t = gui.get_node("mage_words")
+	local scale = gui.get_scale(gui.get_node("dialogue_window"))
+	scale.y = 0.3
+	scale.x = 0.26
+	gui.set_scale(t, scale)
 	gui.set_text(t, CORRUPTION_TEXT)
+
+	local t = gui.get_node("evil_mage")
+	local pos = gui.get_position(t)
+	gui.play_flipbook(t, hash("evil_mage_beginning"))
+	pos.y = 380
+	pos.x = 1740
+	gui.set_position(t, pos)
+
 	step = hash("corruption")
 end
 
@@ -162,32 +316,54 @@ function tutorial_abilities()
 	msg.post("/gui#main", "show_abilities")
 	local node = gui.get_node("shadow1")
 	local size = gui.get_size(node)
-	size.x = 1720
+	size.x = 1740
 	gui.set_size(node, size)
 
 	local node = gui.get_node("shadow2")
 	local size = gui.get_size(node)
 	size.x = 200
-	size.y = 380
+	size.y = 320
 	gui.set_size(node, size)
 
 	local node = gui.get_node("shadow3")
 	local size = gui.get_size(node)
 	size.x = 200
-	size.y = 370
+	size.y = 400
 	gui.set_size(node, size)
 
 	local node = gui.get_node("shadow4")
 	local size = gui.get_size(node)
-	size.x = 40
-	size.y = 330
-	gui.set_size(node, size)
+	size.x = 190
+	size.y = 400
 	local pos = gui.get_position(node)
-	pos.y = 710
+	pos.y = pos.y + 70
 	gui.set_position(node, pos)
+	gui.set_size(node, size)
 
-	local t = gui.get_node("text")
+	local t = gui.get_node("dialogue_window")
+	local pos = gui.get_position(t)
+	pos.y = 740
+	pos.x = 400
+	gui.play_flipbook(t, hash("dialogue_window"))
+	local scale = gui.get_scale(t)
+	scale.y = 0.45
+	gui.set_scale(t, scale)
+	gui.set_position(t, pos)
+
+	local t = gui.get_node("mage_words")
+	local scale = gui.get_scale(gui.get_node("dialogue_window"))
+	scale.y = 0.3
+	scale.x = 0.26
+	gui.set_scale(t, scale)
 	gui.set_text(t, ABILITIES_TEXT)
+
+	local t = gui.get_node("evil_mage")
+	local pos = gui.get_position(t)
+	gui.play_flipbook(t, hash("traveller"))
+	pos.y = 380
+	pos.x = 140
+	gui.set_position(t, pos)
+	
 	step = hash("abilities")
 end
 
@@ -216,6 +392,13 @@ function on_message(self, message_id, message, sender)
 			show_tutorial()
 			tutorial_corruption()
 		end
+	elseif message_id == hash("village") then
+		if not skip then
+			msg.post(".", "acquire_input_focus")
+			msg.post('/camera_body', 'tutorial_corruption', message)
+			show_tutorial()
+			tutorial_village()
+		end
 	end
 end
 
@@ -231,25 +414,19 @@ function on_input(self, action_id, action)
 	-- Remove this function if not needed
 	if action_id == hash("touch_left") and action.pressed then
 		if step == hash("start") then
-			if gui.pick_node(gui.get_node("play_without_tutorial"), action.x, action.y) then
-				hide_tutorial()
-				msg.post(".", "release_input_focus")
-				msg.post("/camera_body", "acquire_input_focus")
-				msg.post("/gui#main", "acquire_input_focus")
-				msg.post("/cursor#cursor", "acquire_input_focus")
-				skip = true
-				gui.delete_node(gui.get_node("play_without_tutorial"))
-				gui.delete_node(gui.get_node("play_with_tutorial"))
-			elseif gui.pick_node(gui.get_node("play_with_tutorial"), action.x, action.y) then
-				gui.set_font(gui.get_node("text"), hash("main"))
-				gui.set_scale(gui.get_node("text"), vmath.vector3(1))
-				tutorial_tiles()
-				gui.delete_node(gui.get_node("play_without_tutorial"))
-				gui.delete_node(gui.get_node("play_with_tutorial"))
-			end
+			gui.set_font(gui.get_node("text"), hash("main"))
+			gui.set_scale(gui.get_node("text"), vmath.vector3(1))
+			tutorial_tiles()
+			gui.delete_node(gui.get_node("to_begin_text"))
+			gui.delete_node(gui.get_node("text"))
 		elseif step == hash("tiles") then
 			tutorial_coins()
 		elseif step == hash("coins") then
+			hide_tutorial()
+			msg.post(".", "release_input_focus")
+		elseif step == hash("village") then
+			villager_help()
+		elseif step == hash("villager_help") then
 			hide_tutorial()
 			msg.post(".", "release_input_focus")
 		elseif step == hash("corruption") then
