@@ -1,11 +1,11 @@
 local step = hash("start")
 local skip = false;
-local TILES_TEXT = "I want this world to be beautiful and peaceful.\nLet's ennoble it with water forests and mountains.\nTheese are your tiles to build the world with.\nEvery turn you can drag one of the available tiles\nto place it adjacent with any other tile on the map.\nRight click on the tile to change it for 40 coins.\n(Click anywhere to continue...)"
+local TILES_TEXT = "I want this world to be beautiful and peaceful.\nLet's ennoble it with water, forests and mountains.\nTheese are your tiles to build the world with.\nEvery turn you can drag one of the available tiles\nto place it adjacent with any other tile on the map.\nRight click on the tile to change it for 40 coins.\n(Click anywhere to continue...)"
 local COINS_TEXT = "There used to be people and their villages here.\nThey gave coins to meet their needs, and they\ngrew if there were enough resources. But\nI got rid of them, I wanted peace and quiet.\nSo you don't need coins\n(Click anywhere to continue...)"
 local VILLAGE_TEXT = "It looks like they survived a few.\nYou can wait a bit and in a few turns\nI will destroy them\nSo for now, lay out a few tiles\n(Click anywhere to continue...)"
 local VILLAGE_ASK_FOR_HELP = "Look, we just want to survive.\nThis old man destroyed all the people on the planet.\nYou can help us, in return we will collect energy\nfor you in the form of coins. Good?\n(Click anywhere to continue...)"
 local CORRUPTION_TEXT = "DID YOU HELP THEM PROGRESS?\nI created an infection that will devour\nevery cell of this world so that there will definitely\nbe no people left. For the fact that\nyou helped them, you will remain in\n this world. See you no more\n(Click anywhere to continue...)"
-local ABILITIES_TEXT = "To fight back against corruption you have two\n abilities. Lightning will clear corruption from the tile\nof your choice. To use it, click once on the lightning\nand again on the tile you wish to restore.\nFreeze will stop corruption spread for 1 turn.\nDrag the map around to see the rest of the world.\nPlease save us (Click anywhere to continue...)"
+local ABILITIES_TEXT = "To fight back against corruption you have two\n abilities. Lightning will clear corruption from the tile\nof your choice. To use it, click once on the lightning\nand again on the tile you wish to restore.\n You also can buy upgrade for it\nFreeze will stop corruption spread for 1 turn.\nDrag the map around to see the rest of the world.\nPlease save us (Click anywhere to continue...)"
 
 -- function init(self)
 -- end
@@ -342,18 +342,27 @@ function tutorial_abilities()
 	local node = gui.get_node("shadow1")
 	local size = gui.get_size(node)
 	size.x = 1740
+	local pos = gui.get_position(node)
+	pos.x = pos.x - 170
+	gui.set_position(node, pos)
 	gui.set_size(node, size)
 
 	local node = gui.get_node("shadow2")
 	local size = gui.get_size(node)
-	size.x = 200
+	size.x = 350
 	size.y = 320
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 60
+	gui.set_position(node, pos)
 	gui.set_size(node, size)
 
 	local node = gui.get_node("shadow3")
 	local size = gui.get_size(node)
-	size.x = 200
+	size.x = 350
 	size.y = 400
+	local pos = gui.get_position(node)
+	pos.y = pos.y + 60
+	gui.set_position(node, pos)
 	gui.set_size(node, size)
 
 	local node = gui.get_node("shadow4")
@@ -361,7 +370,7 @@ function tutorial_abilities()
 	size.x = 190
 	size.y = 400
 	local pos = gui.get_position(node)
-	pos.y = pos.y + 70
+	pos.y = pos.y - 7000
 	gui.set_position(node, pos)
 	gui.set_size(node, size)
 
@@ -371,7 +380,7 @@ function tutorial_abilities()
 	pos.x = 400
 	gui.play_flipbook(t, hash("dialogue_window"))
 	local scale = gui.get_scale(t)
-	scale.y = 0.45
+	scale.y = 0.5
 	gui.set_scale(t, scale)
 	gui.set_position(t, pos)
 

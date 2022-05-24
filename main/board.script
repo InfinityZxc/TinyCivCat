@@ -45,7 +45,7 @@ local moving_tile_id = nil
 local moving_tile_offset = nil
 local map_type = hash("hex")
 go.property("map_type", hash("hex"))
-local corruption_beginning = 3 -- 16
+local corruption_beginning = 2 -- 16
 local spawn_village_every_x_turn = 15
 local corruption_acceleration = 10
 local unhash = {
