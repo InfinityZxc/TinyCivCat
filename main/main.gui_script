@@ -2,12 +2,12 @@ local screen = require('libs.screen')
 
 local gui_elements = {}
 
-local tile_types = {hash("wood"), hash("rock"), hash("water")}
 local active_node = nil
 local node1, node2, node1_pos, node2_pos, shop_tile
 local SHOP_ANIM_DURATION = 0.7
 local end_screen = false
 local volume = 1
+local new_tile_num
 
 local default_screen_size = {height = 1080, width = 1920}
 
@@ -47,9 +47,6 @@ function init(self)
 	node1_pos = gui.get_position(node1)
 	node2 = gui.get_node("gui_tile2")
 	node2_pos = gui.get_position(node2)
-	gui.play_flipbook(node1, tile_types[math.random(#tile_types)])
-	gui.play_flipbook(node2, tile_types[math.random(#tile_types)])
-	
 	
 	table.insert(gui_elements, gui.get_node("volume_switch"))
 
@@ -187,15 +184,17 @@ function on_message(self, message_id, message, sender)
 	-- Learn more: https://defold.com/manuals/message-passing/
 	-- Remove this function if not needed
 	if active_node then
+		assert(message.tile_type)
 		if message_id == hash("gui_new_tile") then
-			gui.play_flipbook(active_node, tile_types[math.random(#tile_types)])
+			gui.play_flipbook(active_node, message.tile_type)
 			active_node = nil;
 		elseif message_id == hash("gui_revert_tile") then
-			gui.play_flipbook(active_node, message['tile_type'])
+			gui.play_flipbook(active_node, message.tile_type)
 			active_node = nil;
 		end
 	end
 	if message_id == hash("set_asset") then
+		assert(message.anim_id)
 		gui.play_flipbook(gui.get_node(message.node_id), message.anim_id)
 	elseif message_id == hash("gui_set_coins") then
 		gui.set_text(gui.get_node("coins"), string.format("%d", message.coins))
@@ -210,7 +209,7 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("show_abilities") then
 		show_abilities()
 	elseif message_id == hash("hide_abilities") then
-		hide_abilities()
+		-- hide_abilities()
 	-- elseif message_id == hash("game_won") then
 	-- 	top_bar = gui.get_node("top_bar")
 	-- -- 	gui.set_text(top_bar, "YOU WON!")
@@ -332,8 +331,10 @@ function on_input(self, action_id, action)
 		end
 		if pick_hex(node1_pos.x, node1_pos.y, action.x, action.y) then
 			node = node1
+			new_tile_num = 1
 		elseif pick_hex(node2_pos.x, node2_pos.y, action.x, action.y) then
 			node = node2
+			new_tile_num = 2
 		elseif gui.pick_node(gui.get_node("thunder"), action.x, action.y) then
 			ability = hash("thunder")
 			msg.post("/cursor#cursor", "lightning")
@@ -362,7 +363,7 @@ function on_input(self, action_id, action)
 			local type = gui.get_flipbook(node)
 			local pos = vmath.vector3(action.x, action.y, 0)
 			local offset = (pos - gui.get_position(node))
-			msg.post("/game#board", "new_tile", { position = pos, type = type, offset = offset })
+			msg.post("/game#board", "new_tile", { position = pos, type = type, offset = offset, num = new_tile_num})
 			gui.play_flipbook(node, hash("empty_hex"))
 			active_node = node
 			return true

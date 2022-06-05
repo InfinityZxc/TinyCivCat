@@ -1,5 +1,5 @@
 local step = hash("start")
-local skip = false;
+local skip = true;
 local TILES_TEXT = "I want this world to be beautiful and peaceful.\nLet's ennoble it with water, forests and mountains.\nTheese are your tiles to build the world with.\nEvery turn you can drag one of the available tiles\nto place it adjacent with any other tile on the map.\nRight click on the tile to change it for 40 coins.\n(Click anywhere to continue...)"
 local COINS_TEXT = "There used to be people and their villages here.\nThey gave coins to meet their needs, and they\ngrew if there were enough resources. But\nI got rid of them, I wanted peace and quiet.\nSo you don't need coins\n(Click anywhere to continue...)"
 local VILLAGE_TEXT = "It looks like they survived a few.\nYou can wait a bit and in a few turns\nI will destroy them\nSo for now, lay out a few tiles\n(Click anywhere to continue...)"

@@ -7,7 +7,6 @@ function change_tile(self, type)
 end
 
 function init(self)
-	msg.post("#sprite", "play_animation", { id = hash(self.tile_type) })
 	local xscale = go.get("#sprite", "scale.x")
 	local yscale = go.get("#sprite", "scale.y")
 	go.set("#sprite", "scale.x", xscale / 2)
